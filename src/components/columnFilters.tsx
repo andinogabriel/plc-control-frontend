@@ -18,11 +18,12 @@ function FilterShell({ label, active, canApply, disabled, onApply, onClear, chil
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const close = () => setAnchor(null);
   return (
-    <Stack direction="row" alignItems="center" spacing={0.25} sx={{ width: '100%' }}>
-      <Box component="span" sx={{ fontWeight: 600, flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+    <Stack direction="row" alignItems="center" spacing={0} sx={{ width: '100%' }}>
+      <Box component="span" sx={{ fontWeight: 700, flexGrow: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {label}
       </Box>
-      <IconButton size="small" disabled={disabled} onClick={(e) => setAnchor(e.currentTarget)} aria-label={`Filtrar ${label}`}>
+      <IconButton size="small" disabled={disabled} onClick={(e) => setAnchor(e.currentTarget)}
+        aria-label={`Filtrar ${label}`} sx={{ p: 0.25, ml: 0.25, flexShrink: 0 }}>
         <FilterAltIcon sx={{ fontSize: 16 }} color={active ? 'primary' : 'disabled'} />
       </IconButton>
       <Popover

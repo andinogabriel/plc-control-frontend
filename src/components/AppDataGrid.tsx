@@ -33,8 +33,10 @@ export function AppDataGrid(props: DataGridProps) {
           // Subtle, mode-agnostic grid lines between rows and columns.
           '--DataGrid-rowBorderColor': 'rgba(128,128,128,0.22)',
           '& .MuiDataGrid-columnHeaders': { backgroundColor: 'action.hover' },
+          '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 700 },
           '& .MuiDataGrid-cell': { borderColor: 'rgba(128,128,128,0.22)' },
           '& .MuiDataGrid-columnHeader': { borderColor: 'rgba(128,128,128,0.22)' },
+          '& .MuiDataGrid-row:hover': { backgroundColor: 'action.hover' },
           ...props.sx,
         }}
       />

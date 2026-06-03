@@ -109,38 +109,38 @@ export function ConfigHistoryPage() {
       ),
     },
     {
-      field: 'temperatureMin', headerName: 'T. mín', flex: 0.55, minWidth: 86, type: 'number', sortable: false,
+      field: 'temperatureMin', headerName: 'T. mín', flex: 0.65, minWidth: 104, type: 'number', sortable: false,
       renderHeader: () => (
         <NumberFilterHeader label="T. mín" min={-10} max={60} disabled={disabledHeaders} value={searchParams.get('temperatureMin') ?? ''}
           onApply={(v) => updateParams({ temperatureMin: v, page: '0' })} />
       ),
     },
     {
-      field: 'temperatureMax', headerName: 'T. máx', flex: 0.55, minWidth: 86, type: 'number', sortable: false,
+      field: 'temperatureMax', headerName: 'T. máx', flex: 0.65, minWidth: 104, type: 'number', sortable: false,
       renderHeader: () => (
         <NumberFilterHeader label="T. máx" min={-10} max={60} disabled={disabledHeaders} value={searchParams.get('temperatureMax') ?? ''}
           onApply={(v) => updateParams({ temperatureMax: v, page: '0' })} />
       ),
     },
     {
-      field: 'humidityMin', headerName: 'H. mín', flex: 0.55, minWidth: 86, type: 'number', sortable: false,
+      field: 'humidityMin', headerName: 'H. mín', flex: 0.65, minWidth: 104, type: 'number', sortable: false,
       renderHeader: () => (
         <NumberFilterHeader label="H. mín" min={0} max={100} disabled={disabledHeaders} value={searchParams.get('humidityMin') ?? ''}
           onApply={(v) => updateParams({ humidityMin: v, page: '0' })} />
       ),
     },
     {
-      field: 'humidityMax', headerName: 'H. máx', flex: 0.55, minWidth: 86, type: 'number', sortable: false,
+      field: 'humidityMax', headerName: 'H. máx', flex: 0.65, minWidth: 104, type: 'number', sortable: false,
       renderHeader: () => (
         <NumberFilterHeader label="H. máx" min={0} max={100} disabled={disabledHeaders} value={searchParams.get('humidityMax') ?? ''}
           onApply={(v) => updateParams({ humidityMax: v, page: '0' })} />
       ),
     },
-    { field: 'hysteresisTemperature', headerName: 'Hist. T', flex: 0.5, minWidth: 80, type: 'number' },
-    { field: 'hysteresisHumidity', headerName: 'Hist. H', flex: 0.5, minWidth: 80, type: 'number' },
-    { field: 'measurementIntervalSeconds', headerName: 'Intervalo (s)', flex: 0.65, minWidth: 96, type: 'number' },
+    { field: 'hysteresisTemperature', headerName: 'Hist. T', flex: 0.55, minWidth: 92, type: 'number' },
+    { field: 'hysteresisHumidity', headerName: 'Hist. H', flex: 0.55, minWidth: 92, type: 'number' },
+    { field: 'measurementIntervalSeconds', headerName: 'Intervalo (s)', flex: 0.8, minWidth: 120, type: 'number' },
     {
-      field: 'active', headerName: 'Activa', flex: 0.55, minWidth: 86, sortable: false,
+      field: 'active', headerName: 'Activa', flex: 0.55, minWidth: 96, sortable: false,
       renderCell: (params) =>
         params.value
           ? <Chip label="Activa" color="success" size="small" />
