@@ -4,6 +4,7 @@ import {
   Grid, Card, CardActionArea, CardContent, Typography, Box, CircularProgress, Alert, Stack,
   useMediaQuery, useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
@@ -15,19 +16,31 @@ import { configApi } from '../api/configApi';
 import { StatusChip } from '../components/StatusChip';
 import { chartSx, formatAxisDate } from '../components/chartStyle';
 
-function MetricCard({ icon, label, value, onClick, children }: {
-  icon: React.ReactNode; label: string; value?: string; onClick: () => void; children?: React.ReactNode;
+type AccentColor = 'primary' | 'secondary' | 'success' | 'warning' | 'error';
+
+function MetricCard({ icon, label, value, color = 'primary', onClick, children }: {
+  icon: React.ReactNode; label: string; value?: string; color?: AccentColor;
+  onClick: () => void; children?: React.ReactNode;
 }) {
   return (
     <Card sx={{ height: '100%' }}>
-      <CardActionArea onClick={onClick} sx={{ height: '100%', p: 1 }}>
-        <CardContent sx={{ minHeight: 150 }}>
-          <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+      <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
+        <CardContent sx={{ minHeight: 168, p: 2.5 }}>
+          <Box sx={(t) => ({
+            width: 44, height: 44, borderRadius: 2.5, mb: 1.75,
+            display: 'grid', placeItems: 'center',
+            color: t.palette[color].main,
+            backgroundColor: alpha(t.palette[color].main, 0.12),
+          })}>
             {icon}
-            <Typography color="text.secondary" variant="body2">{label}</Typography>
-          </Stack>
-          {value !== undefined && <Typography variant="h3" fontWeight={700}>{value}</Typography>}
-          <Box mt={value !== undefined ? 1.5 : 0}>{children}</Box>
+          </Box>
+          <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: '0.06em' }}>
+            {label}
+          </Typography>
+          {value !== undefined && (
+            <Typography variant="h4" fontWeight={700} sx={{ mt: 0.25 }}>{value}</Typography>
+          )}
+          <Box mt={1.25}>{children}</Box>
         </CardContent>
       </CardActionArea>
     </Card>
@@ -88,7 +101,7 @@ export function DashboardPage() {
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard icon={<ThermostatIcon color="primary" />} label="Temperatura actual"
+          <MetricCard icon={<ThermostatIcon />} color="primary" label="Temperatura actual"
             value={`${latest.temperature.toFixed(1)} °C`} onClick={goToMeasurements}>
             {config && (
               <Typography variant="caption" color="text.secondary">
@@ -98,7 +111,7 @@ export function DashboardPage() {
           </MetricCard>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard icon={<WaterDropIcon color="primary" />} label="Humedad actual"
+          <MetricCard icon={<WaterDropIcon />} color="secondary" label="Humedad actual"
             value={`${latest.humidity.toFixed(1)} %`} onClick={goToMeasurements}>
             {config && (
               <Typography variant="caption" color="text.secondary">
@@ -108,14 +121,14 @@ export function DashboardPage() {
           </MetricCard>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard icon={<AcUnitIcon color={latest.coolerOn ? 'primary' : 'disabled'} />}
+          <MetricCard icon={<AcUnitIcon />} color={latest.coolerOn ? 'success' : 'secondary'}
             label="Estado del cooler" value={latest.coolerOn ? 'ENCENDIDO' : 'APAGADO'}
             onClick={goToMeasurements} />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard icon={<InsightsIcon color="primary" />} label="Estado general"
+          <MetricCard icon={<InsightsIcon />} color="warning" label="Estado general"
             onClick={goToMeasurements}>
-            <Stack spacing={1.5} mt={1}>
+            <Stack spacing={1.25}>
               <Box><StatusChip status={latest.status} /></Box>
               <Typography variant="caption" color="text.secondary">Actualizado: {updated}</Typography>
             </Stack>

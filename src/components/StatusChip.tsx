@@ -1,6 +1,9 @@
 import { Chip } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
-const colorMap: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
+type PaletteKey = 'success' | 'warning' | 'error' | 'default';
+
+const colorMap: Record<string, PaletteKey> = {
   NORMAL: 'success',
   WARNING: 'warning',
   WARNING_TEMP: 'warning',
@@ -20,5 +23,20 @@ const labelMap: Record<string, string> = {
 };
 
 export function StatusChip({ status }: { status: string }) {
-  return <Chip label={labelMap[status] ?? status} color={colorMap[status] ?? 'default'} size="small" />;
+  const key = colorMap[status] ?? 'default';
+  return (
+    <Chip
+      label={labelMap[status] ?? status}
+      size="small"
+      sx={(theme) => {
+        const main = key === 'default' ? theme.palette.text.secondary : theme.palette[key].main;
+        return {
+          fontWeight: 600,
+          color: main,
+          backgroundColor: alpha(main, 0.14),
+          border: `1px solid ${alpha(main, 0.28)}`,
+        };
+      }}
+    />
+  );
 }

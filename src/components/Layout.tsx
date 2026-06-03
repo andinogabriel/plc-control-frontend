@@ -113,8 +113,8 @@ export function Layout({ children }: { children: ReactNode }) {
           <IconButton color="inherit" edge="start" onClick={toggle} aria-label="Abrir/cerrar menú" sx={{ mr: 1 }}>
             <MenuIcon />
           </IconButton>
-          <ThermostatIcon sx={{ mr: 1 }} />
-          <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>Sistema de Control PLC</Typography>
+          <ThermostatIcon sx={{ mr: 1, color: 'primary.main' }} />
+          <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700 }}>Sistema de Control PLC</Typography>
           <ColorModeButton />
         </Toolbar>
       </AppBar>
