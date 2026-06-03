@@ -9,12 +9,11 @@ import ThermostatIcon from '@mui/icons-material/Thermostat';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 import InsightsIcon from '@mui/icons-material/Insights';
-import { LineChart } from '@mui/x-charts/LineChart';
 import dayjs from 'dayjs';
 import { measurementApi } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
 import { StatusChip } from '../components/StatusChip';
-import { chartSx, formatAxisDate } from '../components/chartStyle';
+import { AreaLineChart } from '../components/AreaLineChart';
 
 type AccentColor = 'primary' | 'secondary' | 'success' | 'warning' | 'error';
 
@@ -145,19 +144,14 @@ export function DashboardPage() {
                 </Typography>
               )}
               {chartPoints.length > 0 ? (
-                <LineChart
+                <AreaLineChart
                   height={isMobile ? 260 : 340}
-                  sx={chartSx}
-                  xAxis={[{
-                    data: labels,
-                    scaleType: 'time',
-                    valueFormatter: (value, ctx) => formatAxisDate(value as Date, ctx?.location, 'time'),
-                  }]}
+                  mode="time"
+                  labels={labels}
                   series={[
-                    { data: chartPoints.map((m) => m.temperature), label: 'Temperatura (°C)', color: '#2563eb', showMark: false, curve: 'monotoneX' },
-                    { data: chartPoints.map((m) => m.humidity), label: 'Humedad (%)', color: '#0d9488', showMark: false, curve: 'monotoneX' },
+                    { id: 'temp', label: 'Temperatura (°C)', data: chartPoints.map((m) => m.temperature), color: '#6366f1' },
+                    { id: 'hum', label: 'Humedad (%)', data: chartPoints.map((m) => m.humidity), color: '#14b8a6' },
                   ]}
-                  grid={{ horizontal: true }}
                 />
               ) : (
                 <Typography variant="body2" color="text.secondary">Sin datos recientes.</Typography>

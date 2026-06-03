@@ -6,14 +6,13 @@ import {
   useMediaQuery, useTheme,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { LineChart } from '@mui/x-charts/LineChart';
 import { type GridColDef } from '@mui/x-data-grid';
 import dayjs, { type Dayjs } from 'dayjs';
 import { measurementApi, type MeasurementQuery } from '../api/measurementApi';
 import type { SystemStatus } from '../api/types';
 import { AppDataGrid } from '../components/AppDataGrid';
 import { StatusChip } from '../components/StatusChip';
-import { chartSx, formatAxisDate } from '../components/chartStyle';
+import { AreaLineChart } from '../components/AreaLineChart';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import {
   DateRangeFilterHeader, NumberRangeFilterHeader, SelectFilterHeader,
@@ -213,9 +212,8 @@ export function HistoryPage() {
           <Card><CardContent>
             <Typography variant="subtitle1" gutterBottom>Temperatura vs tiempo</Typography>
             {points.length > 0 ? (
-              <LineChart height={chartHeight} sx={chartSx} grid={{ horizontal: true }}
-                xAxis={[{ data: labels, scaleType: 'time', valueFormatter: (value, ctx) => formatAxisDate(value as Date, ctx?.location, 'date') }]}
-                series={[{ data: points.map((m) => m.temperature), label: 'Temperatura (°C)', color: '#2563eb', showMark: false, curve: 'monotoneX' }]} />
+              <AreaLineChart height={chartHeight} mode="date" labels={labels}
+                series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: '#6366f1' }]} />
             ) : <Typography variant="body2" color="text.secondary">Sin datos.</Typography>}
           </CardContent></Card>
         </Grid>
@@ -223,9 +221,8 @@ export function HistoryPage() {
           <Card><CardContent>
             <Typography variant="subtitle1" gutterBottom>Humedad vs tiempo</Typography>
             {points.length > 0 ? (
-              <LineChart height={chartHeight} sx={chartSx} grid={{ horizontal: true }}
-                xAxis={[{ data: labels, scaleType: 'time', valueFormatter: (value, ctx) => formatAxisDate(value as Date, ctx?.location, 'date') }]}
-                series={[{ data: points.map((m) => m.humidity), label: 'Humedad (%)', color: '#0d9488', showMark: false, curve: 'monotoneX' }]} />
+              <AreaLineChart height={chartHeight} mode="date" labels={labels}
+                series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: '#14b8a6' }]} />
             ) : <Typography variant="body2" color="text.secondary">Sin datos.</Typography>}
           </CardContent></Card>
         </Grid>

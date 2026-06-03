@@ -5,12 +5,11 @@ import {
   Box, Card, CardContent, Typography, Stack, Button, Chip, Grid, useMediaQuery, useTheme,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { LineChart } from '@mui/x-charts/LineChart';
 import { type GridColDef } from '@mui/x-data-grid';
 import dayjs, { type Dayjs } from 'dayjs';
 import { configApi, type ConfigHistoryQuery } from '../api/configApi';
 import { AppDataGrid } from '../components/AppDataGrid';
-import { chartSx, formatAxisDate } from '../components/chartStyle';
+import { AreaLineChart } from '../components/AreaLineChart';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import {
   DateRangeFilterHeader, NumberFilterHeader, TextFilterHeader,
@@ -87,7 +86,7 @@ export function ConfigHistoryPage() {
   // Columns with per-column filter headers (recompute when the URL or empty-state changes).
   const columns: GridColDef[] = useMemo(() => [
     {
-      field: 'createdAt', headerName: 'Fecha', flex: 1.3, minWidth: 170, sortable: false,
+      field: 'createdAt', headerName: 'Fecha', flex: 1.8, minWidth: 175, sortable: false,
       renderHeader: () => (
         <DateRangeFilterHeader label="Fecha" disabled={disabledHeaders}
           from={searchParams.get('from') ?? ''} to={searchParams.get('to') ?? ''}
@@ -96,52 +95,52 @@ export function ConfigHistoryPage() {
       valueFormatter: (value) => new Date(value as string).toLocaleString(),
     },
     {
-      field: 'createdByName', headerName: 'Nombre', flex: 1.1, minWidth: 150, sortable: false,
+      field: 'createdByName', headerName: 'Nombre', flex: 1.5, minWidth: 150, sortable: false,
       renderHeader: () => (
         <TextFilterHeader label="Nombre" disabled={disabledHeaders} value={searchParams.get('createdByName') ?? ''}
           onApply={(v) => updateParams({ createdByName: v, page: '0' })} />
       ),
     },
     {
-      field: 'createdByEmail', headerName: 'Email', flex: 1.6, minWidth: 200, sortable: false,
+      field: 'createdByEmail', headerName: 'Email', flex: 2.2, minWidth: 210, sortable: false,
       renderHeader: () => (
         <TextFilterHeader label="Email" disabled={disabledHeaders} value={searchParams.get('createdByEmail') ?? ''}
           onApply={(v) => updateParams({ createdByEmail: v, page: '0' })} />
       ),
     },
     {
-      field: 'temperatureMin', headerName: 'T. mín', flex: 0.8, minWidth: 105, type: 'number', sortable: false,
+      field: 'temperatureMin', headerName: 'T. mín', flex: 0.55, minWidth: 86, type: 'number', sortable: false,
       renderHeader: () => (
         <NumberFilterHeader label="T. mín" min={-10} max={60} disabled={disabledHeaders} value={searchParams.get('temperatureMin') ?? ''}
           onApply={(v) => updateParams({ temperatureMin: v, page: '0' })} />
       ),
     },
     {
-      field: 'temperatureMax', headerName: 'T. máx', flex: 0.8, minWidth: 105, type: 'number', sortable: false,
+      field: 'temperatureMax', headerName: 'T. máx', flex: 0.55, minWidth: 86, type: 'number', sortable: false,
       renderHeader: () => (
         <NumberFilterHeader label="T. máx" min={-10} max={60} disabled={disabledHeaders} value={searchParams.get('temperatureMax') ?? ''}
           onApply={(v) => updateParams({ temperatureMax: v, page: '0' })} />
       ),
     },
     {
-      field: 'humidityMin', headerName: 'H. mín', flex: 0.8, minWidth: 105, type: 'number', sortable: false,
+      field: 'humidityMin', headerName: 'H. mín', flex: 0.55, minWidth: 86, type: 'number', sortable: false,
       renderHeader: () => (
         <NumberFilterHeader label="H. mín" min={0} max={100} disabled={disabledHeaders} value={searchParams.get('humidityMin') ?? ''}
           onApply={(v) => updateParams({ humidityMin: v, page: '0' })} />
       ),
     },
     {
-      field: 'humidityMax', headerName: 'H. máx', flex: 0.8, minWidth: 105, type: 'number', sortable: false,
+      field: 'humidityMax', headerName: 'H. máx', flex: 0.55, minWidth: 86, type: 'number', sortable: false,
       renderHeader: () => (
         <NumberFilterHeader label="H. máx" min={0} max={100} disabled={disabledHeaders} value={searchParams.get('humidityMax') ?? ''}
           onApply={(v) => updateParams({ humidityMax: v, page: '0' })} />
       ),
     },
-    { field: 'hysteresisTemperature', headerName: 'Hist. T', flex: 0.7, minWidth: 90, type: 'number' },
-    { field: 'hysteresisHumidity', headerName: 'Hist. H', flex: 0.7, minWidth: 90, type: 'number' },
-    { field: 'measurementIntervalSeconds', headerName: 'Intervalo (s)', flex: 0.8, minWidth: 110, type: 'number' },
+    { field: 'hysteresisTemperature', headerName: 'Hist. T', flex: 0.5, minWidth: 80, type: 'number' },
+    { field: 'hysteresisHumidity', headerName: 'Hist. H', flex: 0.5, minWidth: 80, type: 'number' },
+    { field: 'measurementIntervalSeconds', headerName: 'Intervalo (s)', flex: 0.65, minWidth: 96, type: 'number' },
     {
-      field: 'active', headerName: 'Activa', flex: 0.7, minWidth: 90, sortable: false,
+      field: 'active', headerName: 'Activa', flex: 0.55, minWidth: 86, sortable: false,
       renderCell: (params) =>
         params.value
           ? <Chip label="Activa" color="success" size="small" />
@@ -198,11 +197,10 @@ export function ConfigHistoryPage() {
           <Card><CardContent>
             <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de temperatura</Typography>
             {points.length > 0 ? (
-              <LineChart height={260} sx={chartSx} grid={{ horizontal: true }}
-                xAxis={[{ data: labels, scaleType: 'time', valueFormatter: (value, ctx) => formatAxisDate(value as Date, ctx?.location, 'date') }]}
+              <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
                 series={[
-                  { data: points.map((c) => c.temperatureMin), label: 'T. mín', color: '#2563eb', curve: 'stepAfter', showMark: false },
-                  { data: points.map((c) => c.temperatureMax), label: 'T. máx', color: '#dc2626', curve: 'stepAfter', showMark: false },
+                  { id: 'tmin', label: 'T. mín', data: points.map((c) => c.temperatureMin), color: '#6366f1' },
+                  { id: 'tmax', label: 'T. máx', data: points.map((c) => c.temperatureMax), color: '#f43f5e' },
                 ]} />
             ) : <Typography variant="body2" color="text.secondary">Sin datos.</Typography>}
           </CardContent></Card>
@@ -211,11 +209,10 @@ export function ConfigHistoryPage() {
           <Card><CardContent>
             <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de humedad</Typography>
             {points.length > 0 ? (
-              <LineChart height={260} sx={chartSx} grid={{ horizontal: true }}
-                xAxis={[{ data: labels, scaleType: 'time', valueFormatter: (value, ctx) => formatAxisDate(value as Date, ctx?.location, 'date') }]}
+              <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
                 series={[
-                  { data: points.map((c) => c.humidityMin), label: 'H. mín', color: '#0d9488', curve: 'stepAfter', showMark: false },
-                  { data: points.map((c) => c.humidityMax), label: 'H. máx', color: '#f59e0b', curve: 'stepAfter', showMark: false },
+                  { id: 'hmin', label: 'H. mín', data: points.map((c) => c.humidityMin), color: '#14b8a6' },
+                  { id: 'hmax', label: 'H. máx', data: points.map((c) => c.humidityMax), color: '#f59e0b' },
                 ]} />
             ) : <Typography variant="body2" color="text.secondary">Sin datos.</Typography>}
           </CardContent></Card>

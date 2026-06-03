@@ -1,13 +1,14 @@
-import type { SxProps, Theme } from '@mui/material';
+import type { Theme } from '@mui/material';
 import dayjs from 'dayjs';
 
-/** Shared, modern styling for the LineCharts: no axis lines/ticks, subtle dashed grid. */
-export const chartSx: SxProps<Theme> = (theme) => ({
+/** Shared, modern styling for the LineCharts: no axis lines/ticks, subtle dashed grid,
+ *  rounded line caps. Exported as a theme function so colors adapt to light/dark. */
+export const chartSx = (theme: Theme) => ({
   '& .MuiChartsAxis-line': { display: 'none' },
   '& .MuiChartsAxis-tick': { display: 'none' },
   '& .MuiChartsAxis-tickLabel': { fontSize: 11, fill: theme.palette.text.secondary },
-  '& .MuiChartsGrid-line': { stroke: 'rgba(128,128,128,0.18)', strokeDasharray: '4 4' },
-  '& .MuiLineElement-root': { strokeWidth: 2.5 },
+  '& .MuiChartsGrid-line': { stroke: theme.palette.divider, strokeDasharray: '4 6' },
+  '& .MuiLineElement-root': { strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' },
 });
 
 /**
