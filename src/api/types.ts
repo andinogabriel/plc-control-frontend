@@ -8,6 +8,7 @@ export interface ConfigResponse {
   humidityMax: number;
   hysteresisTemperature: number;
   hysteresisHumidity: number;
+  measurementIntervalSeconds: number;
   createdByName: string;
   createdByEmail: string;
   clientIp: string;
@@ -26,6 +27,7 @@ export interface ConfigRequest {
   humidityMax: number;
   hysteresisTemperature: number;
   hysteresisHumidity: number;
+  measurementIntervalSeconds: number;
   deviceFingerprint?: string;
 }
 

@@ -139,6 +139,7 @@ export function ConfigHistoryPage() {
     },
     { field: 'hysteresisTemperature', headerName: 'Hist. T', flex: 0.7, minWidth: 90, type: 'number' },
     { field: 'hysteresisHumidity', headerName: 'Hist. H', flex: 0.7, minWidth: 90, type: 'number' },
+    { field: 'measurementIntervalSeconds', headerName: 'Intervalo (s)', flex: 0.8, minWidth: 110, type: 'number' },
     {
       field: 'active', headerName: 'Activa', flex: 0.7, minWidth: 90, sortable: false,
       renderCell: (params) =>
@@ -233,6 +234,7 @@ export function ConfigHistoryPage() {
               ? {
                   createdByEmail: false, temperatureMin: false, temperatureMax: false,
                   humidityMin: false, humidityMax: false, hysteresisTemperature: false, hysteresisHumidity: false,
+                  measurementIntervalSeconds: false,
                 }
               : {}}
             paginationModel={{ page, pageSize: size }}

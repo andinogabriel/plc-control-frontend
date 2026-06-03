@@ -19,6 +19,7 @@ const schema = z
     humidityMax: z.coerce.number().min(0, 'Mín 0%').max(100, 'Máx 100%'),
     hysteresisTemperature: z.coerce.number().positive('Debe ser positiva').max(20),
     hysteresisHumidity: z.coerce.number().positive('Debe ser positiva').max(20),
+    measurementIntervalSeconds: z.coerce.number().int('Debe ser un entero').min(5, 'Mín 5 s').max(3600, 'Máx 3600 s'),
   })
   .refine((d) => d.temperatureMin < d.temperatureMax, {
     message: 'temperatureMin debe ser menor que temperatureMax',
@@ -38,6 +39,7 @@ const fields: { name: keyof FormValues; label: string }[] = [
   { name: 'humidityMax', label: 'Humedad máx (%)' },
   { name: 'hysteresisTemperature', label: 'Histéresis temperatura' },
   { name: 'hysteresisHumidity', label: 'Histéresis humedad' },
+  { name: 'measurementIntervalSeconds', label: 'Intervalo de medición (s)' },
 ];
 
 export function ConfigurationPage() {
@@ -51,6 +53,7 @@ export function ConfigurationPage() {
       temperatureMin: 18, temperatureMax: 26,
       humidityMin: 30, humidityMax: 60,
       hysteresisTemperature: 1.5, hysteresisHumidity: 2,
+      measurementIntervalSeconds: 30,
     },
   });
 
@@ -75,7 +78,7 @@ export function ConfigurationPage() {
       {latest && (
         <Alert severity="info" sx={{ mb: 2 }}>
           Config activa: T [{latest.temperatureMin}–{latest.temperatureMax} °C],
-          H [{latest.humidityMin}–{latest.humidityMax} %] · por {latest.createdByName}
+          H [{latest.humidityMin}–{latest.humidityMax} %] · cada {latest.measurementIntervalSeconds} s · por {latest.createdByName}
         </Alert>
       )}
 
