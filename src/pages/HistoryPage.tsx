@@ -199,7 +199,7 @@ export function HistoryPage() {
               <MenuItem value="">Todos</MenuItem>
               {STATUS_OPTIONS.map((o) => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
             </TextField>
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} sx={{ alignSelf: { xs: 'flex-end', lg: 'auto' } }}>
               <Button variant="contained" onClick={applyChartFilters} disabled={!canApplyCharts}>Aplicar</Button>
               <Button onClick={clearChartFilters}>Limpiar</Button>
             </Stack>
@@ -236,7 +236,6 @@ export function HistoryPage() {
             rowCount={rowCount}
             loading={!tableData}
             slots={{ noRowsOverlay: () => <TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} /> }}
-            columnVisibilityModel={isMobile ? { humidity: false, coolerOn: false } : {}}
             paginationModel={{ page, pageSize: size }}
             onPaginationModelChange={(model) =>
               updateParams({ page: String(model.page), size: String(model.pageSize) })}

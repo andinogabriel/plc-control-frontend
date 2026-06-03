@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
-  Box, Card, CardContent, Typography, Stack, Button, Chip, Grid, useMediaQuery, useTheme,
+  Box, Card, CardContent, Typography, Stack, Button, Chip, Grid,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { type GridColDef } from '@mui/x-data-grid';
@@ -22,8 +22,6 @@ const TABLE_FILTER_KEYS = [
 ];
 
 export function ConfigHistoryPage() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [searchParams, setSearchParams] = useSearchParams();
 
   // --- Top bar (charts only): date range stored as gfrom/gto ---
@@ -184,7 +182,7 @@ export function ConfigHistoryPage() {
               slotProps={{ textField: { size: 'small', sx: { flex: 1, minWidth: 200 } } }} />
             <DateTimePicker label="Hasta" value={gTo} onChange={setGTo} minDateTime={gFrom ?? undefined}
               slotProps={{ textField: { size: 'small', sx: { flex: 1, minWidth: 200 } } }} />
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} sx={{ alignSelf: { xs: 'flex-end', md: 'auto' } }}>
               <Button variant="contained" onClick={applyChartRange} disabled={!canApplyCharts}>Aplicar</Button>
               <Button onClick={clearChartRange}>Limpiar</Button>
             </Stack>
@@ -227,13 +225,6 @@ export function ConfigHistoryPage() {
             rowCount={rowCount}
             loading={!tableData}
             slots={{ noRowsOverlay: () => <TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} /> }}
-            columnVisibilityModel={isMobile
-              ? {
-                  createdByEmail: false, temperatureMin: false, temperatureMax: false,
-                  humidityMin: false, humidityMax: false, hysteresisTemperature: false, hysteresisHumidity: false,
-                  measurementIntervalSeconds: false,
-                }
-              : {}}
             paginationModel={{ page, pageSize: size }}
             onPaginationModelChange={(model) =>
               updateParams({ page: String(model.page), size: String(model.pageSize) })}
