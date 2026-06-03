@@ -1,0 +1,154 @@
+import { useState, type ReactNode } from 'react';
+import {
+  AppBar, Box, Divider, Drawer, IconButton, List, ListItem, ListItemButton,
+  ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Tooltip, Typography,
+  useMediaQuery, useTheme,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import ThermostatIcon from '@mui/icons-material/Thermostat';
+import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard';
+import TuneIcon from '@mui/icons-material/Tune';
+import HistoryIcon from '@mui/icons-material/History';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
+import CheckIcon from '@mui/icons-material/Check';
+import { Link, useLocation } from 'react-router-dom';
+import { useColorMode, type ColorMode } from '../colorMode';
+
+const DRAWER_WIDTH = 240;
+
+const navItems = [
+  { label: 'Dashboard', path: '/tablero', icon: <SpaceDashboardIcon /> },
+  { label: 'Configuración', path: '/configuracion', icon: <TuneIcon /> },
+  { label: 'Historial config', path: '/historial-configuracion', icon: <HistoryIcon /> },
+  { label: 'Mediciones', path: '/mediciones', icon: <ShowChartIcon /> },
+];
+
+const MODE_OPTIONS: { value: ColorMode; label: string; icon: ReactNode }[] = [
+  { value: 'light', label: 'Claro', icon: <LightModeIcon fontSize="small" /> },
+  { value: 'dark', label: 'Oscuro', icon: <DarkModeIcon fontSize="small" /> },
+  { value: 'system', label: 'Sistema', icon: <SettingsBrightnessIcon fontSize="small" /> },
+];
+
+function ColorModeButton() {
+  const { mode, setMode } = useColorMode();
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const current = MODE_OPTIONS.find((o) => o.value === mode) ?? MODE_OPTIONS[2];
+  return (
+    <>
+      <Tooltip title="Tema">
+        <IconButton color="inherit" onClick={(e) => setAnchor(e.currentTarget)} aria-label="Cambiar tema">
+          {current.icon}
+        </IconButton>
+      </Tooltip>
+      <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
+        {MODE_OPTIONS.map((o) => (
+          <MenuItem key={o.value} selected={o.value === mode}
+            onClick={() => { setMode(o.value); setAnchor(null); }}>
+            <ListItemIcon>{o.icon}</ListItemIcon>
+            <ListItemText>{o.label}</ListItemText>
+            {o.value === mode && <CheckIcon fontSize="small" sx={{ ml: 1 }} />}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
+}
+
+function Footer() {
+  return (
+    <Box component="footer" sx={{
+      mt: 4, pt: 2, borderTop: '1px solid', borderColor: 'divider',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1,
+    }}>
+      <Box component="img" src="/uncaus-logo.svg" alt="UNCAUS" sx={{ height: 20, display: 'block' }}
+        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+      <Typography variant="body2" color="text.secondary">
+        Uncaus - Teoría de Control 2026
+      </Typography>
+    </Box>
+  );
+}
+
+export function Layout({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const [desktopOpen, setDesktopOpen] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const toggle = () => (isDesktop ? setDesktopOpen((o) => !o) : setMobileOpen((o) => !o));
+
+  const navList = (
+    <Box sx={{ height: '100%' }}>
+      <Toolbar />
+      <Divider />
+      <List>
+        {navItems.map((item) => (
+          <ListItem key={item.path} disablePadding>
+            <ListItemButton
+              component={Link}
+              to={item.path}
+              selected={location.pathname === item.path}
+              onClick={() => setMobileOpen(false)}
+              sx={{ borderRadius: 2, mx: 1, my: 0.25 }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+
+  const navWidth = isDesktop && desktopOpen ? DRAWER_WIDTH : 0;
+
+  return (
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
+        <Toolbar>
+          <IconButton color="inherit" edge="start" onClick={toggle} aria-label="Abrir/cerrar menú" sx={{ mr: 1 }}>
+            <MenuIcon />
+          </IconButton>
+          <ThermostatIcon sx={{ mr: 1 }} />
+          <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>Sistema de Control PLC</Typography>
+          <ColorModeButton />
+        </Toolbar>
+      </AppBar>
+
+      <Box component="nav" sx={{ width: { md: navWidth }, flexShrink: 0, transition: theme.transitions.create('width') }}>
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            display: { xs: 'block', md: 'none' },
+            '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' },
+          }}
+        >
+          {navList}
+        </Drawer>
+        <Drawer
+          variant="persistent"
+          open={isDesktop && desktopOpen}
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' },
+          }}
+        >
+          {navList}
+        </Drawer>
+      </Box>
+
+      <Box component="main" sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', p: { xs: 2, md: 3 } }}>
+        <Toolbar />
+        <Box sx={{ flexGrow: 1 }}>{children}</Box>
+        <Footer />
+      </Box>
+    </Box>
+  );
+}

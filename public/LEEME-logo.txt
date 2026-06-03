@@ -1,0 +1,14 @@
+Logo institucional de la UNCAUS.
+
+Se incluye una versión vectorial aproximada en:
+
+    uncaus-logo.svg
+
+Se usa en:
+- el favicon de la pestaña del navegador (index.html)
+- el footer de la aplicación ("Uncaus - Teoría de Control 2026")
+
+Si tenés el logo oficial y querés usarlo exactamente, reemplazá el archivo
+uncaus-logo.svg por el oficial (manteniendo ese nombre), o dejá un PNG como
+uncaus-logo.png y cambiá las referencias en index.html y src/components/Layout.tsx.
+El SVG escala sin pixelarse, ideal para favicon y footer.

@@ -1,0 +1,158 @@
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import {
+  Grid, Card, CardActionArea, CardContent, Typography, Box, CircularProgress, Alert, Stack,
+  useMediaQuery, useTheme,
+} from '@mui/material';
+import ThermostatIcon from '@mui/icons-material/Thermostat';
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
+import AcUnitIcon from '@mui/icons-material/AcUnit';
+import InsightsIcon from '@mui/icons-material/Insights';
+import { LineChart } from '@mui/x-charts/LineChart';
+import dayjs from 'dayjs';
+import { measurementApi } from '../api/measurementApi';
+import { configApi } from '../api/configApi';
+import { StatusChip } from '../components/StatusChip';
+import { chartSx, formatAxisDate } from '../components/chartStyle';
+
+function MetricCard({ icon, label, value, onClick, children }: {
+  icon: React.ReactNode; label: string; value?: string; onClick: () => void; children?: React.ReactNode;
+}) {
+  return (
+    <Card sx={{ height: '100%' }}>
+      <CardActionArea onClick={onClick} sx={{ height: '100%', p: 1 }}>
+        <CardContent sx={{ minHeight: 150 }}>
+          <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+            {icon}
+            <Typography color="text.secondary" variant="body2">{label}</Typography>
+          </Stack>
+          {value !== undefined && <Typography variant="h3" fontWeight={700}>{value}</Typography>}
+          <Box mt={value !== undefined ? 1.5 : 0}>{children}</Box>
+        </CardContent>
+      </CardActionArea>
+    </Card>
+  );
+}
+
+export function DashboardPage() {
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const { data: latest, isLoading, isError } = useQuery({
+    queryKey: ['measurement-latest'],
+    queryFn: measurementApi.getLatest,
+    refetchInterval: 5000,
+    retry: false,
+  });
+
+  const { data: config } = useQuery({
+    queryKey: ['config-latest'],
+    queryFn: configApi.getLatest,
+    retry: false,
+  });
+
+  const { data: recent } = useQuery({
+    queryKey: ['measurements-recent'],
+    queryFn: () => measurementApi.getMeasurements({ page: 0, size: 48 }),
+    refetchInterval: 15000,
+  });
+
+  if (isLoading) {
+    return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
+  }
+
+  if (isError || !latest) {
+    return (
+      <Box>
+        <Typography variant="h4" gutterBottom>Dashboard</Typography>
+        <Alert severity="info">
+          Todavía no hay mediciones registradas. La Raspberry debe hacer POST a /api/measurements.
+        </Alert>
+      </Box>
+    );
+  }
+
+  const goToMeasurements = () => navigate('/mediciones');
+  const updated = new Date(latest.createdAt).toLocaleString();
+
+  const chartPoints = (recent?.content ?? []).slice().reverse();
+  const labels = chartPoints.map((m) => new Date(m.createdAt));
+  const rangeLabel = chartPoints.length > 0
+    ? `${dayjs(labels[0]).format('D MMM YYYY HH:mm')} – ${dayjs(labels[labels.length - 1]).format('D MMM YYYY HH:mm')}`
+    : '';
+
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>Dashboard</Typography>
+
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <MetricCard icon={<ThermostatIcon color="primary" />} label="Temperatura actual"
+            value={`${latest.temperature.toFixed(1)} °C`} onClick={goToMeasurements}>
+            {config && (
+              <Typography variant="caption" color="text.secondary">
+                Rango: {config.temperatureMin}–{config.temperatureMax} °C
+              </Typography>
+            )}
+          </MetricCard>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <MetricCard icon={<WaterDropIcon color="primary" />} label="Humedad actual"
+            value={`${latest.humidity.toFixed(1)} %`} onClick={goToMeasurements}>
+            {config && (
+              <Typography variant="caption" color="text.secondary">
+                Rango: {config.humidityMin}–{config.humidityMax} %
+              </Typography>
+            )}
+          </MetricCard>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <MetricCard icon={<AcUnitIcon color={latest.coolerOn ? 'primary' : 'disabled'} />}
+            label="Estado del cooler" value={latest.coolerOn ? 'ENCENDIDO' : 'APAGADO'}
+            onClick={goToMeasurements} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <MetricCard icon={<InsightsIcon color="primary" />} label="Estado general"
+            onClick={goToMeasurements}>
+            <Stack spacing={1.5} mt={1}>
+              <Box><StatusChip status={latest.status} /></Box>
+              <Typography variant="caption" color="text.secondary">Actualizado: {updated}</Typography>
+            </Stack>
+          </MetricCard>
+        </Grid>
+
+        <Grid size={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="subtitle1">Últimas lecturas</Typography>
+              {rangeLabel && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  {rangeLabel}
+                </Typography>
+              )}
+              {chartPoints.length > 0 ? (
+                <LineChart
+                  height={isMobile ? 260 : 340}
+                  sx={chartSx}
+                  xAxis={[{
+                    data: labels,
+                    scaleType: 'time',
+                    valueFormatter: (value, ctx) => formatAxisDate(value as Date, ctx?.location, 'time'),
+                  }]}
+                  series={[
+                    { data: chartPoints.map((m) => m.temperature), label: 'Temperatura (°C)', color: '#2563eb', showMark: false, curve: 'monotoneX' },
+                    { data: chartPoints.map((m) => m.humidity), label: 'Humedad (%)', color: '#0d9488', showMark: false, curve: 'monotoneX' },
+                  ]}
+                  grid={{ horizontal: true }}
+                />
+              ) : (
+                <Typography variant="body2" color="text.secondary">Sin datos recientes.</Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+}
