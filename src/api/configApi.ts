@@ -14,6 +14,8 @@ export interface ConfigHistoryQuery {
   temperatureMax?: number;
   humidityMin?: number;
   humidityMax?: number;
+  // Server-side sort, e.g. "temperatureMin,asc".
+  sort?: string;
 }
 
 export const configApi = {

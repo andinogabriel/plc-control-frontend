@@ -34,12 +34,22 @@ export function AreaLineChart({
     <LineChart
       height={height}
       grid={{ horizontal: true }}
+      margin={{ top: 12, right: 22, bottom: 24, left: 16 }}
       sx={[chartSx, areaFillSx]}
       slotProps={{ legend: { sx: { fontSize: 12, fontWeight: 600 } } }}
       xAxis={[{
         data: labels,
         scaleType: 'time',
+        disableLine: true,
+        disableTicks: true,
+        tickLabelStyle: { fontSize: 11 },
         valueFormatter: (value, ctx) => formatAxisDate(value as Date, ctx?.location, mode),
+      }]}
+      yAxis={[{
+        disableLine: true,
+        disableTicks: true,
+        width: 44,
+        tickLabelStyle: { fontSize: 11 },
       }]}
       series={series.map((s) => ({
         id: s.id, label: s.label, data: s.data, color: s.color,

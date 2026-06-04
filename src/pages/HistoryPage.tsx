@@ -15,7 +15,7 @@ import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import {
-  DateRangeFilterHeader, NumberRangeFilterHeader, SelectFilterHeader,
+  DateRangeFilterHeader, NumberRangeFilterHeader, SelectFilterHeader, type SortDirection,
 } from '../components/columnFilters';
 
 const CHART_PAGE_SIZE = 1000;
@@ -66,6 +66,8 @@ export function HistoryPage() {
     return v == null || v === '' ? undefined : Number(v);
   };
   const coolerParam = searchParams.get('coolerOn');
+  const sortParam = searchParams.get('sort') ?? '';
+  const [sortField, sortDir] = sortParam ? sortParam.split(',') : ['', ''];
   const tableQuery: MeasurementQuery = {
     page, size,
     from: searchParams.get('from') || undefined,
@@ -76,6 +78,7 @@ export function HistoryPage() {
     humidityMin: num('humidityMin'),
     humidityMax: num('humidityMax'),
     coolerOn: coolerParam == null ? undefined : coolerParam === 'true',
+    sort: sortParam || undefined,
   };
   const tableKey = JSON.stringify(tableQuery);
 
@@ -104,51 +107,64 @@ export function HistoryPage() {
     });
   }, [setSearchParams]);
 
+  const sortDirFor = (field: string): SortDirection => (sortField === field ? (sortDir as 'asc' | 'desc') : false);
+  const toggleSort = useCallback((field: string) => {
+    const current = searchParams.get('sort');
+    const [f, d] = current ? current.split(',') : ['', ''];
+    const next = f !== field ? 'asc' : d === 'asc' ? 'desc' : d === 'desc' ? '' : 'asc';
+    updateParams({ sort: next ? `${field},${next}` : undefined, page: '0' });
+  }, [searchParams, updateParams]);
+
   const columns: GridColDef[] = useMemo(() => [
     {
-      field: 'createdAt', headerName: 'Fecha', flex: 1.4, minWidth: 180, sortable: false,
+      field: 'createdAt', headerName: 'Fecha', flex: 1.4, minWidth: 180, sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <DateRangeFilterHeader label="Fecha" disabled={disabledHeaders}
+          sortDirection={sortDirFor('createdAt')} onToggleSort={() => toggleSort('createdAt')}
           from={searchParams.get('from') ?? ''} to={searchParams.get('to') ?? ''}
           onApply={(f, t) => updateParams({ from: f, to: t, page: '0' })} />
       ),
       valueFormatter: (value) => new Date(value as string).toLocaleString(),
     },
     {
-      field: 'temperature', headerName: 'Temp (°C)', flex: 1, minWidth: 120, type: 'number', sortable: false,
+      field: 'temperature', headerName: 'Temp (°C)', flex: 1, minWidth: 130, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <NumberRangeFilterHeader label="Temp (°C)" lo={-10} hi={100} disabled={disabledHeaders}
+          sortDirection={sortDirFor('temperature')} onToggleSort={() => toggleSort('temperature')}
           min={searchParams.get('temperatureMin') ?? ''} max={searchParams.get('temperatureMax') ?? ''}
           onApply={(mn, mx) => updateParams({ temperatureMin: mn, temperatureMax: mx, page: '0' })} />
       ),
     },
     {
-      field: 'humidity', headerName: 'Humedad (%)', flex: 1, minWidth: 120, type: 'number', sortable: false,
+      field: 'humidity', headerName: 'Humedad (%)', flex: 1, minWidth: 140, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <NumberRangeFilterHeader label="Humedad (%)" lo={0} hi={100} disabled={disabledHeaders}
+          sortDirection={sortDirFor('humidity')} onToggleSort={() => toggleSort('humidity')}
           min={searchParams.get('humidityMin') ?? ''} max={searchParams.get('humidityMax') ?? ''}
           onApply={(mn, mx) => updateParams({ humidityMin: mn, humidityMax: mx, page: '0' })} />
       ),
     },
     {
-      field: 'coolerOn', headerName: 'Cooler', flex: 0.8, minWidth: 110, sortable: false,
+      field: 'coolerOn', headerName: 'Cooler', flex: 0.8, minWidth: 120, sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <SelectFilterHeader label="Cooler" disabled={disabledHeaders} value={searchParams.get('coolerOn') ?? ''}
+          sortDirection={sortDirFor('coolerOn')} onToggleSort={() => toggleSort('coolerOn')}
           options={[{ value: 'true', label: 'ON' }, { value: 'false', label: 'OFF' }]}
           onApply={(v) => updateParams({ coolerOn: v, page: '0' })} />
       ),
       valueFormatter: (value) => (value ? 'ON' : 'OFF'),
     },
     {
-      field: 'status', headerName: 'Estado', flex: 1.2, minWidth: 150, sortable: false,
+      field: 'status', headerName: 'Estado', flex: 1.2, minWidth: 160, sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <SelectFilterHeader label="Estado" disabled={disabledHeaders} value={searchParams.get('status') ?? ''}
+          sortDirection={sortDirFor('status')} onToggleSort={() => toggleSort('status')}
           options={STATUS_OPTIONS}
           onApply={(v) => updateParams({ status: v, page: '0' })} />
       ),
       renderCell: (params) => <StatusChip status={params.value as string} />,
     },
-  ], [searchParams, updateParams, disabledHeaders]);
+  ], [searchParams, updateParams, disabledHeaders, sortField, sortDir]);
 
   const clearTableFilters = useCallback(() => {
     const cleared: Record<string, undefined> = { page: undefined };

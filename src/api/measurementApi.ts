@@ -12,6 +12,8 @@ export interface MeasurementQuery {
   humidityMin?: number;
   humidityMax?: number;
   coolerOn?: boolean;
+  // Server-side sort, e.g. "temperature,asc".
+  sort?: string;
 }
 
 export const measurementApi = {

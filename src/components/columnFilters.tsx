@@ -3,25 +3,59 @@ import {
   Box, Button, IconButton, MenuItem, Popover, Stack, TextField, Typography,
 } from '@mui/material';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs, { type Dayjs } from 'dayjs';
 
+export type SortDirection = 'asc' | 'desc' | false;
+
+/** Clickable, centered column title with a sort arrow (server-side sorting via the URL). */
+function SortableTitle({ label, sortDirection, onToggleSort }: {
+  label: string; sortDirection?: SortDirection; onToggleSort?: () => void;
+}) {
+  return (
+    <Box
+      component="span"
+      onClick={onToggleSort}
+      sx={{
+        display: 'inline-flex', alignItems: 'center', gap: 0.25, minWidth: 0,
+        fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        userSelect: 'none', cursor: onToggleSort ? 'pointer' : 'default',
+      }}
+    >
+      {label}
+      {sortDirection === 'asc' && <ArrowUpwardIcon sx={{ fontSize: 14 }} />}
+      {sortDirection === 'desc' && <ArrowDownwardIcon sx={{ fontSize: 14 }} />}
+    </Box>
+  );
+}
+
+/** Standalone sortable header (no filter), centered. */
+export function SortableHeader({ label, sortDirection, onToggleSort }: {
+  label: string; sortDirection?: SortDirection; onToggleSort?: () => void;
+}) {
+  return (
+    <Stack direction="row" alignItems="center" justifyContent="center" sx={{ width: '100%' }}>
+      <SortableTitle label={label} sortDirection={sortDirection} onToggleSort={onToggleSort} />
+    </Stack>
+  );
+}
+
 /**
- * Shared shell for per-column filter popovers: the column title plus a filter icon that opens
- * a popover with the given inputs and "Aplicar"/"Limpiar" actions. The draft state lives in
- * each specific header component; this only owns the popover open/close.
+ * Shared shell for per-column filter popovers: centered sortable title + a filter icon that
+ * opens a popover with the given inputs and "Aplicar"/"Limpiar" actions.
  */
-function FilterShell({ label, active, canApply, disabled, onApply, onClear, children }: {
+function FilterShell({ label, active, canApply, disabled, sortDirection, onToggleSort, onApply, onClear, children }: {
   label: string; active: boolean; canApply: boolean; disabled?: boolean;
+  sortDirection?: SortDirection; onToggleSort?: () => void;
   onApply: () => void; onClear: () => void; children: ReactNode;
 }) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const close = () => setAnchor(null);
   return (
-    <Stack direction="row" alignItems="center" spacing={0} sx={{ width: '100%' }}>
-      <Box component="span" sx={{ fontWeight: 700, flexGrow: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {label}
-      </Box>
+    <Stack direction="row" alignItems="center" justifyContent="center" spacing={0} sx={{ width: '100%' }}>
+      <SortableTitle label={label} sortDirection={sortDirection} onToggleSort={onToggleSort} />
       <IconButton size="small" disabled={disabled} onClick={(e) => setAnchor(e.currentTarget)}
         aria-label={`Filtrar ${label}`} sx={{ p: 0.25, ml: 0.25, flexShrink: 0 }}>
         <FilterAltIcon sx={{ fontSize: 16 }} color={active ? 'primary' : 'disabled'} />
@@ -45,17 +79,19 @@ function FilterShell({ label, active, canApply, disabled, onApply, onClear, chil
   );
 }
 
-export function TextFilterHeader({ label, value, onApply, disabled }: {
+interface SortProps { sortDirection?: SortDirection; onToggleSort?: () => void; }
+
+export function TextFilterHeader({ label, value, onApply, disabled, sortDirection, onToggleSort }: {
   label: string; value: string; disabled?: boolean; onApply: (value: string | undefined) => void;
-}) {
+} & SortProps) {
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value]);
   const trimmed = draft.trim();
   const tooShort = trimmed.length > 0 && trimmed.length < 3;
-  // Require at least 3 letters so the backend "contains" search receives a meaningful term.
   const canApply = trimmed.length >= 3 && trimmed !== value;
   return (
     <FilterShell label={label} active={Boolean(value)} canApply={canApply} disabled={disabled}
+      sortDirection={sortDirection} onToggleSort={onToggleSort}
       onApply={() => onApply(trimmed)} onClear={() => { setDraft(''); onApply(undefined); }}>
       <TextField autoFocus size="small" fullWidth label={label} value={draft}
         onChange={(e) => setDraft(e.target.value)} error={tooShort}
@@ -64,15 +100,16 @@ export function TextFilterHeader({ label, value, onApply, disabled }: {
   );
 }
 
-export function NumberFilterHeader({ label, value, onApply, min, max, disabled }: {
+export function NumberFilterHeader({ label, value, onApply, min, max, disabled, sortDirection, onToggleSort }: {
   label: string; value: string; disabled?: boolean; onApply: (value: string | undefined) => void; min: number; max: number;
-}) {
+} & SortProps) {
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value]);
   const num = Number(draft);
   const valid = draft === '' || (!Number.isNaN(num) && num >= min && num <= max);
   return (
     <FilterShell label={label} active={Boolean(value)} canApply={valid && draft !== '' && draft !== value} disabled={disabled}
+      sortDirection={sortDirection} onToggleSort={onToggleSort}
       onApply={() => onApply(draft === '' ? undefined : String(num))}
       onClear={() => { setDraft(''); onApply(undefined); }}>
       <TextField autoFocus size="small" fullWidth type="number" label="Igual a" value={draft}
@@ -82,10 +119,10 @@ export function NumberFilterHeader({ label, value, onApply, min, max, disabled }
   );
 }
 
-export function NumberRangeFilterHeader({ label, min, max, onApply, lo, hi, disabled }: {
+export function NumberRangeFilterHeader({ label, min, max, onApply, lo, hi, disabled, sortDirection, onToggleSort }: {
   label: string; min: string; max: string; lo: number; hi: number; disabled?: boolean;
   onApply: (min: string | undefined, max: string | undefined) => void;
-}) {
+} & SortProps) {
   const [dMin, setDMin] = useState(min);
   const [dMax, setDMax] = useState(max);
   useEffect(() => { setDMin(min); setDMax(max); }, [min, max]);
@@ -100,6 +137,7 @@ export function NumberRangeFilterHeader({ label, min, max, onApply, lo, hi, disa
 
   return (
     <FilterShell label={label} active={Boolean(min) || Boolean(max)} canApply={canApply} disabled={disabled}
+      sortDirection={sortDirection} onToggleSort={onToggleSort}
       onApply={() => onApply(dMin === '' ? undefined : String(nMin), dMax === '' ? undefined : String(nMax))}
       onClear={() => { setDMin(''); setDMax(''); onApply(undefined, undefined); }}>
       <Stack spacing={1.5}>
@@ -114,10 +152,10 @@ export function NumberRangeFilterHeader({ label, min, max, onApply, lo, hi, disa
   );
 }
 
-export function DateRangeFilterHeader({ label, from, to, onApply, disabled }: {
+export function DateRangeFilterHeader({ label, from, to, onApply, disabled, sortDirection, onToggleSort }: {
   label: string; from: string; to: string; disabled?: boolean;
   onApply: (from: string | undefined, to: string | undefined) => void;
-}) {
+} & SortProps) {
   const [dFrom, setDFrom] = useState<Dayjs | null>(from ? dayjs(from) : null);
   const [dTo, setDTo] = useState<Dayjs | null>(to ? dayjs(to) : null);
   useEffect(() => {
@@ -130,6 +168,7 @@ export function DateRangeFilterHeader({ label, from, to, onApply, disabled }: {
 
   return (
     <FilterShell label={label} active={Boolean(from) || Boolean(to)} canApply={canApply} disabled={disabled}
+      sortDirection={sortDirection} onToggleSort={onToggleSort}
       onApply={() => onApply(dFrom ? dFrom.toISOString() : undefined, dTo ? dTo.toISOString() : undefined)}
       onClear={() => { setDFrom(null); setDTo(null); onApply(undefined, undefined); }}>
       <Stack spacing={1.5}>
@@ -142,14 +181,15 @@ export function DateRangeFilterHeader({ label, from, to, onApply, disabled }: {
   );
 }
 
-export function SelectFilterHeader({ label, value, options, onApply, disabled }: {
+export function SelectFilterHeader({ label, value, options, onApply, disabled, sortDirection, onToggleSort }: {
   label: string; value: string; options: { value: string; label: string }[]; disabled?: boolean;
   onApply: (value: string | undefined) => void;
-}) {
+} & SortProps) {
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value]);
   return (
     <FilterShell label={label} active={Boolean(value)} canApply={draft !== value} disabled={disabled}
+      sortDirection={sortDirection} onToggleSort={onToggleSort}
       onApply={() => onApply(draft || undefined)} onClear={() => { setDraft(''); onApply(undefined); }}>
       <TextField select autoFocus size="small" fullWidth label={label} value={draft}
         onChange={(e) => setDraft(e.target.value)}>

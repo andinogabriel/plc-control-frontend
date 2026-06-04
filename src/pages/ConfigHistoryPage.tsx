@@ -12,7 +12,7 @@ import { AppDataGrid } from '../components/AppDataGrid';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import {
-  DateRangeFilterHeader, NumberFilterHeader, TextFilterHeader,
+  DateRangeFilterHeader, NumberFilterHeader, SortableHeader, TextFilterHeader, type SortDirection,
 } from '../components/columnFilters';
 
 const CHART_PAGE_SIZE = 1000;
@@ -43,6 +43,9 @@ export function ConfigHistoryPage() {
     const v = searchParams.get(key);
     return v == null || v === '' ? undefined : Number(v);
   };
+  const sortParam = searchParams.get('sort') ?? '';
+  const [sortField, sortDir] = sortParam ? sortParam.split(',') : ['', ''];
+
   const tableQuery: ConfigHistoryQuery = {
     page, size,
     createdByName: searchParams.get('createdByName') || undefined,
@@ -53,6 +56,7 @@ export function ConfigHistoryPage() {
     temperatureMax: num('temperatureMax'),
     humidityMin: num('humidityMin'),
     humidityMax: num('humidityMax'),
+    sort: sortParam || undefined,
   };
   const tableKey = JSON.stringify(tableQuery);
 
@@ -81,70 +85,95 @@ export function ConfigHistoryPage() {
     });
   }, [setSearchParams]);
 
+  const sortDirFor = (field: string): SortDirection => (sortField === field ? (sortDir as 'asc' | 'desc') : false);
+  const toggleSort = useCallback((field: string) => {
+    const current = searchParams.get('sort');
+    const [f, d] = current ? current.split(',') : ['', ''];
+    const next = f !== field ? 'asc' : d === 'asc' ? 'desc' : d === 'desc' ? '' : 'asc';
+    updateParams({ sort: next ? `${field},${next}` : undefined, page: '0' });
+  }, [searchParams, updateParams]);
+
   // Columns with per-column filter headers (recompute when the URL or empty-state changes).
   const columns: GridColDef[] = useMemo(() => [
     {
-      field: 'createdAt', headerName: 'Fecha', flex: 1.8, minWidth: 175, sortable: false,
+      field: 'createdAt', headerName: 'Fecha', flex: 1.8, minWidth: 180, sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <DateRangeFilterHeader label="Fecha" disabled={disabledHeaders}
+          sortDirection={sortDirFor('createdAt')} onToggleSort={() => toggleSort('createdAt')}
           from={searchParams.get('from') ?? ''} to={searchParams.get('to') ?? ''}
           onApply={(f, t) => updateParams({ from: f, to: t, page: '0' })} />
       ),
       valueFormatter: (value) => new Date(value as string).toLocaleString(),
     },
     {
-      field: 'createdByName', headerName: 'Nombre', flex: 1.5, minWidth: 150, sortable: false,
+      field: 'createdByName', headerName: 'Nombre', flex: 1.5, minWidth: 150, sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <TextFilterHeader label="Nombre" disabled={disabledHeaders} value={searchParams.get('createdByName') ?? ''}
+          sortDirection={sortDirFor('createdByName')} onToggleSort={() => toggleSort('createdByName')}
           onApply={(v) => updateParams({ createdByName: v, page: '0' })} />
       ),
     },
     {
-      field: 'createdByEmail', headerName: 'Email', flex: 2.2, minWidth: 210, sortable: false,
+      field: 'createdByEmail', headerName: 'Email', flex: 2.2, minWidth: 210, sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <TextFilterHeader label="Email" disabled={disabledHeaders} value={searchParams.get('createdByEmail') ?? ''}
+          sortDirection={sortDirFor('createdByEmail')} onToggleSort={() => toggleSort('createdByEmail')}
           onApply={(v) => updateParams({ createdByEmail: v, page: '0' })} />
       ),
     },
     {
-      field: 'temperatureMin', headerName: 'T. mín', flex: 0.65, minWidth: 104, type: 'number', sortable: false,
+      field: 'temperatureMin', headerName: 'T. mín', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <NumberFilterHeader label="T. mín" min={-10} max={60} disabled={disabledHeaders} value={searchParams.get('temperatureMin') ?? ''}
+          sortDirection={sortDirFor('temperatureMin')} onToggleSort={() => toggleSort('temperatureMin')}
           onApply={(v) => updateParams({ temperatureMin: v, page: '0' })} />
       ),
     },
     {
-      field: 'temperatureMax', headerName: 'T. máx', flex: 0.65, minWidth: 104, type: 'number', sortable: false,
+      field: 'temperatureMax', headerName: 'T. máx', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <NumberFilterHeader label="T. máx" min={-10} max={60} disabled={disabledHeaders} value={searchParams.get('temperatureMax') ?? ''}
+          sortDirection={sortDirFor('temperatureMax')} onToggleSort={() => toggleSort('temperatureMax')}
           onApply={(v) => updateParams({ temperatureMax: v, page: '0' })} />
       ),
     },
     {
-      field: 'humidityMin', headerName: 'H. mín', flex: 0.65, minWidth: 104, type: 'number', sortable: false,
+      field: 'humidityMin', headerName: 'H. mín', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <NumberFilterHeader label="H. mín" min={0} max={100} disabled={disabledHeaders} value={searchParams.get('humidityMin') ?? ''}
+          sortDirection={sortDirFor('humidityMin')} onToggleSort={() => toggleSort('humidityMin')}
           onApply={(v) => updateParams({ humidityMin: v, page: '0' })} />
       ),
     },
     {
-      field: 'humidityMax', headerName: 'H. máx', flex: 0.65, minWidth: 104, type: 'number', sortable: false,
+      field: 'humidityMax', headerName: 'H. máx', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
       renderHeader: () => (
         <NumberFilterHeader label="H. máx" min={0} max={100} disabled={disabledHeaders} value={searchParams.get('humidityMax') ?? ''}
+          sortDirection={sortDirFor('humidityMax')} onToggleSort={() => toggleSort('humidityMax')}
           onApply={(v) => updateParams({ humidityMax: v, page: '0' })} />
       ),
     },
-    { field: 'hysteresisTemperature', headerName: 'Hist. T', flex: 0.55, minWidth: 92, type: 'number' },
-    { field: 'hysteresisHumidity', headerName: 'Hist. H', flex: 0.55, minWidth: 92, type: 'number' },
-    { field: 'measurementIntervalSeconds', headerName: 'Intervalo (s)', flex: 0.8, minWidth: 120, type: 'number' },
     {
-      field: 'active', headerName: 'Activa', flex: 0.55, minWidth: 96, sortable: false,
+      field: 'hysteresisTemperature', headerName: 'Hist. T', flex: 0.55, minWidth: 96, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
+      renderHeader: () => <SortableHeader label="Hist. T" sortDirection={sortDirFor('hysteresisTemperature')} onToggleSort={() => toggleSort('hysteresisTemperature')} />,
+    },
+    {
+      field: 'hysteresisHumidity', headerName: 'Hist. H', flex: 0.55, minWidth: 96, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
+      renderHeader: () => <SortableHeader label="Hist. H" sortDirection={sortDirFor('hysteresisHumidity')} onToggleSort={() => toggleSort('hysteresisHumidity')} />,
+    },
+    {
+      field: 'measurementIntervalSeconds', headerName: 'Intervalo (s)', flex: 0.8, minWidth: 124, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
+      renderHeader: () => <SortableHeader label="Intervalo (s)" sortDirection={sortDirFor('measurementIntervalSeconds')} onToggleSort={() => toggleSort('measurementIntervalSeconds')} />,
+    },
+    {
+      field: 'active', headerName: 'Activa', flex: 0.55, minWidth: 96, sortable: false, align: 'center', headerAlign: 'center',
+      renderHeader: () => <SortableHeader label="Activa" sortDirection={sortDirFor('active')} onToggleSort={() => toggleSort('active')} />,
       renderCell: (params) =>
         params.value
           ? <Chip label="Activa" color="success" size="small" />
           : <Chip label="—" size="small" variant="outlined" />,
     },
-  ], [searchParams, updateParams, disabledHeaders]);
+  ], [searchParams, updateParams, disabledHeaders, sortField, sortDir]);
 
   const clearTableFilters = useCallback(() => {
     const cleared: Record<string, undefined> = { page: undefined };

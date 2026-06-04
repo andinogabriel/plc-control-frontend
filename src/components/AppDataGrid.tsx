@@ -30,13 +30,22 @@ export function AppDataGrid(props: DataGridProps) {
         {...props}
         slots={{ pagination: DataTablePagination, noRowsOverlay: () => <TableEmptyOverlay />, ...props.slots }}
         sx={{
+          border: 0,
           // Subtle, mode-agnostic grid lines between rows and columns.
-          '--DataGrid-rowBorderColor': 'rgba(128,128,128,0.22)',
+          '--DataGrid-rowBorderColor': 'rgba(128,128,128,0.20)',
           '& .MuiDataGrid-columnHeaders': { backgroundColor: 'action.hover' },
+          '& .MuiDataGrid-columnHeader': {
+            borderColor: 'rgba(128,128,128,0.20)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            fontSize: 12,
+          },
           '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 700 },
-          '& .MuiDataGrid-cell': { borderColor: 'rgba(128,128,128,0.22)' },
-          '& .MuiDataGrid-columnHeader': { borderColor: 'rgba(128,128,128,0.22)' },
+          '& .MuiDataGrid-cell': { borderColor: 'rgba(128,128,128,0.20)' },
           '& .MuiDataGrid-row:hover': { backgroundColor: 'action.hover' },
+          '& .MuiDataGrid-columnSeparator': { display: 'none' },
+          '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': { outline: 'none' },
+          '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': { outline: 'none' },
           ...props.sx,
         }}
       />
