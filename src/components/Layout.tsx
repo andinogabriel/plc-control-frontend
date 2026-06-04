@@ -110,7 +110,13 @@ export function Layout({ children }: { children: ReactNode }) {
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
         <Toolbar>
-          <IconButton color="inherit" edge="start" onClick={toggle} aria-label="Abrir/cerrar menú" sx={{ mr: 1 }}>
+          <IconButton color="inherit" edge="start" aria-label="Abrir/cerrar menú" sx={{ mr: 1 }}
+            onClick={(e) => {
+              // Blur the trigger so it doesn't keep focus inside #root once the mobile
+              // drawer (a Modal) sets aria-hidden on it. MUI then moves focus into the drawer.
+              e.currentTarget.blur();
+              toggle();
+            }}>
             <MenuIcon />
           </IconButton>
           <ThermostatIcon sx={{ mr: 1, color: 'primary.main' }} />
