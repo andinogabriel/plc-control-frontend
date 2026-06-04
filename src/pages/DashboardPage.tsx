@@ -14,6 +14,9 @@ import { measurementApi } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
 import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
+import { DetailDialog } from '../components/DetailDialog';
+import type { MeasurementResponse } from '../api/types';
+import { useState } from 'react';
 
 type AccentColor = 'primary' | 'secondary' | 'success' | 'warning' | 'error';
 
@@ -50,6 +53,7 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [selected, setSelected] = useState<MeasurementResponse | null>(null);
 
   const { data: latest, isLoading, isError } = useQuery({
     queryKey: ['measurement-latest'],
@@ -148,6 +152,7 @@ export function DashboardPage() {
                   height={isMobile ? 260 : 340}
                   mode="time"
                   labels={labels}
+                  onPointClick={(i) => setSelected(chartPoints[i] ?? null)}
                   series={[
                     { id: 'temp', label: 'Temperatura (°C)', data: chartPoints.map((m) => m.temperature), color: '#6366f1' },
                     { id: 'hum', label: 'Humedad (%)', data: chartPoints.map((m) => m.humidity), color: '#14b8a6' },
@@ -160,6 +165,20 @@ export function DashboardPage() {
           </Card>
         </Grid>
       </Grid>
+
+      <DetailDialog
+        open={selected !== null}
+        title="Detalle de medición"
+        onClose={() => setSelected(null)}
+        rows={selected ? [
+          { label: 'Fecha', value: new Date(selected.createdAt).toLocaleString() },
+          { label: 'Temperatura', value: `${selected.temperature} °C` },
+          { label: 'Humedad', value: `${selected.humidity} %` },
+          { label: 'Cooler', value: selected.coolerOn ? 'ON' : 'OFF' },
+          { label: 'Relay', value: selected.relayOn ? 'ON' : 'OFF' },
+          { label: 'Estado', value: <StatusChip status={selected.status} /> },
+        ] : []}
+      />
     </Box>
   );
 }

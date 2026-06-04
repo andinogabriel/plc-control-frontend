@@ -1,20 +1,62 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import {
-  Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, Typography,
+  Box, Dialog, DialogContent, DialogTitle, Divider, IconButton, Stack, Typography,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 export interface DetailRow {
   label: string;
   value: ReactNode;
 }
 
-/** Generic detail dialog: a titled list of label/value rows. */
+/** Detail dialog: titled list of label/value rows. Draggable by its header, closed with the
+ *  top-right X (no bottom button). */
 export function DetailDialog({ open, title, rows, onClose }: {
   open: boolean; title: string; rows: DetailRow[]; onClose: () => void;
 }) {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const drag = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+
+  // Re-center each time it opens.
+  useEffect(() => { if (open) setPos({ x: 0, y: 0 }); }, [open]);
+
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    drag.current = { startX: e.clientX, startY: e.clientY, origX: pos.x, origY: pos.y };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (!drag.current) return;
+    setPos({
+      x: drag.current.origX + (e.clientX - drag.current.startX),
+      y: drag.current.origY + (e.clientY - drag.current.startY),
+    });
+  };
+  const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
+    drag.current = null;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>{title}</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="xs"
+      fullWidth
+      slotProps={{ paper: { sx: { transform: `translate(${pos.x}px, ${pos.y}px)` } } }}
+    >
+      <DialogTitle component="div" sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1, pl: 2.5, pr: 1 }}>
+        <Box
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          sx={{ flexGrow: 1, cursor: 'move', userSelect: 'none', fontWeight: 700, py: 1 }}
+        >
+          {title}
+        </Box>
+        <IconButton aria-label="Cerrar" onClick={onClose} size="small">
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </DialogTitle>
       <DialogContent dividers>
         <Stack divider={<Divider flexItem />} spacing={1.25}>
           {rows.map((r) => (
@@ -27,9 +69,6 @@ export function DetailDialog({ open, title, rows, onClose }: {
           ))}
         </Stack>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cerrar</Button>
-      </DialogActions>
     </Dialog>
   );
 }

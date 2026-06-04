@@ -279,8 +279,6 @@ export function ConfigHistoryPage() {
           { label: 'Histéresis T / H', value: `${selected.hysteresisTemperature} / ${selected.hysteresisHumidity}` },
           { label: 'Intervalo de medición', value: `${selected.measurementIntervalSeconds} s` },
           { label: 'Activa', value: selected.active ? 'Sí' : 'No' },
-          { label: 'IP del cliente', value: selected.clientIp },
-          { label: 'Dispositivo', value: selected.deviceFingerprint || '—' },
         ] : []}
       />
     </Box>
