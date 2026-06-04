@@ -75,6 +75,7 @@ export function AreaLineChart({
         onAxisClick={onPointClick ? (_event, data) => { if (data) onPointClick(data.dataIndex); } : undefined}
         sx={[chartSx, areaFillSx, onPointClick ? { cursor: 'pointer' } : {}]}
         slots={{ legend: NoLegend }}
+        slotProps={{ noDataOverlay: { message: 'No hay líneas seleccionadas' } }}
         xAxis={[{
           data: labels,
           scaleType: 'time',
