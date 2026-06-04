@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Grid, Card, CardActionArea, CardContent, Typography, Box, CircularProgress, Alert, Stack,
-  useMediaQuery, useTheme,
+  MenuItem, TextField, useMediaQuery, useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
@@ -19,6 +19,15 @@ import type { MeasurementResponse } from '../api/types';
 import { useState } from 'react';
 
 type AccentColor = 'primary' | 'secondary' | 'success' | 'warning' | 'error';
+
+const RANGE_OPTIONS = [
+  { value: '1h', label: 'Última hora', ms: 60 * 60 * 1000 },
+  { value: '12h', label: 'Últimas 12 h', ms: 12 * 60 * 60 * 1000 },
+  { value: '24h', label: 'Último día', ms: 24 * 60 * 60 * 1000 },
+  { value: '7d', label: 'Última semana', ms: 7 * 24 * 60 * 60 * 1000 },
+  { value: '30d', label: 'Último mes', ms: 30 * 24 * 60 * 60 * 1000 },
+  { value: '365d', label: 'Último año', ms: 365 * 24 * 60 * 60 * 1000 },
+];
 
 function MetricCard({ icon, label, value, color = 'primary', onClick, children }: {
   icon: React.ReactNode; label: string; value?: string; color?: AccentColor;
@@ -54,6 +63,8 @@ export function DashboardPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [selected, setSelected] = useState<MeasurementResponse | null>(null);
+  const [range, setRange] = useState('24h');
+  const rangeMs = RANGE_OPTIONS.find((o) => o.value === range)?.ms ?? RANGE_OPTIONS[2].ms;
 
   const { data: latest, isLoading, isError } = useQuery({
     queryKey: ['measurement-latest'],
@@ -69,8 +80,10 @@ export function DashboardPage() {
   });
 
   const { data: recent } = useQuery({
-    queryKey: ['measurements-recent'],
-    queryFn: () => measurementApi.getMeasurements({ page: 0, size: 48 }),
+    queryKey: ['measurements-recent', range],
+    queryFn: () => measurementApi.getMeasurements({
+      page: 0, size: 1500, from: new Date(Date.now() - rangeMs).toISOString(),
+    }),
     refetchInterval: 15000,
   });
 
@@ -141,7 +154,17 @@ export function DashboardPage() {
         <Grid size={12}>
           <Card>
             <CardContent>
-              <Typography variant="subtitle1">Últimas lecturas</Typography>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+                <Typography variant="subtitle1">Últimas lecturas</Typography>
+                <TextField
+                  select size="small" value={range} onChange={(e) => setRange(e.target.value)}
+                  sx={{ minWidth: 160 }}
+                >
+                  {RANGE_OPTIONS.map((o) => (
+                    <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
               {rangeLabel && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                   {rangeLabel}
@@ -150,7 +173,7 @@ export function DashboardPage() {
               {chartPoints.length > 0 ? (
                 <AreaLineChart
                   height={isMobile ? 260 : 340}
-                  mode="time"
+                  mode={range === '1h' || range === '12h' || range === '24h' ? 'time' : 'date'}
                   labels={labels}
                   onPointClick={(i) => setSelected(chartPoints[i] ?? null)}
                   series={[
