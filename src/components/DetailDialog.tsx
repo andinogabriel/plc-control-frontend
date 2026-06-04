@@ -65,7 +65,7 @@ export function DetailDialog({ open, title, rows, onClose }: {
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          sx={{ flexGrow: 1, cursor: 'move', userSelect: 'none', fontWeight: 700, py: 1 }}
+          sx={{ flexGrow: 1, cursor: 'move', userSelect: 'none', touchAction: 'none', fontWeight: 700, py: 1 }}
         >
           {title}
         </Box>
