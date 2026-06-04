@@ -4,7 +4,9 @@ import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Card, CardContent, Typography, TextField, Button, Grid, Alert, Stack, Divider,
+  InputAdornment, IconButton, Tooltip,
 } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { AxiosError } from 'axios';
 import { configApi } from '../api/configApi';
 import type { ApiError, ConfigRequest } from '../api/types';
@@ -42,13 +44,18 @@ const schema = z
 type FormInput = z.input<typeof schema>;
 type FormValues = z.output<typeof schema>;
 
-const fields: { name: keyof FormValues; label: string }[] = [
+const HYSTERESIS_HELP =
+  'Histéresis: banda muerta alrededor del umbral que evita que el cooler se prenda y apague '
+  + 'constantemente cuando la lectura oscila cerca del límite. El cooler enciende al alcanzar el '
+  + 'máximo y recién apaga al bajar a (máximo − histéresis).';
+
+const fields: { name: keyof FormValues; label: string; help?: string }[] = [
   { name: 'temperatureMin', label: 'Temperatura mín (°C)' },
   { name: 'temperatureMax', label: 'Temperatura máx (°C)' },
   { name: 'humidityMin', label: 'Humedad mín (%)' },
   { name: 'humidityMax', label: 'Humedad máx (%)' },
-  { name: 'hysteresisTemperature', label: 'Histéresis temperatura' },
-  { name: 'hysteresisHumidity', label: 'Histéresis humedad' },
+  { name: 'hysteresisTemperature', label: 'Histéresis temperatura', help: `${HYSTERESIS_HELP} (en °C)` },
+  { name: 'hysteresisHumidity', label: 'Histéresis humedad', help: `${HYSTERESIS_HELP} (en %)` },
   { name: 'measurementIntervalSeconds', label: 'Intervalo de medición (s)' },
 ];
 
@@ -114,7 +121,19 @@ export function ConfigurationPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 4 }} key={f.name}>
                   <TextField fullWidth type="number" inputProps={{ step: 'any' }}
                     label={f.label} {...register(f.name)}
-                    error={!!errors[f.name]} helperText={errors[f.name]?.message} />
+                    error={!!errors[f.name]} helperText={errors[f.name]?.message}
+                    InputProps={f.help ? {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Tooltip title={f.help} arrow enterTouchDelay={0}
+                            slotProps={{ tooltip: { sx: { maxWidth: 280 } } }}>
+                            <IconButton edge="end" size="small" tabIndex={-1} aria-label="¿Qué es la histéresis?">
+                              <InfoOutlinedIcon fontSize="small" color="action" />
+                            </IconButton>
+                          </Tooltip>
+                        </InputAdornment>
+                      ),
+                    } : undefined} />
                 </Grid>
               ))}
             </Grid>
