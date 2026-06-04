@@ -9,28 +9,38 @@ import { AxiosError } from 'axios';
 import { configApi } from '../api/configApi';
 import type { ApiError, ConfigRequest } from '../api/types';
 
+// Empty input ('' / null / undefined) -> undefined so z.number reports "requerido".
+const toNumber = (v: unknown) => (v === '' || v === null || v === undefined ? undefined : Number(v));
+
+const requiredNumber = (apply: (n: z.ZodNumber) => z.ZodNumber) =>
+  z.preprocess(
+    toNumber,
+    apply(z.number({ required_error: 'Campo obligatorio', invalid_type_error: 'Número inválido' })),
+  );
+
 const schema = z
   .object({
     createdByName: z.string().min(1, 'El nombre es obligatorio').max(100),
     createdByEmail: z.string().email('Email inválido').max(150),
-    temperatureMin: z.coerce.number().min(-10, 'Mín -10 °C').max(60, 'Máx 60 °C'),
-    temperatureMax: z.coerce.number().min(-10, 'Mín -10 °C').max(60, 'Máx 60 °C'),
-    humidityMin: z.coerce.number().min(0, 'Mín 0%').max(100, 'Máx 100%'),
-    humidityMax: z.coerce.number().min(0, 'Mín 0%').max(100, 'Máx 100%'),
-    hysteresisTemperature: z.coerce.number().positive('Debe ser positiva').max(20),
-    hysteresisHumidity: z.coerce.number().positive('Debe ser positiva').max(20),
-    measurementIntervalSeconds: z.coerce.number().int('Debe ser un entero').min(5, 'Mín 5 s').max(3600, 'Máx 3600 s'),
+    temperatureMin: requiredNumber((n) => n.min(-10, 'Mín -10 °C').max(60, 'Máx 60 °C')),
+    temperatureMax: requiredNumber((n) => n.min(-10, 'Mín -10 °C').max(60, 'Máx 60 °C')),
+    humidityMin: requiredNumber((n) => n.min(0, 'Mín 0%').max(100, 'Máx 100%')),
+    humidityMax: requiredNumber((n) => n.min(0, 'Mín 0%').max(100, 'Máx 100%')),
+    hysteresisTemperature: requiredNumber((n) => n.positive('Debe ser positiva').max(20)),
+    hysteresisHumidity: requiredNumber((n) => n.positive('Debe ser positiva').max(20)),
+    measurementIntervalSeconds: requiredNumber((n) => n.int('Debe ser un entero').min(5, 'Mín 5 s').max(3600, 'Máx 3600 s')),
   })
-  .refine((d) => d.temperatureMin < d.temperatureMax, {
+  .refine((d) => d.temperatureMin == null || d.temperatureMax == null || d.temperatureMin < d.temperatureMax, {
     message: 'temperatureMin debe ser menor que temperatureMax',
     path: ['temperatureMin'],
   })
-  .refine((d) => d.humidityMin < d.humidityMax, {
+  .refine((d) => d.humidityMin == null || d.humidityMax == null || d.humidityMin < d.humidityMax, {
     message: 'humidityMin debe ser menor que humidityMax',
     path: ['humidityMin'],
   });
 
-type FormValues = z.infer<typeof schema>;
+type FormInput = z.input<typeof schema>;
+type FormValues = z.output<typeof schema>;
 
 const fields: { name: keyof FormValues; label: string }[] = [
   { name: 'temperatureMin', label: 'Temperatura mín (°C)' },
@@ -46,14 +56,14 @@ export function ConfigurationPage() {
   const queryClient = useQueryClient();
   const { data: latest } = useQuery({ queryKey: ['config-latest'], queryFn: configApi.getLatest, retry: false });
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, formState: { errors } } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       createdByName: '', createdByEmail: '',
-      temperatureMin: 18, temperatureMax: 26,
-      humidityMin: 30, humidityMax: 60,
-      hysteresisTemperature: 1.5, hysteresisHumidity: 2,
-      measurementIntervalSeconds: 30,
+      temperatureMin: undefined, temperatureMax: undefined,
+      humidityMin: undefined, humidityMax: undefined,
+      hysteresisTemperature: undefined, hysteresisHumidity: undefined,
+      measurementIntervalSeconds: 20,
     },
   });
 
