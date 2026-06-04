@@ -22,22 +22,22 @@ const requiredNumber = (apply: (n: z.ZodNumber) => z.ZodNumber) =>
 
 const schema = z
   .object({
-    createdByName: z.string().min(1, 'El nombre es obligatorio').max(100),
-    createdByEmail: z.string().email('Email inválido').max(150),
+    createdByName: z.string().min(1, 'El nombre es obligatorio').max(100, 'Máximo 100 caracteres'),
+    createdByEmail: z.string().email('Email inválido').max(150, 'Máximo 150 caracteres'),
     temperatureMin: requiredNumber((n) => n.min(-10, 'Mín -10 °C').max(60, 'Máx 60 °C')),
     temperatureMax: requiredNumber((n) => n.min(-10, 'Mín -10 °C').max(60, 'Máx 60 °C')),
-    humidityMin: requiredNumber((n) => n.min(0, 'Mín 0%').max(100, 'Máx 100%')),
-    humidityMax: requiredNumber((n) => n.min(0, 'Mín 0%').max(100, 'Máx 100%')),
-    hysteresisTemperature: requiredNumber((n) => n.positive('Debe ser positiva').max(20)),
-    hysteresisHumidity: requiredNumber((n) => n.positive('Debe ser positiva').max(20)),
+    humidityMin: requiredNumber((n) => n.min(0, 'Mín 0 %').max(100, 'Máx 100 %')),
+    humidityMax: requiredNumber((n) => n.min(0, 'Mín 0 %').max(100, 'Máx 100 %')),
+    hysteresisTemperature: requiredNumber((n) => n.min(0.1, 'Mín 0,1 °C').max(2, 'Máx 2 °C')),
+    hysteresisHumidity: requiredNumber((n) => n.min(0.1, 'Mín 0,1 %').max(5, 'Máx 5 %')),
     measurementIntervalSeconds: requiredNumber((n) => n.int('Debe ser un entero').min(5, 'Mín 5 s').max(3600, 'Máx 3600 s')),
   })
   .refine((d) => d.temperatureMin == null || d.temperatureMax == null || d.temperatureMin < d.temperatureMax, {
-    message: 'temperatureMin debe ser menor que temperatureMax',
+    message: 'La temperatura mínima debe ser menor que la máxima',
     path: ['temperatureMin'],
   })
   .refine((d) => d.humidityMin == null || d.humidityMax == null || d.humidityMin < d.humidityMax, {
-    message: 'humidityMin debe ser menor que humidityMax',
+    message: 'La humedad mínima debe ser menor que la máxima',
     path: ['humidityMin'],
   });
 
