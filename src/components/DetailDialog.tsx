@@ -15,21 +15,37 @@ export function DetailDialog({ open, title, rows, onClose }: {
   open: boolean; title: string; rows: DetailRow[]; onClose: () => void;
 }) {
   const [pos, setPos] = useState({ x: 0, y: 0 });
-  const drag = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const drag = useRef<{
+    startX: number; startY: number; origX: number; origY: number; rect: DOMRect | null;
+  } | null>(null);
 
   // Re-center each time it opens.
   useEffect(() => { if (open) setPos({ x: 0, y: 0 }); }, [open]);
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
-    drag.current = { startX: e.clientX, startY: e.clientY, origX: pos.x, origY: pos.y };
+    const paper = e.currentTarget.closest('.MuiDialog-paper') as HTMLElement | null;
+    drag.current = {
+      startX: e.clientX, startY: e.clientY, origX: pos.x, origY: pos.y,
+      rect: paper ? paper.getBoundingClientRect() : null,
+    };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
-    if (!drag.current) return;
-    setPos({
-      x: drag.current.origX + (e.clientX - drag.current.startX),
-      y: drag.current.origY + (e.clientY - drag.current.startY),
-    });
+    const d = drag.current;
+    if (!d) return;
+    let x = d.origX + (e.clientX - d.startX);
+    let y = d.origY + (e.clientY - d.startY);
+    // Clamp so the dialog never leaves the viewport.
+    if (d.rect) {
+      const margin = 8;
+      const minX = d.origX - d.rect.left + margin;
+      const maxX = d.origX + (window.innerWidth - d.rect.right) - margin;
+      const minY = d.origY - d.rect.top + margin;
+      const maxY = d.origY + (window.innerHeight - d.rect.bottom) - margin;
+      x = Math.min(Math.max(x, minX), maxX);
+      y = Math.min(Math.max(y, minY), maxY);
+    }
+    setPos({ x, y });
   };
   const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
     drag.current = null;
