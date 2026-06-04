@@ -11,9 +11,6 @@ export interface ConfigResponse {
   measurementIntervalSeconds: number;
   createdByName: string;
   createdByEmail: string;
-  clientIp: string;
-  userAgent: string;
-  deviceFingerprint?: string;
   active: boolean;
   createdAt: string;
 }
