@@ -14,7 +14,7 @@ export interface ChartSeries {
  * and an optional gradient area that fades to transparent under each line (2026 dashboard look).
  */
 export function AreaLineChart({
-  labels, series, height, mode = 'date', area = true, curve = 'monotoneX',
+  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick,
 }: {
   labels: Date[];
   series: ChartSeries[];
@@ -22,6 +22,7 @@ export function AreaLineChart({
   mode?: 'date' | 'time';
   area?: boolean;
   curve?: 'monotoneX' | 'stepAfter' | 'linear' | 'natural';
+  onPointClick?: (dataIndex: number) => void;
 }) {
   const uid = useId().replace(/[:]/g, '');
   const gradientId = (id: string) => `grad-${uid}-${id}`;
@@ -35,7 +36,8 @@ export function AreaLineChart({
       height={height}
       grid={{ horizontal: true }}
       margin={{ top: 12, right: 22, bottom: 24, left: 16 }}
-      sx={[chartSx, areaFillSx]}
+      onAxisClick={onPointClick ? (_event, data) => { if (data) onPointClick(data.dataIndex); } : undefined}
+      sx={[chartSx, areaFillSx, onPointClick ? { cursor: 'pointer' } : {}]}
       slotProps={{ legend: { sx: { fontSize: 12, fontWeight: 600 } } }}
       xAxis={[{
         data: labels,

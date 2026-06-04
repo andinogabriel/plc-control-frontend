@@ -8,8 +8,10 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { type GridColDef } from '@mui/x-data-grid';
 import dayjs, { type Dayjs } from 'dayjs';
 import { configApi, type ConfigHistoryQuery } from '../api/configApi';
+import type { ConfigResponse } from '../api/types';
 import { AppDataGrid } from '../components/AppDataGrid';
 import { AreaLineChart } from '../components/AreaLineChart';
+import { DetailDialog } from '../components/DetailDialog';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import {
   DateRangeFilterHeader, NumberFilterHeader, SortableHeader, TextFilterHeader, type SortDirection,
@@ -194,6 +196,7 @@ export function ConfigHistoryPage() {
 
   const points = (chartData?.content ?? []).slice().reverse();
   const labels = points.map((c) => new Date(c.createdAt));
+  const [selected, setSelected] = useState<ConfigResponse | null>(null);
 
   return (
     <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
@@ -225,6 +228,7 @@ export function ConfigHistoryPage() {
             <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de temperatura</Typography>
             {points.length > 0 ? (
               <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
+                onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[
                   { id: 'tmin', label: 'T. mín', data: points.map((c) => c.temperatureMin), color: '#6366f1' },
                   { id: 'tmax', label: 'T. máx', data: points.map((c) => c.temperatureMax), color: '#f43f5e' },
@@ -237,6 +241,7 @@ export function ConfigHistoryPage() {
             <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de humedad</Typography>
             {points.length > 0 ? (
               <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
+                onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[
                   { id: 'hmin', label: 'H. mín', data: points.map((c) => c.humidityMin), color: '#14b8a6' },
                   { id: 'hmax', label: 'H. máx', data: points.map((c) => c.humidityMax), color: '#f59e0b' },
@@ -260,6 +265,24 @@ export function ConfigHistoryPage() {
           />
         </CardContent>
       </Card>
+
+      <DetailDialog
+        open={selected !== null}
+        title="Detalle de configuración"
+        onClose={() => setSelected(null)}
+        rows={selected ? [
+          { label: 'Fecha', value: new Date(selected.createdAt).toLocaleString() },
+          { label: 'Nombre', value: selected.createdByName },
+          { label: 'Email', value: selected.createdByEmail },
+          { label: 'Temperatura mín / máx', value: `${selected.temperatureMin} / ${selected.temperatureMax} °C` },
+          { label: 'Humedad mín / máx', value: `${selected.humidityMin} / ${selected.humidityMax} %` },
+          { label: 'Histéresis T / H', value: `${selected.hysteresisTemperature} / ${selected.hysteresisHumidity}` },
+          { label: 'Intervalo de medición', value: `${selected.measurementIntervalSeconds} s` },
+          { label: 'Activa', value: selected.active ? 'Sí' : 'No' },
+          { label: 'IP del cliente', value: selected.clientIp },
+          { label: 'Dispositivo', value: selected.deviceFingerprint || '—' },
+        ] : []}
+      />
     </Box>
   );
 }

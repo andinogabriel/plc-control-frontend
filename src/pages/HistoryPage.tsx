@@ -9,10 +9,11 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { type GridColDef } from '@mui/x-data-grid';
 import dayjs, { type Dayjs } from 'dayjs';
 import { measurementApi, type MeasurementQuery } from '../api/measurementApi';
-import type { SystemStatus } from '../api/types';
+import type { MeasurementResponse, SystemStatus } from '../api/types';
 import { AppDataGrid } from '../components/AppDataGrid';
 import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
+import { DetailDialog } from '../components/DetailDialog';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import {
   DateRangeFilterHeader, NumberRangeFilterHeader, SelectFilterHeader, type SortDirection,
@@ -190,6 +191,7 @@ export function HistoryPage() {
   const points = (chartData?.content ?? []).slice().reverse();
   const labels = points.map((m) => new Date(m.createdAt));
   const chartHeight = isMobile ? 220 : 260;
+  const [selected, setSelected] = useState<MeasurementResponse | null>(null);
 
   return (
     <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
@@ -229,6 +231,7 @@ export function HistoryPage() {
             <Typography variant="subtitle1" gutterBottom>Temperatura vs tiempo</Typography>
             {points.length > 0 ? (
               <AreaLineChart height={chartHeight} mode="date" labels={labels}
+                onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: '#6366f1' }]} />
             ) : <Typography variant="body2" color="text.secondary">Sin datos.</Typography>}
           </CardContent></Card>
@@ -238,6 +241,7 @@ export function HistoryPage() {
             <Typography variant="subtitle1" gutterBottom>Humedad vs tiempo</Typography>
             {points.length > 0 ? (
               <AreaLineChart height={chartHeight} mode="date" labels={labels}
+                onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: '#14b8a6' }]} />
             ) : <Typography variant="body2" color="text.secondary">Sin datos.</Typography>}
           </CardContent></Card>
@@ -258,6 +262,20 @@ export function HistoryPage() {
           />
         </CardContent>
       </Card>
+
+      <DetailDialog
+        open={selected !== null}
+        title="Detalle de medición"
+        onClose={() => setSelected(null)}
+        rows={selected ? [
+          { label: 'Fecha', value: new Date(selected.createdAt).toLocaleString() },
+          { label: 'Temperatura', value: `${selected.temperature} °C` },
+          { label: 'Humedad', value: `${selected.humidity} %` },
+          { label: 'Cooler', value: selected.coolerOn ? 'ON' : 'OFF' },
+          { label: 'Relay', value: selected.relayOn ? 'ON' : 'OFF' },
+          { label: 'Estado', value: <StatusChip status={selected.status} /> },
+        ] : []}
+      />
     </Box>
   );
 }
