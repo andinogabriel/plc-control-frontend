@@ -29,8 +29,9 @@ flowchart LR
 ## Pantallas
 
 1. **Dashboard** (`/tablero`): cards clickeables (llevan a Mediciones) con temperatura,
-   humedad, estado del cooler y estado general, más un gráfico de las últimas lecturas.
-   Ocupa todo el ancho disponible. Auto-refresca cada 5 s.
+   humedad, estado del cooler y estado general, más un gráfico de las últimas lecturas con
+   **selector de rango** (última hora, 12 h, día, semana, mes, año). Ocupa todo el ancho
+   disponible. Auto-refresca cada 5 s.
 2. **Configuración** (`/configuracion`): formulario con nombre/email + umbrales, validación
    con Zod (espejo del backend), POST a `/api/config`, errores de validación y manejo de 429.
 3. **Historial de config** (`/historial-configuracion`): auditoría del admin. DataTable
@@ -53,7 +54,10 @@ flowchart LR
 - El selector de filas por página **deshabilita** las opciones que superan el total (con 11
   filas solo 10 y 20 quedan habilitadas).
 - Paginador y selector en una sola fila (también en mobile), con botones de primera/última página.
-- La paginación es server-side y el estado (page/size/filtros) se refleja en los **query
+- **Ordenamiento server-side** por columna: el título es clickeable (asc → desc → sin orden)
+  y la flecha indica el sentido; el orden viaja al backend y se mantiene entre páginas.
+- Headers y valores centrados; en mobile la tabla scrollea horizontalmente mostrando todas las columnas.
+- La paginación es server-side y el estado (page/size/orden/filtros) se refleja en los **query
   params de la URL**, así los enlaces son compartibles y recargables.
 
 ### Filtros
@@ -64,11 +68,20 @@ flowchart LR
 - **Barra superior (gráficos)**: el rango de fechas (y estado en Mediciones) de arriba ajusta
   únicamente los gráficos, de forma independiente al filtrado de la tabla.
 
+### Gráficos (`@mui/x-charts`)
+
+- Área con degradado, curvas suaves y ejes limpios; etiquetas y tooltips en español.
+- **Leyenda clickeable**: tocar una serie (p. ej. Temperatura / Humedad o T. mín / T. máx)
+  muestra u oculta esa línea.
+- **Click en un punto** abre un diálogo con el detalle: en Historial config muestra quién
+  configuró y todos los umbrales; en Mediciones, la lectura completa. Los diálogos son
+  **arrastrables** por el encabezado y se cierran con la X (sin salirse de la pantalla).
+
 ## Estructura
 
 ```
 public/
-└── uncaus-logo.png       # logo institucional (favicon + footer) — ver public/LEEME-logo.txt
+└── uncaus-logo.svg       # logo institucional (favicon + footer) — ver public/LEEME-logo.txt
 src/
 ├── main.tsx              # bootstrap: QueryClient + tema + LocalizationProvider + Router
 ├── App.tsx               # rutas (lazy) en español
@@ -83,7 +96,9 @@ src/
 │   ├── Layout.tsx              # sidebar responsive + AppBar + selector de tema + footer
 │   ├── AppDataGrid.tsx         # DataGrid con altura de 10 filas + paginador + estado vacío
 │   ├── DataTablePagination.tsx # paginador en una fila, opciones deshabilitadas por total
-│   ├── columnFilters.tsx       # filtros por columna en popover (texto, número, rango, fecha, select)
+│   ├── columnFilters.tsx       # filtros + orden por columna en popover (texto, número, rango, fecha, select)
+│   ├── AreaLineChart.tsx       # gráfico con degradado, leyenda clickeable y click → detalle
+│   ├── DetailDialog.tsx        # diálogo de detalle arrastrable (click en un punto)
 │   ├── TableEmptyOverlay.tsx   # mensaje centrado cuando la tabla no tiene datos
 │   ├── chartStyle.ts           # estilo y formateo (español) de los gráficos
 │   └── StatusChip.tsx          # chip de estado (etiquetas en español)
@@ -94,7 +109,7 @@ src/
     └── HistoryPage.tsx         # historial de mediciones
 ```
 
-> **Logo institucional**: colocá el logo de la UNCAUS en `public/uncaus-logo.png`
+> **Logo institucional**: el logo de la UNCAUS está en `public/uncaus-logo.svg`
 > (se usa como favicon y en el footer). Si falta, no rompe nada (ver `public/LEEME-logo.txt`).
 
 ## Cómo levantar localmente
