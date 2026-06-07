@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
-  Box, Card, CardContent, Typography, Grid, Stack, Button, Alert, MenuItem, TextField,
+  Box, Card, CardContent, Typography, Grid, Stack, Button, Alert, Chip, MenuItem, Skeleton, TextField,
   useMediaQuery, useTheme,
 } from '@mui/material';
+import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { type GridColDef } from '@mui/x-data-grid';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -14,6 +15,7 @@ import { AppDataGrid } from '../components/AppDataGrid';
 import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { DetailDialog } from '../components/DetailDialog';
+import { EmptyState } from '../components/EmptyState';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import {
   DateRangeFilterHeader, NumberRangeFilterHeader, SelectFilterHeader, type SortDirection,
@@ -44,7 +46,7 @@ export function HistoryPage() {
   const [gTo, setGTo] = useState<Dayjs | null>(gToParam ? dayjs(gToParam) : null);
   const [gStatus, setGStatus] = useState<SystemStatus | ''>(gStatusParam);
 
-  const { data: chartData } = useQuery({
+  const { data: chartData, isLoading: chartLoading } = useQuery({
     queryKey: ['measurement-chart', gFromParam, gToParam, gStatusParam],
     queryFn: () => measurementApi.getMeasurements({
       page: 0, size: CHART_PAGE_SIZE,
@@ -193,6 +195,16 @@ export function HistoryPage() {
   const chartHeight = isMobile ? 220 : 260;
   const [selected, setSelected] = useState<MeasurementResponse | null>(null);
 
+  // Active chart-range summary chips: make an applied range visible even when the data looks
+  // the same (e.g. a "Desde" earlier than the first record returns the same rows).
+  const fmtChip = (iso: string) => dayjs(iso).format('D MMM YYYY HH:mm');
+  const statusChipLabel = STATUS_OPTIONS.find((o) => o.value === gStatusParam)?.label;
+  const hasChartFilters = Boolean(gFromParam || gToParam || gStatusParam);
+  const removeChartParam = (patch: Record<string, undefined>, reset: () => void) => {
+    reset();
+    updateParams(patch);
+  };
+
   return (
     <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>Mediciones</Typography>
@@ -208,9 +220,9 @@ export function HistoryPage() {
         <CardContent>
           <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} sx={{ alignItems: { lg: 'center' } }}>
             <Typography variant="body2" color="text.secondary" sx={{ minWidth: 120 }}>Rango de gráficos:</Typography>
-            <DateTimePicker label="Desde" value={gFrom} onChange={setGFrom} maxDateTime={gTo ?? undefined}
+            <DateTimePicker label="Desde" value={gFrom} onChange={setGFrom} maxDateTime={gTo ?? undefined} disableFuture
               slotProps={{ textField: { size: 'small', sx: { flex: 1, minWidth: 180 } } }} />
-            <DateTimePicker label="Hasta" value={gTo} onChange={setGTo} minDateTime={gFrom ?? undefined}
+            <DateTimePicker label="Hasta" value={gTo} onChange={setGTo} minDateTime={gFrom ?? undefined} disableFuture
               slotProps={{ textField: { size: 'small', sx: { flex: 1, minWidth: 180 } } }} />
             <TextField select size="small" label="Estado" value={gStatus}
               onChange={(e) => setGStatus(e.target.value as SystemStatus | '')} sx={{ flex: 1, minWidth: 160 }}>
@@ -225,25 +237,52 @@ export function HistoryPage() {
         </CardContent>
       </Card>
 
+      {hasChartFilters && (
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }} alignItems="center">
+          <Typography variant="caption" color="text.secondary">Gráficos:</Typography>
+          {gFromParam && (
+            <Chip size="small" label={`Desde ${fmtChip(gFromParam)}`}
+              onDelete={() => removeChartParam({ gfrom: undefined }, () => setGFrom(null))} />
+          )}
+          <Chip size="small" variant="outlined"
+            label={gToParam ? `Hasta ${fmtChip(gToParam)}` : 'Hasta ahora'}
+            onDelete={gToParam ? () => removeChartParam({ gto: undefined }, () => setGTo(null)) : undefined} />
+          {statusChipLabel && (
+            <Chip size="small" color="primary" variant="outlined" label={`Estado: ${statusChipLabel}`}
+              onDelete={() => removeChartParam({ gstatus: undefined }, () => setGStatus(''))} />
+          )}
+        </Stack>
+      )}
+
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent>
             <Typography variant="subtitle1" gutterBottom>Temperatura vs tiempo</Typography>
-            {points.length > 0 ? (
+            {chartLoading ? (
+              <Skeleton variant="rounded" height={chartHeight} />
+            ) : points.length > 0 ? (
               <AreaLineChart height={chartHeight} mode="date" labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
-                series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: '#6366f1' }]} />
-            ) : <Typography variant="body2" color="text.secondary">Sin datos.</Typography>}
+                series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main }]} />
+            ) : (
+              <EmptyState dense icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+                title="Sin mediciones en este rango" description="Ajustá el rango o los filtros de los gráficos." />
+            )}
           </CardContent></Card>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent>
             <Typography variant="subtitle1" gutterBottom>Humedad vs tiempo</Typography>
-            {points.length > 0 ? (
+            {chartLoading ? (
+              <Skeleton variant="rounded" height={chartHeight} />
+            ) : points.length > 0 ? (
               <AreaLineChart height={chartHeight} mode="date" labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
-                series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: '#14b8a6' }]} />
-            ) : <Typography variant="body2" color="text.secondary">Sin datos.</Typography>}
+                series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main }]} />
+            ) : (
+              <EmptyState dense icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+                title="Sin mediciones en este rango" description="Ajustá el rango o los filtros de los gráficos." />
+            )}
           </CardContent></Card>
         </Grid>
       </Grid>

@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
-  Box, Card, CardContent, Typography, Stack, Button, Chip, Grid,
+  Box, Card, CardContent, Typography, Stack, Button, Chip, Grid, Skeleton, useTheme,
 } from '@mui/material';
+import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { type GridColDef } from '@mui/x-data-grid';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -12,6 +13,7 @@ import type { ConfigResponse } from '../api/types';
 import { AppDataGrid } from '../components/AppDataGrid';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { DetailDialog } from '../components/DetailDialog';
+import { EmptyState } from '../components/EmptyState';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import {
   DateRangeFilterHeader, NumberFilterHeader, SortableHeader, TextFilterHeader, type SortDirection,
@@ -24,6 +26,7 @@ const TABLE_FILTER_KEYS = [
 ];
 
 export function ConfigHistoryPage() {
+  const theme = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // --- Top bar (charts only): date range stored as gfrom/gto ---
@@ -32,7 +35,7 @@ export function ConfigHistoryPage() {
   const [gFrom, setGFrom] = useState<Dayjs | null>(gFromParam ? dayjs(gFromParam) : null);
   const [gTo, setGTo] = useState<Dayjs | null>(gToParam ? dayjs(gToParam) : null);
 
-  const { data: chartData } = useQuery({
+  const { data: chartData, isLoading: chartLoading } = useQuery({
     queryKey: ['config-chart', gFromParam, gToParam],
     queryFn: () => configApi.getHistory({ page: 0, size: CHART_PAGE_SIZE, from: gFromParam || undefined, to: gToParam || undefined }),
     placeholderData: keepPreviousData,
@@ -198,6 +201,10 @@ export function ConfigHistoryPage() {
   const labels = points.map((c) => new Date(c.createdAt));
   const [selected, setSelected] = useState<ConfigResponse | null>(null);
 
+  // Active chart-range summary chips (visible feedback that a range was applied).
+  const fmtChip = (iso: string) => dayjs(iso).format('D MMM YYYY HH:mm');
+  const hasChartFilters = Boolean(gFromParam || gToParam);
+
   return (
     <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>Historial de configuraciones</Typography>
@@ -210,9 +217,9 @@ export function ConfigHistoryPage() {
         <CardContent>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ alignItems: { md: 'center' } }}>
             <Typography variant="body2" color="text.secondary" sx={{ minWidth: 120 }}>Rango de gráficos:</Typography>
-            <DateTimePicker label="Desde" value={gFrom} onChange={setGFrom} maxDateTime={gTo ?? undefined}
+            <DateTimePicker label="Desde" value={gFrom} onChange={setGFrom} maxDateTime={gTo ?? undefined} disableFuture
               slotProps={{ textField: { size: 'small', sx: { flex: 1, minWidth: 200 } } }} />
-            <DateTimePicker label="Hasta" value={gTo} onChange={setGTo} minDateTime={gFrom ?? undefined}
+            <DateTimePicker label="Hasta" value={gTo} onChange={setGTo} minDateTime={gFrom ?? undefined} disableFuture
               slotProps={{ textField: { size: 'small', sx: { flex: 1, minWidth: 200 } } }} />
             <Stack direction="row" spacing={1} sx={{ alignSelf: { xs: 'flex-end', md: 'auto' } }}>
               <Button variant="contained" onClick={applyChartRange} disabled={!canApplyCharts}>Aplicar</Button>
@@ -222,31 +229,54 @@ export function ConfigHistoryPage() {
         </CardContent>
       </Card>
 
+      {hasChartFilters && (
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }} alignItems="center">
+          <Typography variant="caption" color="text.secondary">Gráficos:</Typography>
+          {gFromParam && (
+            <Chip size="small" label={`Desde ${fmtChip(gFromParam)}`}
+              onDelete={() => { setGFrom(null); updateParams({ gfrom: undefined }); }} />
+          )}
+          <Chip size="small" variant="outlined"
+            label={gToParam ? `Hasta ${fmtChip(gToParam)}` : 'Hasta ahora'}
+            onDelete={gToParam ? () => { setGTo(null); updateParams({ gto: undefined }); } : undefined} />
+        </Stack>
+      )}
+
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent>
             <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de temperatura</Typography>
-            {points.length > 0 ? (
+            {chartLoading ? (
+              <Skeleton variant="rounded" height={260} />
+            ) : points.length > 0 ? (
               <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[
-                  { id: 'tmin', label: 'T. mín', data: points.map((c) => c.temperatureMin), color: '#6366f1' },
-                  { id: 'tmax', label: 'T. máx', data: points.map((c) => c.temperatureMax), color: '#f43f5e' },
+                  { id: 'tmin', label: 'T. mín', data: points.map((c) => c.temperatureMin), color: theme.palette.primary.main },
+                  { id: 'tmax', label: 'T. máx', data: points.map((c) => c.temperatureMax), color: theme.palette.error.main },
                 ]} />
-            ) : <Typography variant="body2" color="text.secondary">Sin datos.</Typography>}
+            ) : (
+              <EmptyState dense icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+                title="Sin configuraciones en este rango" description="Ajustá el rango de fechas de los gráficos." />
+            )}
           </CardContent></Card>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent>
             <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de humedad</Typography>
-            {points.length > 0 ? (
+            {chartLoading ? (
+              <Skeleton variant="rounded" height={260} />
+            ) : points.length > 0 ? (
               <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[
-                  { id: 'hmin', label: 'H. mín', data: points.map((c) => c.humidityMin), color: '#14b8a6' },
-                  { id: 'hmax', label: 'H. máx', data: points.map((c) => c.humidityMax), color: '#f59e0b' },
+                  { id: 'hmin', label: 'H. mín', data: points.map((c) => c.humidityMin), color: theme.palette.secondary.main },
+                  { id: 'hmax', label: 'H. máx', data: points.map((c) => c.humidityMax), color: theme.palette.warning.main },
                 ]} />
-            ) : <Typography variant="body2" color="text.secondary">Sin datos.</Typography>}
+            ) : (
+              <EmptyState dense icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+                title="Sin configuraciones en este rango" description="Ajustá el rango de fechas de los gráficos." />
+            )}
           </CardContent></Card>
         </Grid>
       </Grid>

@@ -1,22 +1,27 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Grid, Card, CardActionArea, CardContent, Typography, Box, CircularProgress, Alert, Stack,
-  MenuItem, TextField, useMediaQuery, useTheme,
+  Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Stack,
+  MenuItem, TextField, Skeleton, useMediaQuery, useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 import InsightsIcon from '@mui/icons-material/Insights';
+import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
 import dayjs from 'dayjs';
 import { measurementApi } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
 import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { DetailDialog } from '../components/DetailDialog';
+import { EmptyState } from '../components/EmptyState';
+import { Sparkline } from '../components/Sparkline';
+import { Delta } from '../components/Delta';
+import { RefreshControl } from '../components/RefreshControl';
 import type { MeasurementResponse } from '../api/types';
-import { useState } from 'react';
 
 type AccentColor = 'primary' | 'secondary' | 'success' | 'warning' | 'error';
 
@@ -29,14 +34,16 @@ const RANGE_OPTIONS = [
   { value: '365d', label: 'Último año', ms: 365 * 24 * 60 * 60 * 1000 },
 ];
 
+const SPARK_POINTS = 24;
+
 function MetricCard({ icon, label, value, color = 'primary', onClick, children }: {
-  icon: React.ReactNode; label: string; value?: string; color?: AccentColor;
+  icon: React.ReactNode; label: string; value?: React.ReactNode; color?: AccentColor;
   onClick: () => void; children?: React.ReactNode;
 }) {
   return (
     <Card sx={{ height: '100%' }}>
       <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
-        <CardContent sx={{ minHeight: 168, p: 2.5 }}>
+        <CardContent sx={{ minHeight: 172, p: 2.5 }}>
           <Box sx={(t) => ({
             width: 44, height: 44, borderRadius: 2.5, mb: 1.75,
             display: 'grid', placeItems: 'center',
@@ -49,11 +56,24 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children }
             {label}
           </Typography>
           {value !== undefined && (
-            <Typography variant="h4" fontWeight={700} sx={{ mt: 0.25 }}>{value}</Typography>
+            <Typography variant="h4" fontWeight={700} sx={{ mt: 0.25 }} component="div">{value}</Typography>
           )}
           <Box mt={1.25}>{children}</Box>
         </CardContent>
       </CardActionArea>
+    </Card>
+  );
+}
+
+function MetricCardSkeleton() {
+  return (
+    <Card sx={{ height: '100%' }}>
+      <CardContent sx={{ minHeight: 172, p: 2.5 }}>
+        <Skeleton variant="rounded" width={44} height={44} sx={{ mb: 1.75, borderRadius: 2.5 }} />
+        <Skeleton width="60%" height={16} />
+        <Skeleton width="45%" height={40} sx={{ mt: 0.5 }} />
+        <Skeleton width="80%" height={20} sx={{ mt: 1.25 }} />
+      </CardContent>
     </Card>
   );
 }
@@ -64,12 +84,13 @@ export function DashboardPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [selected, setSelected] = useState<MeasurementResponse | null>(null);
   const [range, setRange] = useState('24h');
+  const [paused, setPaused] = useState(false);
   const rangeMs = RANGE_OPTIONS.find((o) => o.value === range)?.ms ?? RANGE_OPTIONS[2].ms;
 
-  const { data: latest, isLoading, isError } = useQuery({
+  const { data: latest, isLoading, isError, dataUpdatedAt } = useQuery({
     queryKey: ['measurement-latest'],
     queryFn: measurementApi.getLatest,
-    refetchInterval: 5000,
+    refetchInterval: paused ? false : 5000,
     retry: false,
   });
 
@@ -84,17 +105,54 @@ export function DashboardPage() {
     queryFn: () => measurementApi.getMeasurements({
       page: 0, size: 1500, from: new Date(Date.now() - rangeMs).toISOString(),
     }),
-    refetchInterval: 15000,
+    refetchInterval: paused ? false : 15000,
   });
 
+  const goToMeasurements = () => navigate('/mediciones');
+
+  // Chronological points for the main chart and the card sparklines/deltas.
+  const chartPoints = (recent?.content ?? []).slice().reverse();
+  const labels = chartPoints.map((m) => new Date(m.createdAt));
+  const tempSeries = chartPoints.map((m) => m.temperature);
+  const humSeries = chartPoints.map((m) => m.humidity);
+  const tempSpark = tempSeries.slice(-SPARK_POINTS);
+  const humSpark = humSeries.slice(-SPARK_POINTS);
+  const tempDelta = tempSeries.length >= 2 ? tempSeries[tempSeries.length - 1] - tempSeries[tempSeries.length - 2] : null;
+  const humDelta = humSeries.length >= 2 ? humSeries[humSeries.length - 1] - humSeries[humSeries.length - 2] : null;
+
+  const rangeLabel = chartPoints.length > 0
+    ? `${dayjs(labels[0]).format('D MMM YYYY HH:mm')} – ${dayjs(labels[labels.length - 1]).format('D MMM YYYY HH:mm')}`
+    : '';
+
+  const header = (
+    <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
+      <Typography variant="h4">Dashboard</Typography>
+      {!isLoading && !isError && (
+        <RefreshControl lastUpdated={dataUpdatedAt} paused={paused} onToggle={() => setPaused((p) => !p)} />
+      )}
+    </Stack>
+  );
+
   if (isLoading) {
-    return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
+    return (
+      <Box>
+        {header}
+        <Grid container spacing={3}>
+          {[0, 1, 2, 3].map((i) => (
+            <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={i}><MetricCardSkeleton /></Grid>
+          ))}
+          <Grid size={12}>
+            <Card><CardContent><Skeleton variant="rounded" height={isMobile ? 260 : 340} /></CardContent></Card>
+          </Grid>
+        </Grid>
+      </Box>
+    );
   }
 
   if (isError || !latest) {
     return (
       <Box>
-        <Typography variant="h4" gutterBottom>Dashboard</Typography>
+        {header}
         <Alert severity="info">
           Todavía no hay mediciones registradas. La Raspberry debe hacer POST a /api/measurements.
         </Alert>
@@ -102,23 +160,23 @@ export function DashboardPage() {
     );
   }
 
-  const goToMeasurements = () => navigate('/mediciones');
   const updated = new Date(latest.createdAt).toLocaleString();
-
-  const chartPoints = (recent?.content ?? []).slice().reverse();
-  const labels = chartPoints.map((m) => new Date(m.createdAt));
-  const rangeLabel = chartPoints.length > 0
-    ? `${dayjs(labels[0]).format('D MMM YYYY HH:mm')} – ${dayjs(labels[labels.length - 1]).format('D MMM YYYY HH:mm')}`
-    : '';
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Dashboard</Typography>
+      {header}
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard icon={<ThermostatIcon />} color="primary" label="Temperatura actual"
-            value={`${latest.temperature.toFixed(1)} °C`} onClick={goToMeasurements}>
+            value={(
+              <Stack direction="row" alignItems="baseline" spacing={1}>
+                <span>{latest.temperature.toFixed(1)} °C</span>
+                {tempDelta != null && <Delta value={tempDelta} unit="°C" />}
+              </Stack>
+            )}
+            onClick={goToMeasurements}>
+            <Sparkline data={tempSpark} color={theme.palette.primary.main} />
             {config && (
               <Typography variant="caption" color="text.secondary">
                 Rango: {config.temperatureMin}–{config.temperatureMax} °C
@@ -128,7 +186,14 @@ export function DashboardPage() {
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard icon={<WaterDropIcon />} color="secondary" label="Humedad actual"
-            value={`${latest.humidity.toFixed(1)} %`} onClick={goToMeasurements}>
+            value={(
+              <Stack direction="row" alignItems="baseline" spacing={1}>
+                <span>{latest.humidity.toFixed(1)} %</span>
+                {humDelta != null && <Delta value={humDelta} unit="%" />}
+              </Stack>
+            )}
+            onClick={goToMeasurements}>
+            <Sparkline data={humSpark} color={theme.palette.secondary.main} />
             {config && (
               <Typography variant="caption" color="text.secondary">
                 Rango: {config.humidityMin}–{config.humidityMax} %
@@ -177,12 +242,16 @@ export function DashboardPage() {
                   labels={labels}
                   onPointClick={(i) => setSelected(chartPoints[i] ?? null)}
                   series={[
-                    { id: 'temp', label: 'Temperatura (°C)', data: chartPoints.map((m) => m.temperature), color: '#6366f1' },
-                    { id: 'hum', label: 'Humedad (%)', data: chartPoints.map((m) => m.humidity), color: '#14b8a6' },
+                    { id: 'temp', label: 'Temperatura (°C)', data: tempSeries, color: theme.palette.primary.main },
+                    { id: 'hum', label: 'Humedad (%)', data: humSeries, color: theme.palette.secondary.main },
                   ]}
                 />
               ) : (
-                <Typography variant="body2" color="text.secondary">Sin datos recientes.</Typography>
+                <EmptyState
+                  icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+                  title="Sin lecturas en este rango"
+                  description="Probá ampliar el rango de tiempo o esperá la próxima medición de la Raspberry."
+                />
               )}
             </CardContent>
           </Card>

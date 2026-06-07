@@ -7,6 +7,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import { AppThemeProvider } from './colorMode';
+import { ToastProvider } from './components/toast';
 import App from './App';
 
 // Global Spanish locale so dayjs formatting (chart axis labels, etc.) is in Spanish.
@@ -25,11 +26,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <AppThemeProvider>
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </LocalizationProvider>
+        <ToastProvider>
+          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </LocalizationProvider>
+        </ToastProvider>
       </AppThemeProvider>
     </QueryClientProvider>
   </React.StrictMode>

@@ -9,6 +9,7 @@ import {
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { AxiosError } from 'axios';
 import { configApi } from '../api/configApi';
+import { useToast } from '../components/toast';
 import type { ApiError, ConfigRequest } from '../api/types';
 
 // Empty input ('' / null / undefined) -> undefined so z.number reports "requerido".
@@ -61,6 +62,7 @@ const fields: { name: keyof FormValues; label: string; help?: string }[] = [
 
 export function ConfigurationPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const { data: latest } = useQuery({ queryKey: ['config-latest'], queryFn: configApi.getLatest, retry: false });
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormInput, unknown, FormValues>({
@@ -83,6 +85,14 @@ export function ConfigurationPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['config-latest'] });
       queryClient.invalidateQueries({ queryKey: ['config-history'] });
+      toast('Configuración guardada correctamente', 'success');
+    },
+    onError: (error) => {
+      const axiosError = error as AxiosError<ApiError>;
+      const message = axiosError.response?.status === 429
+        ? 'Demasiadas solicitudes (429). Esperá un momento antes de reintentar.'
+        : axiosError.response?.data?.message ?? 'Error al guardar la configuración';
+      toast(message, 'error');
     },
   });
 
@@ -139,18 +149,15 @@ export function ConfigurationPage() {
             </Grid>
 
             <Stack direction="row" spacing={2} alignItems="center" justifyContent="flex-end" mt={3}>
-              {mutation.isSuccess && <Alert severity="success" sx={{ py: 0 }}>Configuración guardada</Alert>}
               <Button type="submit" variant="contained" disabled={mutation.isPending}>
                 {mutation.isPending ? 'Guardando...' : 'Guardar configuración'}
               </Button>
             </Stack>
 
-            {serverError && (
+            {/* The summary is shown as a toast; this lists field-level details when present. */}
+            {serverError?.response?.data?.details && serverError.response.data.details.length > 0 && (
               <Alert severity="error" sx={{ mt: 2 }}>
-                {serverError.response?.status === 429
-                  ? 'Demasiadas solicitudes (429). Esperá un momento antes de reintentar.'
-                  : serverError.response?.data?.message ?? 'Error al guardar la configuración'}
-                {serverError.response?.data?.details?.map((d) => (
+                {serverError.response.data.details.map((d) => (
                   <div key={d}>· {d}</div>
                 ))}
               </Alert>

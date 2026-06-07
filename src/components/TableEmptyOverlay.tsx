@@ -1,5 +1,7 @@
-import { Button, Stack, Typography } from '@mui/material';
+import { Button } from '@mui/material';
+import FilterAltOffOutlinedIcon from '@mui/icons-material/FilterAltOffOutlined';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
+import { EmptyState } from './EmptyState';
 
 /**
  * Centered empty-state for the DataGrid. When the emptiness is caused by active filters it
@@ -7,14 +9,15 @@ import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
  */
 export function TableEmptyOverlay({ hasFilters, onClear }: { hasFilters?: boolean; onClear?: () => void }) {
   return (
-    <Stack height="100%" alignItems="center" justifyContent="center" spacing={1.5} sx={{ p: 2 }}>
-      <InboxOutlinedIcon sx={{ fontSize: 40 }} color="disabled" />
-      <Typography color="text.secondary">
-        {hasFilters ? 'No hay datos que coincidan con el filtro' : 'No hay datos para mostrar'}
-      </Typography>
-      {hasFilters && onClear && (
-        <Button size="small" variant="outlined" onClick={onClear}>Limpiar filtros</Button>
-      )}
-    </Stack>
+    <EmptyState
+      icon={hasFilters ? <FilterAltOffOutlinedIcon sx={{ fontSize: 30 }} /> : <InboxOutlinedIcon sx={{ fontSize: 30 }} />}
+      title={hasFilters ? 'Sin coincidencias' : 'No hay datos para mostrar'}
+      description={hasFilters
+        ? 'Ningún registro coincide con los filtros aplicados.'
+        : 'Todavía no se registraron datos.'}
+      action={hasFilters && onClear
+        ? <Button size="small" variant="outlined" onClick={onClear}>Limpiar filtros</Button>
+        : undefined}
+    />
   );
 }
