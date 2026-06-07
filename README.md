@@ -6,8 +6,10 @@ React 19 · Vite · TypeScript · Material UI · MUI X (DataGrid, Charts, Date P
 TanStack Query · React Hook Form + Zod · dayjs.
 
 Layout responsive con **sidebar** colapsable (permanente en desktop, drawer con menú
-hamburguesa en mobile), selector de **tema claro/oscuro/sistema**, y footer institucional.
-Rutas y textos en español; el DataGrid usa la localización `esES` de MUI.
+hamburguesa en mobile), selector de **tema claro/oscuro/sistema**, **paleta de comandos**
+(Ctrl/⌘ + K), **badge de salud del sistema** en la barra superior y footer institucional.
+Es una **PWA instalable**. Rutas, textos y números (es-AR) en español; el DataGrid usa la
+localización `esES` de MUI.
 
 ## Qué es y cómo encaja
 
@@ -28,17 +30,23 @@ flowchart LR
 
 ## Pantallas
 
-1. **Dashboard** (`/tablero`): cards clickeables (llevan a Mediciones) con temperatura,
-   humedad, estado del cooler y estado general, más un gráfico de las últimas lecturas con
-   **selector de rango** (última hora, 12 h, día, semana, mes, año). Ocupa todo el ancho
-   disponible. Auto-refresca cada 5 s.
-2. **Configuración** (`/configuracion`): formulario con nombre/email + umbrales, validación
-   con Zod (espejo del backend), POST a `/api/config`, errores de validación y manejo de 429.
+1. **Dashboard** (`/tablero`): cards clickeables con temperatura, humedad, estado del cooler
+   y estado general. Cada KPI numérico anima (count-up) y trae **mini-sparkline** y **delta**
+   (▲/▼ vs lectura anterior); las cards de temp/humedad pasan a *warning* con chip cuando la
+   lectura sale del rango configurado. Indicador **"actualizado hace Xs"** con toggle de pausa,
+   banner de datos obsoletos y gráfico con **selector de rango** (última hora, 12 h, día, semana,
+   mes, año). Auto-refresca cada 5 s.
+2. **Configuración** (`/configuracion`): formulario con nombre/email + umbrales, validación con
+   Zod (espejo del backend) y POST a `/api/config`. A la derecha, un **panel de vista previa en
+   vivo**: diagramas de la **banda de histéresis** del cooler y un **diff "vs config activa"**.
+   Botón **"Cargar config activa"** para precargar el formulario. Feedback por **toast**.
 3. **Historial de config** (`/historial-configuracion`): auditoría del admin. DataTable
-   paginada server-side (fecha, nombre, email, umbrales, histéresis, activa), filtros por
-   fecha/nombre/email (contains sin acentos) y gráficos de evolución de umbrales.
-4. **Mediciones** (`/mediciones`): tabla paginada con filtros de fecha y estado, última
-   medición y gráficos de temperatura y humedad vs tiempo.
+   paginada server-side (fecha relativa, nombre, email, umbrales, histéresis, activa), filtros
+   por fecha/nombre/email (contains sin acentos), gráficos de evolución de umbrales y **export
+   CSV**.
+4. **Mediciones** (`/mediciones`): tabla paginada con filtros de fecha y estado, última medición,
+   y gráficos de temperatura/humedad vs tiempo con **bandas de umbral** (mín/máx). Export **CSV**
+   (tabla) y **PNG** (cada gráfico).
 
 ### Rendimiento
 
@@ -59,6 +67,9 @@ flowchart LR
 - Headers y valores centrados; en mobile la tabla scrollea horizontalmente mostrando todas las columnas.
 - La paginación es server-side y el estado (page/size/orden/filtros) se refleja en los **query
   params de la URL**, así los enlaces son compartibles y recargables.
+- **Densidad** cómoda/compacta (persistida) y **export CSV** desde la barra de la tabla.
+- Columna de fecha con **tiempo relativo** ("hace 5 min") y la fecha absoluta en el tooltip.
+- **Skeleton** mientras carga y **estado vacío ilustrado** (con acción para limpiar filtros).
 
 ### Filtros
 
@@ -76,12 +87,33 @@ flowchart LR
 - **Click en un punto** abre un diálogo con el detalle: en Historial config muestra quién
   configuró y todos los umbrales; en Mediciones, la lectura completa. Los diálogos son
   **arrastrables** por el encabezado y se cierran con la X (sin salirse de la pantalla).
+- **Bandas de umbral**: líneas de referencia mín/máx (desde la config activa) sobre los
+  gráficos de Mediciones, y **crosshair** punteado al pasar el cursor.
+- **Export PNG** de cada gráfico y **skeleton** mientras carga.
+
+## Experiencia, operación y accesibilidad
+
+- **Badge de salud del sistema** (AppBar): *En línea / Demorado / Sin conexión* según la
+  antigüedad de la última medición vs el intervalo configurado; en el Dashboard, además, un
+  banner avisa cuando los datos están obsoletos (sensor caído).
+- **Paleta de comandos** (Ctrl/⌘ + K o el ícono de búsqueda): navegar entre páginas y cambiar
+  el tema desde el teclado.
+- **Barra de progreso global** ligada a la actividad de red (TanStack Query) y **error boundary**
+  con fallback amable ante un crash de render.
+- **Toasts** para el feedback de acciones (config guardada, error, 429).
+- **PWA instalable** (`manifest.webmanifest` + service worker mínimo en producción; las llamadas
+  a `/api` nunca se cachean).
+- **Accesibilidad**: link "saltar al contenido", foco visible (`:focus-visible`), y respeto a
+  `prefers-reduced-motion` (las animaciones —count-up, transición de página, dibujo de líneas—
+  se desactivan).
 
 ## Estructura
 
 ```
 public/
-└── uncaus-logo.svg       # logo institucional (favicon + footer) — ver public/LEEME-logo.txt
+├── uncaus-logo.svg       # logo institucional (favicon + footer) — ver public/LEEME-logo.txt
+├── manifest.webmanifest  # metadatos de la PWA (instalable)
+└── sw.js                 # service worker mínimo (offline shell; solo en producción)
 src/
 ├── main.tsx              # bootstrap: QueryClient + tema + LocalizationProvider + Router
 ├── App.tsx               # rutas (lazy) en español
@@ -92,19 +124,40 @@ src/
 │   ├── types.ts          # tipos espejo de los DTOs del backend
 │   ├── configApi.ts      # endpoints de configuración
 │   └── measurementApi.ts # endpoints de mediciones
+├── hooks/
+│   ├── useSystemHealth.ts # estado online/demorado/offline según la última medición
+│   ├── useCountUp.ts      # animación de conteo para los KPIs (respeta reduced-motion)
+│   ├── useDensity.ts      # preferencia de densidad de tabla (persistida)
+│   └── useReducedMotion.ts
+├── lib/
+│   ├── time.ts            # tiempo relativo en español ("hace 5 min")
+│   ├── format.ts          # formateo numérico es-AR (coma decimal)
+│   └── exporters.ts       # export CSV (tablas) y PNG (gráficos)
 ├── components/
-│   ├── Layout.tsx              # sidebar responsive + AppBar + selector de tema + footer
-│   ├── AppDataGrid.tsx         # DataGrid con altura de 10 filas + paginador + estado vacío
+│   ├── Layout.tsx              # sidebar + AppBar + badge de salud + ⌘K + skip-link + footer
+│   ├── CommandPalette.tsx      # paleta de comandos (Ctrl/⌘ + K)
+│   ├── SystemHealthBadge.tsx   # indicador de salud del sistema en la AppBar
+│   ├── TopProgressBar.tsx      # barra de progreso global (actividad de red)
+│   ├── ErrorBoundary.tsx       # fallback amable ante un crash de render
+│   ├── RefreshControl.tsx      # "actualizado hace Xs" + pausa
+│   ├── AppDataGrid.tsx         # DataGrid con altura de 10 filas + paginador + densidad
+│   ├── TableToolbar.tsx        # densidad + export CSV sobre la tabla
 │   ├── DataTablePagination.tsx # paginador en una fila, opciones deshabilitadas por total
-│   ├── columnFilters.tsx       # filtros + orden por columna en popover (texto, número, rango, fecha, select)
-│   ├── AreaLineChart.tsx       # gráfico con degradado, leyenda clickeable y click → detalle
+│   ├── columnFilters.tsx       # filtros + orden por columna en popover
+│   ├── AreaLineChart.tsx       # gráfico con degradado, leyenda clickeable, líneas de umbral
+│   ├── Sparkline.tsx           # mini-tendencia para las cards
+│   ├── Delta.tsx               # indicador ▲/▼ vs lectura anterior
+│   ├── HysteresisDiagram.tsx   # visualización de la banda del cooler (config)
 │   ├── DetailDialog.tsx        # diálogo de detalle arrastrable (click en un punto)
-│   ├── TableEmptyOverlay.tsx   # mensaje centrado cuando la tabla no tiene datos
+│   ├── EmptyState.tsx          # estado vacío ilustrado (gráficos y tablas)
+│   ├── TableEmptyOverlay.tsx   # estado vacío de la tabla (usa EmptyState)
+│   ├── RelativeTime.tsx        # fecha relativa con tooltip absoluto
+│   ├── toast.tsx               # provider + hook de snackbars
 │   ├── chartStyle.ts           # estilo y formateo (español) de los gráficos
 │   └── StatusChip.tsx          # chip de estado (etiquetas en español)
 └── pages/
     ├── DashboardPage.tsx
-    ├── ConfigurationPage.tsx
+    ├── ConfigurationPage.tsx   # formulario + preview en vivo (histéresis + diff)
     ├── ConfigHistoryPage.tsx   # auditoría de configuraciones (tabla + filtros + gráfico)
     └── HistoryPage.tsx         # historial de mediciones
 ```

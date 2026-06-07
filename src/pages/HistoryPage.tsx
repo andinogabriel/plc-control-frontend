@@ -23,6 +23,7 @@ import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import { TableToolbar } from '../components/TableToolbar';
 import { useDensity } from '../hooks/useDensity';
 import { exportChartPng, exportCsv } from '../lib/exporters';
+import { formatPct, formatTemp } from '../lib/format';
 import {
   DateRangeFilterHeader, NumberRangeFilterHeader, SelectFilterHeader, type SortDirection,
 } from '../components/columnFilters';
@@ -239,7 +240,7 @@ export function HistoryPage() {
 
       {latest && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          Última medición: {latest.temperature.toFixed(1)} °C / {latest.humidity.toFixed(1)} % ·{' '}
+          Última medición: {formatTemp(latest.temperature)} / {formatPct(latest.humidity)} ·{' '}
           {new Date(latest.createdAt).toLocaleString()}
         </Alert>
       )}
