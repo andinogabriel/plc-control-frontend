@@ -210,9 +210,9 @@ export function ConfigHistoryPage() {
         <CardContent>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ alignItems: { md: 'center' } }}>
             <Typography variant="body2" color="text.secondary" sx={{ minWidth: 120 }}>Rango de gráficos:</Typography>
-            <DateTimePicker label="Desde" value={gFrom} onChange={setGFrom} maxDateTime={gTo ?? undefined}
+            <DateTimePicker label="Desde" value={gFrom} onChange={setGFrom} maxDateTime={gTo ?? undefined} disableFuture
               slotProps={{ textField: { size: 'small', sx: { flex: 1, minWidth: 200 } } }} />
-            <DateTimePicker label="Hasta" value={gTo} onChange={setGTo} minDateTime={gFrom ?? undefined}
+            <DateTimePicker label="Hasta" value={gTo} onChange={setGTo} minDateTime={gFrom ?? undefined} disableFuture
               slotProps={{ textField: { size: 'small', sx: { flex: 1, minWidth: 200 } } }} />
             <Stack direction="row" spacing={1} sx={{ alignSelf: { xs: 'flex-end', md: 'auto' } }}>
               <Button variant="contained" onClick={applyChartRange} disabled={!canApplyCharts}>Aplicar</Button>

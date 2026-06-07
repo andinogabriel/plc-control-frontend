@@ -208,9 +208,9 @@ export function HistoryPage() {
         <CardContent>
           <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} sx={{ alignItems: { lg: 'center' } }}>
             <Typography variant="body2" color="text.secondary" sx={{ minWidth: 120 }}>Rango de gráficos:</Typography>
-            <DateTimePicker label="Desde" value={gFrom} onChange={setGFrom} maxDateTime={gTo ?? undefined}
+            <DateTimePicker label="Desde" value={gFrom} onChange={setGFrom} maxDateTime={gTo ?? undefined} disableFuture
               slotProps={{ textField: { size: 'small', sx: { flex: 1, minWidth: 180 } } }} />
-            <DateTimePicker label="Hasta" value={gTo} onChange={setGTo} minDateTime={gFrom ?? undefined}
+            <DateTimePicker label="Hasta" value={gTo} onChange={setGTo} minDateTime={gFrom ?? undefined} disableFuture
               slotProps={{ textField: { size: 'small', sx: { flex: 1, minWidth: 180 } } }} />
             <TextField select size="small" label="Estado" value={gStatus}
               onChange={(e) => setGStatus(e.target.value as SystemStatus | '')} sx={{ flex: 1, minWidth: 160 }}>

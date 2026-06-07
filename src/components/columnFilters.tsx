@@ -172,9 +172,9 @@ export function DateRangeFilterHeader({ label, from, to, onApply, disabled, sort
       onApply={() => onApply(dFrom ? dFrom.toISOString() : undefined, dTo ? dTo.toISOString() : undefined)}
       onClear={() => { setDFrom(null); setDTo(null); onApply(undefined, undefined); }}>
       <Stack spacing={1.5}>
-        <DateTimePicker label="Desde" value={dFrom} onChange={setDFrom} maxDateTime={dTo ?? undefined}
+        <DateTimePicker label="Desde" value={dFrom} onChange={setDFrom} maxDateTime={dTo ?? undefined} disableFuture
           slotProps={{ textField: { size: 'small', fullWidth: true } }} />
-        <DateTimePicker label="Hasta" value={dTo} onChange={setDTo} minDateTime={dFrom ?? undefined}
+        <DateTimePicker label="Hasta" value={dTo} onChange={setDTo} minDateTime={dFrom ?? undefined} disableFuture
           slotProps={{ textField: { size: 'small', fullWidth: true } }} />
       </Stack>
     </FilterShell>
