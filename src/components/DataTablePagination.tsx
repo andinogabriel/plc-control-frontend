@@ -5,7 +5,11 @@ import {
   useGridApiContext,
   useGridSelector,
 } from '@mui/x-data-grid';
-import { MenuItem, Pagination, Select, Stack, Typography } from '@mui/material';
+import {
+  IconButton, MenuItem, Pagination, Select, Stack, Typography, useMediaQuery, useTheme,
+} from '@mui/material';
+import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 
 export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
@@ -13,9 +17,12 @@ export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
  * Custom DataGrid pagination:
  * - page-size options larger than the total row count are disabled (e.g. with 11 rows only
  *   10 and 20 are selectable);
- * - everything sits on a single row, which keeps it usable on mobile.
+ * - on desktop a full numbered pager; on mobile a compact prev / "X de Y" / next that never
+ *   wraps to a second row.
  */
 export function DataTablePagination() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const apiRef = useGridApiContext();
   const page = useGridSelector(apiRef, gridPageSelector);
   const pageSize = useGridSelector(apiRef, gridPageSizeSelector);
@@ -59,18 +66,34 @@ export function DataTablePagination() {
         {fromRow}–{toRow} de {rowCount}
       </Typography>
 
-      <Pagination
-        color="primary"
-        shape="rounded"
-        size="small"
-        count={pageCount}
-        page={page + 1}
-        siblingCount={0}
-        boundaryCount={1}
-        showFirstButton
-        showLastButton
-        onChange={(_, value) => apiRef.current.setPage(value - 1)}
-      />
+      {isMobile ? (
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <IconButton size="small" aria-label="Página anterior"
+            disabled={page <= 0} onClick={() => apiRef.current.setPage(page - 1)}>
+            <ChevronLeftRoundedIcon />
+          </IconButton>
+          <Typography variant="body2" sx={{ minWidth: 64, textAlign: 'center' }}>
+            {page + 1} de {pageCount}
+          </Typography>
+          <IconButton size="small" aria-label="Página siguiente"
+            disabled={page + 1 >= pageCount} onClick={() => apiRef.current.setPage(page + 1)}>
+            <ChevronRightRoundedIcon />
+          </IconButton>
+        </Stack>
+      ) : (
+        <Pagination
+          color="primary"
+          shape="rounded"
+          size="small"
+          count={pageCount}
+          page={page + 1}
+          siblingCount={0}
+          boundaryCount={1}
+          showFirstButton
+          showLastButton
+          onChange={(_, value) => apiRef.current.setPage(value - 1)}
+        />
+      )}
     </Stack>
   );
 }

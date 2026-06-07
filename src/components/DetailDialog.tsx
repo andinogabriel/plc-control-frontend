@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import {
   Box, Dialog, DialogContent, DialogTitle, Divider, IconButton, Stack, Typography,
+  useMediaQuery, useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -14,6 +15,8 @@ export interface DetailRow {
 export function DetailDialog({ open, title, rows, onClose }: {
   open: boolean; title: string; rows: DetailRow[]; onClose: () => void;
 }) {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const drag = useRef<{
     startX: number; startY: number; origX: number; origY: number; rect: DOMRect | null;
@@ -58,14 +61,15 @@ export function DetailDialog({ open, title, rows, onClose }: {
       onClose={onClose}
       maxWidth="xs"
       fullWidth
-      slotProps={{ paper: { sx: { transform: `translate(${pos.x}px, ${pos.y}px)` } } }}
+      fullScreen={fullScreen}
+      slotProps={{ paper: { sx: { transform: fullScreen ? 'none' : `translate(${pos.x}px, ${pos.y}px)` } } }}
     >
       <DialogTitle component="div" sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1, pl: 2.5, pr: 1 }}>
         <Box
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          sx={{ flexGrow: 1, cursor: 'move', userSelect: 'none', touchAction: 'none', fontWeight: 700, py: 1 }}
+          onPointerDown={fullScreen ? undefined : onPointerDown}
+          onPointerMove={fullScreen ? undefined : onPointerMove}
+          onPointerUp={fullScreen ? undefined : onPointerUp}
+          sx={{ flexGrow: 1, cursor: fullScreen ? 'default' : 'move', userSelect: 'none', touchAction: 'none', fontWeight: 700, py: 1 }}
         >
           {title}
         </Box>
