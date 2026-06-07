@@ -14,7 +14,11 @@ import { AppDataGrid } from '../components/AppDataGrid';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
+import { RelativeTime } from '../components/RelativeTime';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
+import { TableToolbar } from '../components/TableToolbar';
+import { useDensity } from '../hooks/useDensity';
+import { exportCsv } from '../lib/exporters';
 import {
   DateRangeFilterHeader, NumberFilterHeader, SortableHeader, TextFilterHeader, type SortDirection,
 } from '../components/columnFilters';
@@ -27,6 +31,7 @@ const TABLE_FILTER_KEYS = [
 
 export function ConfigHistoryPage() {
   const theme = useTheme();
+  const [dense, toggleDense] = useDensity();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // --- Top bar (charts only): date range stored as gfrom/gto ---
@@ -108,7 +113,7 @@ export function ConfigHistoryPage() {
           from={searchParams.get('from') ?? ''} to={searchParams.get('to') ?? ''}
           onApply={(f, t) => updateParams({ from: f, to: t, page: '0' })} />
       ),
-      valueFormatter: (value) => new Date(value as string).toLocaleString(),
+      renderCell: (params) => <RelativeTime value={params.value as string} />,
     },
     {
       field: 'createdByName', headerName: 'Nombre', flex: 1.5, minWidth: 150, sortable: false, align: 'center', headerAlign: 'center',
@@ -205,6 +210,20 @@ export function ConfigHistoryPage() {
   const fmtChip = (iso: string) => dayjs(iso).format('D MMM YYYY HH:mm');
   const hasChartFilters = Boolean(gFromParam || gToParam);
 
+  const handleExportCsv = () => exportCsv('historial-configuraciones.csv', tableData?.content ?? [], [
+    { header: 'Fecha', value: (r: ConfigResponse) => new Date(r.createdAt).toLocaleString() },
+    { header: 'Nombre', value: (r: ConfigResponse) => r.createdByName },
+    { header: 'Email', value: (r: ConfigResponse) => r.createdByEmail },
+    { header: 'T. min', value: (r: ConfigResponse) => r.temperatureMin },
+    { header: 'T. max', value: (r: ConfigResponse) => r.temperatureMax },
+    { header: 'H. min', value: (r: ConfigResponse) => r.humidityMin },
+    { header: 'H. max', value: (r: ConfigResponse) => r.humidityMax },
+    { header: 'Hist. T', value: (r: ConfigResponse) => r.hysteresisTemperature },
+    { header: 'Hist. H', value: (r: ConfigResponse) => r.hysteresisHumidity },
+    { header: 'Intervalo (s)', value: (r: ConfigResponse) => r.measurementIntervalSeconds },
+    { header: 'Activa', value: (r: ConfigResponse) => (r.active ? 'Si' : 'No') },
+  ]);
+
   return (
     <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>Historial de configuraciones</Typography>
@@ -283,7 +302,10 @@ export function ConfigHistoryPage() {
 
       <Card>
         <CardContent>
+          <TableToolbar dense={dense} onToggleDense={toggleDense}
+            onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0} />
           <AppDataGrid
+            dense={dense}
             rows={tableData?.content ?? []}
             columns={columns}
             rowCount={rowCount}

@@ -1,0 +1,14 @@
+{
+  "name": "Sistema de Control PLC",
+  "short_name": "Control PLC",
+  "description": "Monitoreo y configuración del sistema de control de temperatura y humedad (UNCAUS 2026).",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#4f46e5",
+  "lang": "es",
+  "icons": [
+    { "src": "/uncaus-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Stack,
+  Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Stack, Chip,
   MenuItem, TextField, Skeleton, useMediaQuery, useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
@@ -11,6 +11,7 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 import InsightsIcon from '@mui/icons-material/Insights';
 import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import dayjs from 'dayjs';
 import { measurementApi } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
@@ -21,6 +22,9 @@ import { EmptyState } from '../components/EmptyState';
 import { Sparkline } from '../components/Sparkline';
 import { Delta } from '../components/Delta';
 import { RefreshControl } from '../components/RefreshControl';
+import { useCountUp } from '../hooks/useCountUp';
+import { useSystemHealth } from '../hooks/useSystemHealth';
+import { formatRelative } from '../lib/time';
 import type { MeasurementResponse } from '../api/types';
 
 type AccentColor = 'primary' | 'secondary' | 'success' | 'warning' | 'error';
@@ -108,6 +112,16 @@ export function DashboardPage() {
     refetchInterval: paused ? false : 15000,
   });
 
+  const health = useSystemHealth();
+  // Animated KPI values (count-up). Hooks run unconditionally; 0 until data arrives.
+  const tempCount = useCountUp(latest?.temperature ?? 0);
+  const humCount = useCountUp(latest?.humidity ?? 0);
+
+  const tempOut = config && latest
+    ? latest.temperature < config.temperatureMin || latest.temperature > config.temperatureMax : false;
+  const humOut = config && latest
+    ? latest.humidity < config.humidityMin || latest.humidity > config.humidityMax : false;
+
   const goToMeasurements = () => navigate('/mediciones');
 
   // Chronological points for the main chart and the card sparklines/deltas.
@@ -166,39 +180,54 @@ export function DashboardPage() {
     <Box>
       {header}
 
+      {(health.status === 'offline' || health.status === 'delayed') && (
+        <Alert severity={health.status === 'offline' ? 'error' : 'warning'} icon={<WarningAmberRoundedIcon />} sx={{ mb: 2 }}>
+          {health.status === 'offline'
+            ? 'Sin datos recientes: la Raspberry podría estar desconectada.'
+            : 'Las mediciones están llegando con demora.'}
+          {health.lastAt && ` Última lectura ${formatRelative(health.lastAt)}.`}
+        </Alert>
+      )}
+
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard icon={<ThermostatIcon />} color="primary" label="Temperatura actual"
+          <MetricCard icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
             value={(
               <Stack direction="row" alignItems="baseline" spacing={1}>
-                <span>{latest.temperature.toFixed(1)} °C</span>
+                <span>{tempCount.toFixed(1)} °C</span>
                 {tempDelta != null && <Delta value={tempDelta} unit="°C" />}
               </Stack>
             )}
             onClick={goToMeasurements}>
             <Sparkline data={tempSpark} color={theme.palette.primary.main} />
-            {config && (
-              <Typography variant="caption" color="text.secondary">
-                Rango: {config.temperatureMin}–{config.temperatureMax} °C
-              </Typography>
-            )}
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              {config && (
+                <Typography variant="caption" color="text.secondary">
+                  Rango: {config.temperatureMin}–{config.temperatureMax} °C
+                </Typography>
+              )}
+              {tempOut && <Chip size="small" color="warning" variant="outlined" label="Fuera de rango" />}
+            </Stack>
           </MetricCard>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard icon={<WaterDropIcon />} color="secondary" label="Humedad actual"
+          <MetricCard icon={<WaterDropIcon />} color={humOut ? 'warning' : 'secondary'} label="Humedad actual"
             value={(
               <Stack direction="row" alignItems="baseline" spacing={1}>
-                <span>{latest.humidity.toFixed(1)} %</span>
+                <span>{humCount.toFixed(1)} %</span>
                 {humDelta != null && <Delta value={humDelta} unit="%" />}
               </Stack>
             )}
             onClick={goToMeasurements}>
             <Sparkline data={humSpark} color={theme.palette.secondary.main} />
-            {config && (
-              <Typography variant="caption" color="text.secondary">
-                Rango: {config.humidityMin}–{config.humidityMax} %
-              </Typography>
-            )}
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              {config && (
+                <Typography variant="caption" color="text.secondary">
+                  Rango: {config.humidityMin}–{config.humidityMax} %
+                </Typography>
+              )}
+              {humOut && <Chip size="small" color="warning" variant="outlined" label="Fuera de rango" />}
+            </Stack>
           </MetricCard>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>

@@ -5,6 +5,7 @@ import {
   useMediaQuery, useTheme,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard';
 import TuneIcon from '@mui/icons-material/Tune';
@@ -16,6 +17,12 @@ import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import CheckIcon from '@mui/icons-material/Check';
 import { Link, useLocation } from 'react-router-dom';
 import { useColorMode, type ColorMode } from '../colorMode';
+import { SystemHealthBadge } from './SystemHealthBadge';
+import { CommandPalette } from './CommandPalette';
+import { TopProgressBar } from './TopProgressBar';
+
+const openCommandPalette = () =>
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
 
 const DRAWER_WIDTH = 240;
 
@@ -121,9 +128,17 @@ export function Layout({ children }: { children: ReactNode }) {
           </IconButton>
           <ThermostatIcon sx={{ mr: 1, color: 'primary.main' }} />
           <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700 }}>Sistema de Control PLC</Typography>
+          <Box sx={{ display: { xs: 'none', sm: 'block' }, mr: 1 }}><SystemHealthBadge /></Box>
+          <Tooltip title="Buscar (Ctrl/⌘ + K)">
+            <IconButton color="inherit" onClick={openCommandPalette} aria-label="Abrir buscador">
+              <SearchRoundedIcon />
+            </IconButton>
+          </Tooltip>
           <ColorModeButton />
         </Toolbar>
       </AppBar>
+      <TopProgressBar />
+      <CommandPalette />
 
       <Box component="nav" sx={{ width: { md: navWidth }, flexShrink: 0, transition: theme.transitions.create('width') }}>
         <Drawer

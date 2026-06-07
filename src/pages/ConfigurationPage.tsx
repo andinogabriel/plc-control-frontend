@@ -4,12 +4,15 @@ import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Card, CardContent, Typography, TextField, Button, Grid, Alert, Stack, Divider,
-  InputAdornment, IconButton, Tooltip,
+  InputAdornment, IconButton, Tooltip, Chip,
 } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
+import ArrowRightAltRoundedIcon from '@mui/icons-material/ArrowRightAltRounded';
 import { AxiosError } from 'axios';
 import { configApi } from '../api/configApi';
 import { useToast } from '../components/toast';
+import { HysteresisDiagram } from '../components/HysteresisDiagram';
 import type { ApiError, ConfigRequest } from '../api/types';
 
 // Empty input ('' / null / undefined) -> undefined so z.number reports "requerido".
@@ -60,20 +63,24 @@ const fields: { name: keyof FormValues; label: string; help?: string }[] = [
   { name: 'measurementIntervalSeconds', label: 'Intervalo de medición (s)' },
 ];
 
+const EMPTY_DEFAULTS: FormInput = {
+  createdByName: '', createdByEmail: '',
+  temperatureMin: undefined, temperatureMax: undefined,
+  humidityMin: undefined, humidityMax: undefined,
+  hysteresisTemperature: undefined, hysteresisHumidity: undefined,
+  measurementIntervalSeconds: 20,
+};
+
+const num = (v: unknown) => (v === '' || v === null || v === undefined ? undefined : Number(v));
+
 export function ConfigurationPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const { data: latest } = useQuery({ queryKey: ['config-latest'], queryFn: configApi.getLatest, retry: false });
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormInput, unknown, FormValues>({
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      createdByName: '', createdByEmail: '',
-      temperatureMin: undefined, temperatureMax: undefined,
-      humidityMin: undefined, humidityMax: undefined,
-      hysteresisTemperature: undefined, hysteresisHumidity: undefined,
-      measurementIntervalSeconds: 20,
-    },
+    defaultValues: EMPTY_DEFAULTS,
   });
 
   const mutation = useMutation({
@@ -98,73 +105,169 @@ export function ConfigurationPage() {
 
   const serverError = mutation.error as AxiosError<ApiError> | null;
 
+  const prefillFromActive = () => {
+    if (!latest) return;
+    reset({
+      createdByName: latest.createdByName,
+      createdByEmail: latest.createdByEmail,
+      temperatureMin: latest.temperatureMin,
+      temperatureMax: latest.temperatureMax,
+      humidityMin: latest.humidityMin,
+      humidityMax: latest.humidityMax,
+      hysteresisTemperature: latest.hysteresisTemperature,
+      hysteresisHumidity: latest.hysteresisHumidity,
+      measurementIntervalSeconds: latest.measurementIntervalSeconds,
+    });
+  };
+
+  // Live values for the preview/diff panel.
+  const w = watch();
+  // After a programmatic reset(), MUI's floating label doesn't auto-shrink for uncontrolled
+  // inputs. Force shrink when the watched value is non-empty; undefined keeps MUI's focus auto.
+  const shrink = (name: keyof FormInput) => {
+    const val = w[name];
+    return { shrink: val !== undefined && val !== '' ? true : undefined };
+  };
+  const v = {
+    temperatureMin: num(w.temperatureMin), temperatureMax: num(w.temperatureMax),
+    humidityMin: num(w.humidityMin), humidityMax: num(w.humidityMax),
+    hysteresisTemperature: num(w.hysteresisTemperature), hysteresisHumidity: num(w.hysteresisHumidity),
+    measurementIntervalSeconds: num(w.measurementIntervalSeconds),
+  };
+
+  const diffRows = latest ? ([
+    ['Temp. mín', latest.temperatureMin, v.temperatureMin, '°C'],
+    ['Temp. máx', latest.temperatureMax, v.temperatureMax, '°C'],
+    ['Hum. mín', latest.humidityMin, v.humidityMin, '%'],
+    ['Hum. máx', latest.humidityMax, v.humidityMax, '%'],
+    ['Hist. temp.', latest.hysteresisTemperature, v.hysteresisTemperature, '°C'],
+    ['Hist. hum.', latest.hysteresisHumidity, v.hysteresisHumidity, '%'],
+    ['Intervalo', latest.measurementIntervalSeconds, v.measurementIntervalSeconds, 's'],
+  ] as [string, number, number | undefined, string][])
+    .filter(([, before, after]) => after != null && after !== before) : [];
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Configuración de umbrales</Typography>
 
       {latest && (
-        <Alert severity="info" sx={{ mb: 2 }}>
+        <Alert severity="info" sx={{ mb: 2 }} action={(
+          <Button color="inherit" size="small" startIcon={<RestartAltRoundedIcon />} onClick={prefillFromActive}>
+            Cargar config activa
+          </Button>
+        )}>
           Config activa: T [{latest.temperatureMin}–{latest.temperatureMax} °C],
           H [{latest.humidityMin}–{latest.humidityMax} %] · cada {latest.measurementIntervalSeconds} s · por {latest.createdByName}
         </Alert>
       )}
 
-      <Card>
-        <CardContent>
-          <form onSubmit={handleSubmit((v) => mutation.mutate(v))}>
-            <Typography variant="subtitle1" gutterBottom>Datos del usuario</Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField fullWidth label="Nombre" {...register('createdByName')}
-                  error={!!errors.createdByName} helperText={errors.createdByName?.message} />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField fullWidth label="Email" {...register('createdByEmail')}
-                  error={!!errors.createdByEmail} helperText={errors.createdByEmail?.message} />
-              </Grid>
-            </Grid>
-
-            <Divider sx={{ my: 3 }} />
-            <Typography variant="subtitle1" gutterBottom>Umbrales</Typography>
-            <Grid container spacing={2}>
-              {fields.map((f) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={f.name}>
-                  <TextField fullWidth type="number" inputProps={{ step: 'any' }}
-                    label={f.label} {...register(f.name)}
-                    error={!!errors[f.name]} helperText={errors[f.name]?.message}
-                    InputProps={f.help ? {
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Tooltip title={f.help} arrow enterTouchDelay={0}
-                            slotProps={{ tooltip: { sx: { maxWidth: 280 } } }}>
-                            <IconButton edge="end" size="small" tabIndex={-1} aria-label="¿Qué es la histéresis?">
-                              <InfoOutlinedIcon fontSize="small" color="action" />
-                            </IconButton>
-                          </Tooltip>
-                        </InputAdornment>
-                      ),
-                    } : undefined} />
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, md: 7 }}>
+          <Card>
+            <CardContent>
+              <form onSubmit={handleSubmit((vals) => mutation.mutate(vals))}>
+                <Typography variant="subtitle1" gutterBottom>Datos del usuario</Typography>
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField fullWidth label="Nombre" {...register('createdByName')}
+                      InputLabelProps={shrink('createdByName')}
+                      error={!!errors.createdByName} helperText={errors.createdByName?.message} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField fullWidth label="Email" {...register('createdByEmail')}
+                      InputLabelProps={shrink('createdByEmail')}
+                      error={!!errors.createdByEmail} helperText={errors.createdByEmail?.message} />
+                  </Grid>
                 </Grid>
-              ))}
-            </Grid>
 
-            <Stack direction="row" spacing={2} alignItems="center" justifyContent="flex-end" mt={3}>
-              <Button type="submit" variant="contained" disabled={mutation.isPending}>
-                {mutation.isPending ? 'Guardando...' : 'Guardar configuración'}
-              </Button>
-            </Stack>
+                <Divider sx={{ my: 3 }} />
+                <Typography variant="subtitle1" gutterBottom>Umbrales</Typography>
+                <Grid container spacing={2}>
+                  {fields.map((f) => (
+                    <Grid size={{ xs: 12, sm: 6 }} key={f.name}>
+                      <TextField fullWidth type="number" inputProps={{ step: 'any' }}
+                        label={f.label} {...register(f.name)}
+                        InputLabelProps={shrink(f.name)}
+                        error={!!errors[f.name]} helperText={errors[f.name]?.message}
+                        InputProps={f.help ? {
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <Tooltip title={f.help} arrow enterTouchDelay={0}
+                                slotProps={{ tooltip: { sx: { maxWidth: 280 } } }}>
+                                <IconButton edge="end" size="small" tabIndex={-1} aria-label="¿Qué es la histéresis?">
+                                  <InfoOutlinedIcon fontSize="small" color="action" />
+                                </IconButton>
+                              </Tooltip>
+                            </InputAdornment>
+                          ),
+                        } : undefined} />
+                    </Grid>
+                  ))}
+                </Grid>
 
-            {/* The summary is shown as a toast; this lists field-level details when present. */}
-            {serverError?.response?.data?.details && serverError.response.data.details.length > 0 && (
-              <Alert severity="error" sx={{ mt: 2 }}>
-                {serverError.response.data.details.map((d) => (
-                  <div key={d}>· {d}</div>
-                ))}
-              </Alert>
+                <Stack direction="row" spacing={2} alignItems="center" justifyContent="flex-end" mt={3}>
+                  <Button type="submit" variant="contained" disabled={mutation.isPending}>
+                    {mutation.isPending ? 'Guardando...' : 'Guardar configuración'}
+                  </Button>
+                </Stack>
+
+                {serverError?.response?.data?.details && serverError.response.data.details.length > 0 && (
+                  <Alert severity="error" sx={{ mt: 2 }}>
+                    {serverError.response.data.details.map((d) => (
+                      <div key={d}>· {d}</div>
+                    ))}
+                  </Alert>
+                )}
+              </form>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 5 }}>
+          <Stack spacing={3}>
+            <Card>
+              <CardContent>
+                <Typography variant="subtitle1" gutterBottom>Vista previa del cooler</Typography>
+                <Stack spacing={2}>
+                  <HysteresisDiagram label="Temperatura" unit=" °C"
+                    min={v.temperatureMin} max={v.temperatureMax} hysteresis={v.hysteresisTemperature} />
+                  <HysteresisDiagram label="Humedad" unit=" %"
+                    min={v.humidityMin} max={v.humidityMax} hysteresis={v.hysteresisHumidity} />
+                  {v.measurementIntervalSeconds != null && (
+                    <Typography variant="caption" color="text.secondary">
+                      La Raspberry medirá y reportará cada <b>{v.measurementIntervalSeconds} s</b>.
+                    </Typography>
+                  )}
+                </Stack>
+              </CardContent>
+            </Card>
+
+            {latest && (
+              <Card>
+                <CardContent>
+                  <Typography variant="subtitle1" gutterBottom>Cambios vs config activa</Typography>
+                  {diffRows.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Sin cambios todavía. Editá un umbral o usá “Cargar config activa”.
+                    </Typography>
+                  ) : (
+                    <Stack spacing={1}>
+                      {diffRows.map(([label, before, after, unit]) => (
+                        <Stack key={label} direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+                          <Typography variant="body2" sx={{ minWidth: 96 }}>{label}</Typography>
+                          <Chip size="small" variant="outlined" label={`${before}${unit}`} />
+                          <ArrowRightAltRoundedIcon fontSize="small" color="action" />
+                          <Chip size="small" color="primary" label={`${after}${unit}`} />
+                        </Stack>
+                      ))}
+                    </Stack>
+                  )}
+                </CardContent>
+              </Card>
             )}
-          </form>
-        </CardContent>
-      </Card>
+          </Stack>
+        </Grid>
+      </Grid>
     </Box>
   );
 }

@@ -1,22 +1,28 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
-  Box, Card, CardContent, Typography, Grid, Stack, Button, Alert, Chip, MenuItem, Skeleton, TextField,
-  useMediaQuery, useTheme,
+  Box, Card, CardContent, Typography, Grid, Stack, Button, Alert, Chip, IconButton, MenuItem, Skeleton,
+  TextField, Tooltip, useMediaQuery, useTheme,
 } from '@mui/material';
 import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
+import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { type GridColDef } from '@mui/x-data-grid';
 import dayjs, { type Dayjs } from 'dayjs';
 import { measurementApi, type MeasurementQuery } from '../api/measurementApi';
+import { configApi } from '../api/configApi';
 import type { MeasurementResponse, SystemStatus } from '../api/types';
 import { AppDataGrid } from '../components/AppDataGrid';
 import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
+import { RelativeTime } from '../components/RelativeTime';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
+import { TableToolbar } from '../components/TableToolbar';
+import { useDensity } from '../hooks/useDensity';
+import { exportChartPng, exportCsv } from '../lib/exporters';
 import {
   DateRangeFilterHeader, NumberRangeFilterHeader, SelectFilterHeader, type SortDirection,
 } from '../components/columnFilters';
@@ -60,6 +66,11 @@ export function HistoryPage() {
     queryFn: measurementApi.getLatest,
     retry: false,
   });
+
+  const { data: config } = useQuery({ queryKey: ['config-latest'], queryFn: configApi.getLatest, retry: false });
+  const [dense, toggleDense] = useDensity();
+  const tempChartRef = useRef<HTMLDivElement>(null);
+  const humChartRef = useRef<HTMLDivElement>(null);
 
   // --- Table (own per-column filters), backed by URL params ---
   const page = Number(searchParams.get('page') ?? '0');
@@ -127,7 +138,7 @@ export function HistoryPage() {
           from={searchParams.get('from') ?? ''} to={searchParams.get('to') ?? ''}
           onApply={(f, t) => updateParams({ from: f, to: t, page: '0' })} />
       ),
-      valueFormatter: (value) => new Date(value as string).toLocaleString(),
+      renderCell: (params) => <RelativeTime value={params.value as string} />,
     },
     {
       field: 'temperature', headerName: 'Temp (°C)', flex: 1, minWidth: 130, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
@@ -205,6 +216,23 @@ export function HistoryPage() {
     updateParams(patch);
   };
 
+  const tempRefs = config ? [
+    { value: config.temperatureMin, label: 'mín', color: theme.palette.warning.main },
+    { value: config.temperatureMax, label: 'máx', color: theme.palette.error.main },
+  ] : undefined;
+  const humRefs = config ? [
+    { value: config.humidityMin, label: 'mín', color: theme.palette.warning.main },
+    { value: config.humidityMax, label: 'máx', color: theme.palette.error.main },
+  ] : undefined;
+
+  const handleExportCsv = () => exportCsv('mediciones.csv', tableData?.content ?? [], [
+    { header: 'Fecha', value: (r: MeasurementResponse) => new Date(r.createdAt).toLocaleString() },
+    { header: 'Temperatura (C)', value: (r: MeasurementResponse) => r.temperature },
+    { header: 'Humedad (%)', value: (r: MeasurementResponse) => r.humidity },
+    { header: 'Cooler', value: (r: MeasurementResponse) => (r.coolerOn ? 'ON' : 'OFF') },
+    { header: 'Estado', value: (r: MeasurementResponse) => r.status },
+  ]);
+
   return (
     <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>Mediciones</Typography>
@@ -256,12 +284,19 @@ export function HistoryPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card><CardContent>
-            <Typography variant="subtitle1" gutterBottom>Temperatura vs tiempo</Typography>
+          <Card><CardContent ref={tempChartRef}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Typography variant="subtitle1" gutterBottom>Temperatura vs tiempo</Typography>
+              <Tooltip title="Descargar PNG">
+                <span><IconButton size="small" disabled={points.length === 0}
+                  onClick={() => exportChartPng(tempChartRef.current, 'temperatura.png')} aria-label="Descargar gráfico">
+                  <ImageRoundedIcon fontSize="small" /></IconButton></span>
+              </Tooltip>
+            </Stack>
             {chartLoading ? (
               <Skeleton variant="rounded" height={chartHeight} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={chartHeight} mode="date" labels={labels}
+              <AreaLineChart height={chartHeight} mode="date" labels={labels} referenceLines={tempRefs}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main }]} />
             ) : (
@@ -271,12 +306,19 @@ export function HistoryPage() {
           </CardContent></Card>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card><CardContent>
-            <Typography variant="subtitle1" gutterBottom>Humedad vs tiempo</Typography>
+          <Card><CardContent ref={humChartRef}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Typography variant="subtitle1" gutterBottom>Humedad vs tiempo</Typography>
+              <Tooltip title="Descargar PNG">
+                <span><IconButton size="small" disabled={points.length === 0}
+                  onClick={() => exportChartPng(humChartRef.current, 'humedad.png')} aria-label="Descargar gráfico">
+                  <ImageRoundedIcon fontSize="small" /></IconButton></span>
+              </Tooltip>
+            </Stack>
             {chartLoading ? (
               <Skeleton variant="rounded" height={chartHeight} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={chartHeight} mode="date" labels={labels}
+              <AreaLineChart height={chartHeight} mode="date" labels={labels} referenceLines={humRefs}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main }]} />
             ) : (
@@ -289,7 +331,10 @@ export function HistoryPage() {
 
       <Card>
         <CardContent>
+          <TableToolbar dense={dense} onToggleDense={toggleDense}
+            onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0} />
           <AppDataGrid
+            dense={dense}
             rows={tableData?.content ?? []}
             columns={columns}
             rowCount={rowCount}

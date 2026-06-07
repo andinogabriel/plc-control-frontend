@@ -13,6 +13,13 @@ import App from './App';
 // Global Spanish locale so dayjs formatting (chart axis labels, etc.) is in Spanish.
 dayjs.locale('es');
 
+// Register the service worker in production only (avoids caching the dev server's modules).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+  });
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

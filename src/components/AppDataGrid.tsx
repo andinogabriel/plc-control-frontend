@@ -3,23 +3,23 @@ import { DataGrid, type DataGridProps } from '@mui/x-data-grid';
 import { DataTablePagination, PAGE_SIZE_OPTIONS } from './DataTablePagination';
 import { TableEmptyOverlay } from './TableEmptyOverlay';
 
-const ROW_HEIGHT = 52;
 const HEADER_HEIGHT = 56;
 const FOOTER_HEIGHT = 56;
 const VISIBLE_ROWS = 10;
-
-// The grid keeps the height of ~10 rows regardless of page size; larger pages scroll inside.
-const GRID_HEIGHT = HEADER_HEIGHT + ROW_HEIGHT * VISIBLE_ROWS + FOOTER_HEIGHT;
+const ROW_HEIGHT = { standard: 52, compact: 40 } as const;
 
 /**
  * Project-wide DataGrid wrapper: server pagination, fixed 10-row height with internal scroll,
  * the custom single-row pagination, and Spanish text (provided by the theme's esES locale).
+ * `dense` switches to a compact row height (the 10-row height is recomputed to match).
  */
-export function AppDataGrid(props: DataGridProps) {
+export function AppDataGrid({ dense, ...props }: DataGridProps & { dense?: boolean }) {
+  const rowHeight = dense ? ROW_HEIGHT.compact : ROW_HEIGHT.standard;
+  const gridHeight = HEADER_HEIGHT + rowHeight * VISIBLE_ROWS + FOOTER_HEIGHT;
   return (
-    <Box sx={{ height: GRID_HEIGHT, width: '100%' }}>
+    <Box sx={{ height: gridHeight, width: '100%' }}>
       <DataGrid
-        rowHeight={ROW_HEIGHT}
+        rowHeight={rowHeight}
         columnHeaderHeight={HEADER_HEIGHT}
         paginationMode="server"
         pageSizeOptions={PAGE_SIZE_OPTIONS}

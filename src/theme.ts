@@ -46,6 +46,30 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
     base,
     {
       components: {
+        MuiCssBaseline: {
+          styleOverrides: {
+            // Visible keyboard focus across the app (mouse clicks stay clean via :focus-visible).
+            '*:focus-visible': {
+              outline: `2px solid ${base.palette.primary.main}`,
+              outlineOffset: 2,
+              borderRadius: 4,
+            },
+          },
+        },
+        MuiCardActionArea: {
+          styleOverrides: {
+            root: {
+              transition: base.transitions.create(['box-shadow', 'transform'], { duration: 150 }),
+              '@media (hover: hover)': {
+                '&:hover': { transform: 'translateY(-2px)' },
+              },
+              '@media (prefers-reduced-motion: reduce)': {
+                transition: 'none',
+                '&:hover': { transform: 'none' },
+              },
+            },
+          },
+        },
         MuiAppBar: {
           defaultProps: { color: 'default', elevation: 0 },
           styleOverrides: {

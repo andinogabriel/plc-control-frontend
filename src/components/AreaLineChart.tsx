@@ -1,13 +1,21 @@
 import { useId, useState } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography, useTheme } from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';
+import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine';
 import { chartSx, formatAxisDate } from './chartStyle';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 
 export interface ChartSeries {
   id: string;
   label: string;
   data: number[];
   color: string;
+}
+
+export interface ReferenceMark {
+  value: number;
+  label?: string;
+  color?: string;
 }
 
 const NoLegend = () => null;
@@ -17,7 +25,7 @@ const NoLegend = () => null;
  * and a custom clickable legend that shows/hides each line.
  */
 export function AreaLineChart({
-  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick,
+  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines,
 }: {
   labels: Date[];
   series: ChartSeries[];
@@ -26,7 +34,10 @@ export function AreaLineChart({
   area?: boolean;
   curve?: 'monotoneX' | 'stepAfter' | 'linear' | 'natural';
   onPointClick?: (dataIndex: number) => void;
+  referenceLines?: ReferenceMark[];
 }) {
+  const theme = useTheme();
+  const reducedMotion = useReducedMotion();
   const uid = useId().replace(/[:]/g, '');
   const gradientId = (id: string) => `grad-${uid}-${id}`;
 
@@ -71,6 +82,7 @@ export function AreaLineChart({
       <LineChart
         height={height}
         grid={{ horizontal: true }}
+        skipAnimation={reducedMotion}
         margin={{ top: 8, right: 22, bottom: 24, left: 16 }}
         onAxisClick={onPointClick ? (_event, data) => { if (data) onPointClick(data.dataIndex); } : undefined}
         sx={[chartSx, areaFillSx, onPointClick ? { cursor: 'pointer' } : {}]}
@@ -95,6 +107,16 @@ export function AreaLineChart({
           showMark: false, curve, area,
         }))}
       >
+        {(referenceLines ?? []).map((ref, i) => (
+          <ChartsReferenceLine
+            key={`${ref.value}-${i}`}
+            y={ref.value}
+            label={ref.label}
+            labelAlign="end"
+            lineStyle={{ stroke: ref.color ?? theme.palette.text.disabled, strokeDasharray: '5 4', strokeWidth: 1.5 }}
+            labelStyle={{ fontSize: 10, fill: ref.color ?? theme.palette.text.secondary }}
+          />
+        ))}
         <defs>
           {visibleSeries.map((s) => (
             <linearGradient key={s.id} id={gradientId(s.id)} x1="0" y1="0" x2="0" y2="1">
