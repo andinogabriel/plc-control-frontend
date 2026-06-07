@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import {
-  AppBar, Box, Divider, Drawer, IconButton, List, ListItem, ListItemButton,
+  AppBar, Box, Divider, Drawer, Fade, IconButton, Link as MuiLink, List, ListItem, ListItemButton,
   ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Tooltip, Typography,
   useMediaQuery, useTheme,
 } from '@mui/material';
@@ -20,6 +20,7 @@ import { useColorMode, type ColorMode } from '../colorMode';
 import { SystemHealthBadge } from './SystemHealthBadge';
 import { CommandPalette } from './CommandPalette';
 import { TopProgressBar } from './TopProgressBar';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 
 const openCommandPalette = () =>
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
@@ -82,6 +83,7 @@ function Footer() {
 export function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const theme = useTheme();
+  const reducedMotion = useReducedMotion();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const [desktopOpen, setDesktopOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -115,6 +117,16 @@ export function Layout({ children }: { children: ReactNode }) {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      <MuiLink
+        href="#main-content"
+        sx={{
+          position: 'absolute', left: 8, top: -48, zIndex: (t) => t.zIndex.tooltip + 1,
+          px: 2, py: 1, borderRadius: 1, bgcolor: 'primary.main', color: 'primary.contrastText',
+          transition: 'top .15s', '&:focus': { top: 8 },
+        }}
+      >
+        Saltar al contenido
+      </MuiLink>
       <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
         <Toolbar>
           <IconButton color="inherit" edge="start" aria-label="Abrir/cerrar menú" sx={{ mr: 1 }}
@@ -165,9 +177,11 @@ export function Layout({ children }: { children: ReactNode }) {
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', p: { xs: 2, md: 3 } }}>
+      <Box component="main" id="main-content" sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', p: { xs: 2, md: 3 } }}>
         <Toolbar />
-        <Box sx={{ flexGrow: 1 }}>{children}</Box>
+        <Fade in key={location.pathname} timeout={reducedMotion ? 0 : 220}>
+          <Box sx={{ flexGrow: 1 }}>{children}</Box>
+        </Fade>
         <Footer />
       </Box>
     </Box>

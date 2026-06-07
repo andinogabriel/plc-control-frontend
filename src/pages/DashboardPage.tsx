@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Stack, Chip,
+  Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Button, Stack, Chip,
   MenuItem, TextField, Skeleton, useMediaQuery, useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
@@ -25,6 +25,7 @@ import { RefreshControl } from '../components/RefreshControl';
 import { useCountUp } from '../hooks/useCountUp';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 import { formatRelative } from '../lib/time';
+import { formatPct, formatTemp } from '../lib/format';
 import type { MeasurementResponse } from '../api/types';
 
 type AccentColor = 'primary' | 'secondary' | 'success' | 'warning' | 'error';
@@ -167,9 +168,22 @@ export function DashboardPage() {
     return (
       <Box>
         {header}
-        <Alert severity="info">
-          Todavía no hay mediciones registradas. La Raspberry debe hacer POST a /api/measurements.
-        </Alert>
+        <Card>
+          <CardContent>
+            <EmptyState
+              icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+              title="Todavía no hay mediciones"
+              description={config
+                ? 'La Raspberry debe hacer POST a /api/measurements para empezar a registrar lecturas.'
+                : 'Empezá configurando los umbrales; luego la Raspberry comenzará a reportar.'}
+              action={!config && (
+                <Button variant="contained" onClick={() => navigate('/configuracion')}>
+                  Configurar umbrales
+                </Button>
+              )}
+            />
+          </CardContent>
+        </Card>
       </Box>
     );
   }
@@ -194,7 +208,7 @@ export function DashboardPage() {
           <MetricCard icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
             value={(
               <Stack direction="row" alignItems="baseline" spacing={1}>
-                <span>{tempCount.toFixed(1)} °C</span>
+                <span>{formatTemp(tempCount)}</span>
                 {tempDelta != null && <Delta value={tempDelta} unit="°C" />}
               </Stack>
             )}
@@ -214,7 +228,7 @@ export function DashboardPage() {
           <MetricCard icon={<WaterDropIcon />} color={humOut ? 'warning' : 'secondary'} label="Humedad actual"
             value={(
               <Stack direction="row" alignItems="baseline" spacing={1}>
-                <span>{humCount.toFixed(1)} %</span>
+                <span>{formatPct(humCount)}</span>
                 {humDelta != null && <Delta value={humDelta} unit="%" />}
               </Stack>
             )}
