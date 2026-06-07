@@ -31,6 +31,10 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
       subtitle1: { fontWeight: 600 },
       subtitle2: { fontWeight: 600 },
       button: { fontWeight: 600 },
+      body1: { lineHeight: 1.6 },
+      body2: { lineHeight: 1.6 },
+      caption: { lineHeight: 1.5 },
+      overline: { letterSpacing: '0.08em', fontWeight: 600 },
     },
   });
 

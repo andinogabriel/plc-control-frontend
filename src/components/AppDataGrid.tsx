@@ -29,6 +29,7 @@ export function AppDataGrid(props: DataGridProps) {
         showColumnVerticalBorder
         {...props}
         slots={{ pagination: DataTablePagination, noRowsOverlay: () => <TableEmptyOverlay />, ...props.slots }}
+        slotProps={{ loadingOverlay: { variant: 'skeleton', noRowsVariant: 'skeleton' }, ...props.slotProps }}
         sx={{
           border: 0,
           // Subtle, mode-agnostic grid lines between rows and columns.

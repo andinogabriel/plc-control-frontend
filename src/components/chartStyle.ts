@@ -7,8 +7,19 @@ export const chartSx = (theme: Theme) => ({
   '& .MuiChartsAxis-line': { display: 'none' },
   '& .MuiChartsAxis-tick': { display: 'none' },
   '& .MuiChartsAxis-tickLabel': { fontSize: 11, fill: theme.palette.text.secondary },
-  '& .MuiChartsGrid-line': { stroke: theme.palette.divider, strokeDasharray: '4 6' },
+  '& .MuiChartsGrid-line': {
+    stroke: theme.palette.divider,
+    strokeDasharray: '4 6',
+    // Grid lines need slightly more presence on dark backgrounds to stay legible.
+    strokeOpacity: theme.palette.mode === 'dark' ? 0.7 : 1,
+  },
   '& .MuiLineElement-root': { strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' },
+  // Dashed crosshair shown while hovering, so a reading is easy to line up with its axis.
+  '& .MuiChartsAxisHighlight-root': {
+    stroke: theme.palette.text.disabled,
+    strokeDasharray: '3 3',
+    strokeWidth: 1,
+  },
 });
 
 /**
