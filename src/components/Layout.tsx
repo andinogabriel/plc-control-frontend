@@ -20,6 +20,7 @@ import { useColorMode, type ColorMode } from '../colorMode';
 import { SystemHealthBadge } from './SystemHealthBadge';
 import { CommandPalette } from './CommandPalette';
 import { TopProgressBar } from './TopProgressBar';
+import { MobileBottomNav } from './MobileBottomNav';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 const openCommandPalette = () =>
@@ -129,7 +130,8 @@ export function Layout({ children }: { children: ReactNode }) {
       </MuiLink>
       <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
         <Toolbar>
-          <IconButton color="inherit" edge="start" aria-label="Abrir/cerrar menú" sx={{ mr: 1 }}
+          <IconButton color="inherit" edge="start" aria-label="Abrir/cerrar menú"
+            sx={{ mr: 1, display: { xs: 'none', md: 'inline-flex' } }}
             onClick={(e) => {
               // Blur the trigger so it doesn't keep focus inside #root once the mobile
               // drawer (a Modal) sets aria-hidden on it. MUI then moves focus into the drawer.
@@ -140,6 +142,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </IconButton>
           <ThermostatIcon sx={{ mr: 1, color: 'primary.main' }} />
           <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700 }}>Sistema de Control PLC</Typography>
+          <Box sx={{ display: { xs: 'flex', sm: 'none' } }}><SystemHealthBadge compact /></Box>
           <Box sx={{ display: { xs: 'none', sm: 'block' }, mr: 1 }}><SystemHealthBadge /></Box>
           <Tooltip title="Buscar (Ctrl/⌘ + K)">
             <IconButton color="inherit" onClick={openCommandPalette} aria-label="Abrir buscador">
@@ -177,13 +180,16 @@ export function Layout({ children }: { children: ReactNode }) {
         </Drawer>
       </Box>
 
-      <Box component="main" id="main-content" sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', p: { xs: 2, md: 3 } }}>
+      <Box component="main" id="main-content"
+        sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', p: { xs: 2, md: 3 }, pb: { xs: 10, md: 3 } }}>
         <Toolbar />
         <Fade in key={location.pathname} timeout={reducedMotion ? 0 : 220}>
           <Box sx={{ flexGrow: 1 }}>{children}</Box>
         </Fade>
         <Footer />
       </Box>
+
+      <MobileBottomNav />
     </Box>
   );
 }

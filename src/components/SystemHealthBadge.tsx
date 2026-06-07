@@ -10,15 +10,36 @@ const META: Record<HealthStatus, { label: string; color: string }> = {
 };
 
 /**
- * Compact "is the sensor reporting?" indicator for the AppBar: a pulsing colour dot plus a
- * label, with a tooltip showing when the last measurement arrived.
+ * "Is the sensor reporting?" indicator for the AppBar: a pulsing colour dot plus a label, with
+ * a tooltip showing when the last measurement arrived. The `compact` variant renders just the
+ * dot (used on phones, where AppBar space is tight).
  */
-export function SystemHealthBadge() {
+export function SystemHealthBadge({ compact }: { compact?: boolean }) {
   const { status, lastAt } = useSystemHealth();
   const meta = META[status];
   const tooltip = lastAt
-    ? `Última medición ${formatRelative(lastAt)}`
-    : 'Todavía no llegaron mediciones de la Raspberry';
+    ? `${meta.label} · última medición ${formatRelative(lastAt)}`
+    : `${meta.label} · todavía no llegaron mediciones`;
+
+  const dot = (
+    <Box component="span" sx={{
+      width: 11, height: 11, borderRadius: '50%', bgcolor: meta.color,
+      boxShadow: `0 0 0 3px ${meta.color}33`,
+      animation: status === 'online' ? 'plcPulse 2s ease-in-out infinite' : 'none',
+      '@keyframes plcPulse': {
+        '0%,100%': { boxShadow: `0 0 0 0 ${meta.color}55` },
+        '50%': { boxShadow: `0 0 0 4px ${meta.color}11` },
+      },
+    }} />
+  );
+
+  if (compact) {
+    return (
+      <Tooltip title={tooltip}>
+        <Box sx={{ display: 'grid', placeItems: 'center', width: 36, height: 36 }} aria-label={meta.label}>{dot}</Box>
+      </Tooltip>
+    );
+  }
 
   return (
     <Tooltip title={tooltip}>
