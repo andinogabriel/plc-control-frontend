@@ -22,6 +22,7 @@ import { AlertCenter } from './AlertCenter';
 import { CommandPalette } from './CommandPalette';
 import { TopProgressBar } from './TopProgressBar';
 import { MobileBottomNav } from './MobileBottomNav';
+import { PullToRefresh } from './PullToRefresh';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 const openCommandPalette = () =>
@@ -185,9 +186,11 @@ export function Layout({ children }: { children: ReactNode }) {
       <Box component="main" id="main-content"
         sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', p: { xs: 2, md: 3 }, pb: { xs: 10, md: 3 } }}>
         <Toolbar />
-        <Fade in key={location.pathname} timeout={reducedMotion ? 0 : 220}>
-          <Box sx={{ flexGrow: 1 }}>{children}</Box>
-        </Fade>
+        <PullToRefresh>
+          <Fade in key={location.pathname} timeout={reducedMotion ? 0 : 220}>
+            <Box sx={{ flexGrow: 1 }}>{children}</Box>
+          </Fade>
+        </PullToRefresh>
         <Footer />
       </Box>
 
