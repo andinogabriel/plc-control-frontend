@@ -36,7 +36,8 @@ export function SystemHealthBadge({ compact }: { compact?: boolean }) {
   if (compact) {
     return (
       <Tooltip title={tooltip}>
-        <Box sx={{ display: 'grid', placeItems: 'center', width: 36, height: 36 }} aria-label={meta.label}>{dot}</Box>
+        <Box role="status" aria-live="polite" aria-label={`Estado del sistema: ${meta.label}`}
+          sx={{ display: 'grid', placeItems: 'center', width: 36, height: 36 }}>{dot}</Box>
       </Tooltip>
     );
   }
@@ -46,6 +47,9 @@ export function SystemHealthBadge({ compact }: { compact?: boolean }) {
       <Chip
         size="small"
         variant="outlined"
+        role="status"
+        aria-live="polite"
+        aria-label={`Estado del sistema: ${meta.label}`}
         label={meta.label}
         icon={(
           <Box component="span" sx={{

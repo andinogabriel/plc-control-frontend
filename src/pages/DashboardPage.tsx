@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Button, Stack, Chip,
-  MenuItem, TextField, Skeleton, useMediaQuery, useTheme,
+  Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Button, IconButton, Stack, Chip,
+  MenuItem, TextField, Skeleton, Tooltip, useMediaQuery, useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import PrintRoundedIcon from '@mui/icons-material/PrintRounded';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
@@ -22,6 +23,7 @@ import { EmptyState } from '../components/EmptyState';
 import { Sparkline } from '../components/Sparkline';
 import { Delta } from '../components/Delta';
 import { RefreshControl } from '../components/RefreshControl';
+import { ControlAnalytics } from '../components/ControlAnalytics';
 import { useCountUp } from '../hooks/useCountUp';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 import { formatRelative } from '../lib/time';
@@ -88,8 +90,9 @@ export function DashboardPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [selected, setSelected] = useState<MeasurementResponse | null>(null);
-  const [range, setRange] = useState('24h');
+  const [range, setRange] = useState(() => localStorage.getItem('dashboardRange') ?? '24h');
   const [paused, setPaused] = useState(false);
+  useEffect(() => { localStorage.setItem('dashboardRange', range); }, [range]);
   const rangeMs = RANGE_OPTIONS.find((o) => o.value === range)?.ms ?? RANGE_OPTIONS[2].ms;
 
   const { data: latest, isLoading, isError, dataUpdatedAt } = useQuery({
@@ -142,9 +145,16 @@ export function DashboardPage() {
   const header = (
     <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
       <Typography variant="h4">Dashboard</Typography>
-      {!isLoading && !isError && (
-        <RefreshControl lastUpdated={dataUpdatedAt} paused={paused} onToggle={() => setPaused((p) => !p)} />
-      )}
+      <Stack direction="row" spacing={1} alignItems="center">
+        {!isLoading && !isError && (
+          <RefreshControl lastUpdated={dataUpdatedAt} paused={paused} onToggle={() => setPaused((p) => !p)} />
+        )}
+        <Tooltip title="Imprimir / guardar PDF">
+          <IconButton size="small" onClick={() => window.print()} aria-label="Imprimir" className="no-print">
+            <PrintRoundedIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Stack>
     </Stack>
   );
 
@@ -258,6 +268,17 @@ export function DashboardPage() {
             </Stack>
           </MetricCard>
         </Grid>
+
+        {chartPoints.length > 0 && (
+          <Grid size={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="subtitle1" gutterBottom>Análisis del rango</Typography>
+                <ControlAnalytics points={chartPoints} config={config} />
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
 
         <Grid size={12}>
           <Card>

@@ -21,6 +21,8 @@ import { EmptyState } from '../components/EmptyState';
 import { RelativeTime } from '../components/RelativeTime';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import { TableToolbar } from '../components/TableToolbar';
+import { MobileCardList } from '../components/MobileCardList';
+import { MobileFilterSheet } from '../components/MobileFilterSheet';
 import { useDensity } from '../hooks/useDensity';
 import { exportChartPng, exportCsv } from '../lib/exporters';
 import { formatPct, formatTemp } from '../lib/format';
@@ -70,6 +72,7 @@ export function HistoryPage() {
 
   const { data: config } = useQuery({ queryKey: ['config-latest'], queryFn: configApi.getLatest, retry: false });
   const [dense, toggleDense] = useDensity();
+  const [mobileFilters, setMobileFilters] = useState(false);
   const tempChartRef = useRef<HTMLDivElement>(null);
   const humChartRef = useRef<HTMLDivElement>(null);
 
@@ -333,18 +336,42 @@ export function HistoryPage() {
       <Card>
         <CardContent>
           <TableToolbar dense={dense} onToggleDense={toggleDense}
-            onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0} />
-          <AppDataGrid
-            dense={dense}
-            rows={tableData?.content ?? []}
-            columns={columns}
-            rowCount={rowCount}
-            loading={!tableData}
-            slots={{ noRowsOverlay: () => <TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} /> }}
-            paginationModel={{ page, pageSize: size }}
-            onPaginationModelChange={(model) =>
-              updateParams({ page: String(model.page), size: String(model.pageSize) })}
-          />
+            onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0}
+            onOpenFilters={() => setMobileFilters(true)} />
+          <MobileFilterSheet open={mobileFilters} onClose={() => setMobileFilters(false)} columns={columns} />
+          <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+            <AppDataGrid
+              dense={dense}
+              rows={tableData?.content ?? []}
+              columns={columns}
+              rowCount={rowCount}
+              loading={!tableData}
+              slots={{ noRowsOverlay: () => <TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} /> }}
+              paginationModel={{ page, pageSize: size }}
+              onPaginationModelChange={(model) =>
+                updateParams({ page: String(model.page), size: String(model.pageSize) })}
+            />
+          </Box>
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+            <MobileCardList
+              rows={tableData?.content ?? []}
+              loading={!tableData}
+              page={page}
+              pageCount={Math.max(1, Math.ceil(rowCount / size))}
+              onPageChange={(p) => updateParams({ page: String(p) })}
+              onRowClick={(m) => setSelected(m)}
+              empty={<TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} />}
+              getCard={(m) => ({
+                title: <RelativeTime value={m.createdAt} />,
+                fields: [
+                  { label: 'Temperatura', value: formatTemp(m.temperature) },
+                  { label: 'Humedad', value: formatPct(m.humidity) },
+                  { label: 'Cooler', value: m.coolerOn ? 'ON' : 'OFF' },
+                  { label: 'Estado', value: <StatusChip status={m.status} /> },
+                ],
+              })}
+            />
+          </Box>
         </CardContent>
       </Card>
 

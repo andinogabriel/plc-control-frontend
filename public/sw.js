@@ -4,8 +4,13 @@
 const CACHE = 'plc-shell-v1';
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  // Do NOT skipWaiting automatically: a new version waits until the user accepts the update
+  // prompt (which posts SKIP_WAITING), so we never reload the app from under them.
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/'])));
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
