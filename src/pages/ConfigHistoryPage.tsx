@@ -14,6 +14,7 @@ import { AppDataGrid } from '../components/AppDataGrid';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
+import { ErrorState } from '../components/ErrorState';
 import { RelativeTime } from '../components/RelativeTime';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import { TableToolbar } from '../components/TableToolbar';
@@ -47,7 +48,7 @@ export function ConfigHistoryPage() {
   const [gFrom, setGFrom] = useState<Dayjs | null>(gFromParam ? dayjs(gFromParam) : null);
   const [gTo, setGTo] = useState<Dayjs | null>(gToParam ? dayjs(gToParam) : null);
 
-  const { data: chartData, isLoading: chartLoading } = useQuery({
+  const { data: chartData, isLoading: chartLoading, isError: chartError, refetch: refetchChart } = useQuery({
     queryKey: ['config-chart', gFromParam, gToParam],
     queryFn: () => configApi.getHistory({ page: 0, size: CHART_PAGE_SIZE, from: gFromParam || undefined, to: gToParam || undefined }),
     placeholderData: keepPreviousData,
@@ -77,7 +78,7 @@ export function ConfigHistoryPage() {
   };
   const tableKey = JSON.stringify(tableQuery);
 
-  const { data: tableData } = useQuery({
+  const { data: tableData, isError: tableError, refetch: refetchTable } = useQuery({
     queryKey: ['config-table', tableKey],
     queryFn: () => configApi.getHistory(tableQuery),
     placeholderData: keepPreviousData,
@@ -274,6 +275,8 @@ export function ConfigHistoryPage() {
             <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de temperatura</Typography>
             {chartLoading ? (
               <Skeleton variant="rounded" height={260} />
+            ) : chartError ? (
+              <ErrorState dense onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
@@ -292,6 +295,8 @@ export function ConfigHistoryPage() {
             <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de humedad</Typography>
             {chartLoading ? (
               <Skeleton variant="rounded" height={260} />
+            ) : chartError ? (
+              <ErrorState dense onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
@@ -314,7 +319,9 @@ export function ConfigHistoryPage() {
             onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0}
             onOpenFilters={showCards ? () => setMobileFilters(true) : undefined} />
           <MobileFilterSheet open={mobileFilters} onClose={() => setMobileFilters(false)} columns={columns} />
-          {showCards ? (
+          {tableError ? (
+            <ErrorState onRetry={() => refetchTable()} />
+          ) : showCards ? (
             <MobileCardList
               rows={tableData?.content ?? []}
               loading={!tableData}

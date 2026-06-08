@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
   Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Button, IconButton, Stack, Chip,
   MenuItem, TextField, Skeleton, Tooltip, useMediaQuery, useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import { AxiosError } from 'axios';
 import PrintRoundedIcon from '@mui/icons-material/PrintRounded';
+import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
@@ -20,10 +22,12 @@ import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
+import { ErrorState } from '../components/ErrorState';
 import { Sparkline } from '../components/Sparkline';
 import { Delta } from '../components/Delta';
 import { RefreshControl } from '../components/RefreshControl';
 import { ControlAnalytics } from '../components/ControlAnalytics';
+import { exportChartPng } from '../lib/exporters';
 import { useCountUp } from '../hooks/useCountUp';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 import { formatRelative } from '../lib/time';
@@ -92,10 +96,11 @@ export function DashboardPage() {
   const [selected, setSelected] = useState<MeasurementResponse | null>(null);
   const [range, setRange] = useState(() => localStorage.getItem('dashboardRange') ?? '24h');
   const [paused, setPaused] = useState(false);
+  const chartRef = useRef<HTMLDivElement>(null);
   useEffect(() => { localStorage.setItem('dashboardRange', range); }, [range]);
   const rangeMs = RANGE_OPTIONS.find((o) => o.value === range)?.ms ?? RANGE_OPTIONS[2].ms;
 
-  const { data: latest, isLoading, isError, dataUpdatedAt } = useQuery({
+  const { data: latest, isLoading, isError, error, dataUpdatedAt, refetch: refetchLatest } = useQuery({
     queryKey: ['measurement-latest'],
     queryFn: measurementApi.getLatest,
     refetchInterval: paused ? false : 5000,
@@ -108,12 +113,13 @@ export function DashboardPage() {
     retry: false,
   });
 
-  const { data: recent } = useQuery({
+  const { data: recent, isLoading: recentLoading, isError: recentError, refetch: refetchRecent } = useQuery({
     queryKey: ['measurements-recent', range],
     queryFn: () => measurementApi.getMeasurements({
       page: 0, size: 1500, from: new Date(Date.now() - rangeMs).toISOString(),
     }),
     refetchInterval: paused ? false : 15000,
+    placeholderData: keepPreviousData,
   });
 
   const health = useSystemHealth();
@@ -175,23 +181,30 @@ export function DashboardPage() {
   }
 
   if (isError || !latest) {
+    // A 404 means "no measurements yet" (onboarding); anything else is a real server error.
+    const status = (error as AxiosError | null)?.response?.status;
+    const serverError = isError && status !== 404;
     return (
       <Box>
         {header}
         <Card>
           <CardContent>
-            <EmptyState
-              icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
-              title="Todavía no hay mediciones"
-              description={config
-                ? 'La Raspberry debe hacer POST a /api/measurements para empezar a registrar lecturas.'
-                : 'Empezá configurando los umbrales; luego la Raspberry comenzará a reportar.'}
-              action={!config && (
-                <Button variant="contained" onClick={() => navigate('/configuracion')}>
-                  Configurar umbrales
-                </Button>
-              )}
-            />
+            {serverError ? (
+              <ErrorState onRetry={() => refetchLatest()} />
+            ) : (
+              <EmptyState
+                icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+                title="Todavía no hay mediciones"
+                description={config
+                  ? 'La Raspberry debe hacer POST a /api/measurements para empezar a registrar lecturas.'
+                  : 'Empezá configurando los umbrales; luego la Raspberry comenzará a reportar.'}
+                action={!config && (
+                  <Button variant="contained" onClick={() => navigate('/configuracion')}>
+                    Configurar umbrales
+                  </Button>
+                )}
+              />
+            )}
           </CardContent>
         </Card>
       </Box>
@@ -269,12 +282,14 @@ export function DashboardPage() {
           </MetricCard>
         </Grid>
 
-        {chartPoints.length > 0 && (
+        {(recentLoading || chartPoints.length > 0) && (
           <Grid size={12}>
             <Card>
               <CardContent>
                 <Typography variant="subtitle1" gutterBottom>Análisis del rango</Typography>
-                <ControlAnalytics points={chartPoints} config={config} />
+                {recentLoading
+                  ? <Skeleton variant="rounded" height={120} />
+                  : <ControlAnalytics points={chartPoints} config={config} />}
               </CardContent>
             </Card>
           </Grid>
@@ -282,24 +297,38 @@ export function DashboardPage() {
 
         <Grid size={12}>
           <Card>
-            <CardContent>
+            <CardContent ref={chartRef}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
                 <Typography variant="subtitle1">Últimas lecturas</Typography>
-                <TextField
-                  select size="small" value={range} onChange={(e) => setRange(e.target.value)}
-                  sx={{ minWidth: 160 }}
-                >
-                  {RANGE_OPTIONS.map((o) => (
-                    <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
-                  ))}
-                </TextField>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <TextField
+                    select size="small" value={range} onChange={(e) => setRange(e.target.value)}
+                    sx={{ minWidth: 160 }}
+                  >
+                    {RANGE_OPTIONS.map((o) => (
+                      <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+                    ))}
+                  </TextField>
+                  <Tooltip title="Descargar PNG">
+                    <span>
+                      <IconButton size="small" className="no-print" disabled={chartPoints.length === 0}
+                        onClick={() => exportChartPng(chartRef.current, 'lecturas.png')} aria-label="Descargar gráfico">
+                        <ImageRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Stack>
               </Stack>
               {rangeLabel && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                   {rangeLabel}
                 </Typography>
               )}
-              {chartPoints.length > 0 ? (
+              {recentLoading ? (
+                <Skeleton variant="rounded" height={isMobile ? 260 : 340} />
+              ) : recentError ? (
+                <ErrorState onRetry={() => refetchRecent()} />
+              ) : chartPoints.length > 0 ? (
                 <AreaLineChart
                   height={isMobile ? 260 : 340}
                   zoomable
