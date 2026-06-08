@@ -22,18 +22,21 @@ export function MobileCardList<T>({ rows, getCard, onRowClick, loading, empty, p
   pageCount: number;
   onPageChange: (page: number) => void;
 }) {
+  const gridSx = { display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5 } as const;
+
   if (loading && rows.length === 0) {
     return (
-      <Stack spacing={1.5}>
+      <Box sx={gridSx}>
         {[0, 1, 2, 3].map((i) => <Skeleton key={i} variant="rounded" height={120} />)}
-      </Stack>
+      </Box>
     );
   }
 
   if (rows.length === 0) return <Box>{empty}</Box>;
 
   return (
-    <Stack spacing={1.5}>
+    <Box>
+      <Box sx={gridSx}>
       {rows.map((row, idx) => {
         const card = getCard(row);
         const content = (
@@ -55,8 +58,9 @@ export function MobileCardList<T>({ rows, getCard, onRowClick, loading, empty, p
           </Card>
         );
       })}
+      </Box>
 
-      <Stack direction="row" alignItems="center" justifyContent="center" spacing={1} sx={{ pt: 0.5 }}>
+      <Stack direction="row" alignItems="center" justifyContent="center" spacing={1} sx={{ pt: 1.5 }}>
         <IconButton size="small" aria-label="Página anterior" disabled={page <= 0} onClick={() => onPageChange(page - 1)}>
           <ChevronLeftRoundedIcon />
         </IconButton>
@@ -65,6 +69,6 @@ export function MobileCardList<T>({ rows, getCard, onRowClick, loading, empty, p
           <ChevronRightRoundedIcon />
         </IconButton>
       </Stack>
-    </Stack>
+    </Box>
   );
 }

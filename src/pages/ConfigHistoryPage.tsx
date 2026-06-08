@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
-  Box, Card, CardContent, Typography, Stack, Button, Chip, Grid, Skeleton, useTheme,
+  Box, Card, CardContent, Typography, Stack, Button, Chip, Grid, Skeleton, useMediaQuery, useTheme,
 } from '@mui/material';
 import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -19,6 +19,7 @@ import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import { TableToolbar } from '../components/TableToolbar';
 import { MobileCardList } from '../components/MobileCardList';
 import { MobileFilterSheet } from '../components/MobileFilterSheet';
+import { useViewMode } from '../hooks/useViewMode';
 import { useDensity } from '../hooks/useDensity';
 import { exportCsv } from '../lib/exporters';
 import {
@@ -34,6 +35,9 @@ const TABLE_FILTER_KEYS = [
 export function ConfigHistoryPage() {
   const theme = useTheme();
   const [dense, toggleDense] = useDensity();
+  const [viewMode, setViewMode] = useViewMode();
+  const compact = useMediaQuery(theme.breakpoints.down('md'));
+  const showCards = compact || viewMode === 'cards';
   const [mobileFilters, setMobileFilters] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -306,23 +310,11 @@ export function ConfigHistoryPage() {
       <Card>
         <CardContent>
           <TableToolbar dense={dense} onToggleDense={toggleDense}
+            viewMode={viewMode} onSetViewMode={setViewMode}
             onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0}
-            onOpenFilters={() => setMobileFilters(true)} />
+            onOpenFilters={showCards ? () => setMobileFilters(true) : undefined} />
           <MobileFilterSheet open={mobileFilters} onClose={() => setMobileFilters(false)} columns={columns} />
-          <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-            <AppDataGrid
-              dense={dense}
-              rows={tableData?.content ?? []}
-              columns={columns}
-              rowCount={rowCount}
-              loading={!tableData}
-              slots={{ noRowsOverlay: () => <TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} /> }}
-              paginationModel={{ page, pageSize: size }}
-              onPaginationModelChange={(model) =>
-                updateParams({ page: String(model.page), size: String(model.pageSize) })}
-            />
-          </Box>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          {showCards ? (
             <MobileCardList
               rows={tableData?.content ?? []}
               loading={!tableData}
@@ -342,7 +334,19 @@ export function ConfigHistoryPage() {
                 ],
               })}
             />
-          </Box>
+          ) : (
+            <AppDataGrid
+              dense={dense}
+              rows={tableData?.content ?? []}
+              columns={columns}
+              rowCount={rowCount}
+              loading={!tableData}
+              slots={{ noRowsOverlay: () => <TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} /> }}
+              paginationModel={{ page, pageSize: size }}
+              onPaginationModelChange={(model) =>
+                updateParams({ page: String(model.page), size: String(model.pageSize) })}
+            />
+          )}
         </CardContent>
       </Card>
 
