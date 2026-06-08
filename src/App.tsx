@@ -1,8 +1,21 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, GlobalStyles } from '@mui/material';
 import { Layout } from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ServiceWorkerUpdater } from './components/ServiceWorkerUpdater';
+
+// Print/PDF: drop the chrome (AppBar, sidebar, bottom nav, action buttons) and let the
+// dashboard content flow on a white page.
+const printStyles = (
+  <GlobalStyles styles={{
+    '@media print': {
+      '.MuiAppBar-root, .MuiDrawer-root, nav, .no-print': { display: 'none !important' },
+      'main#main-content': { padding: '0 !important' },
+      body: { backgroundColor: '#fff' },
+    },
+  }} />
+);
 
 // Route-level code splitting: each page is its own chunk, loaded on demand.
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
@@ -21,6 +34,8 @@ function PageFallback() {
 export default function App() {
   return (
     <Layout>
+      {printStyles}
+      <ServiceWorkerUpdater />
       <ErrorBoundary>
       <Suspense fallback={<PageFallback />}>
         <Routes>
