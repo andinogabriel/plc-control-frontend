@@ -40,13 +40,15 @@ export function ChartBrush({ series, start, end, onChange, height = 40 }: {
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     const f = fracFrom(e.clientX);
+    const isPartial = end - start < 0.999;
     let mode: DragMode;
     if (Math.abs(f - start) <= HANDLE_HIT) mode = 'left';
     else if (Math.abs(f - end) <= HANDLE_HIT) mode = 'right';
-    else if (f > start && f < end) mode = 'pan';
+    // Only pan when grabbing the middle of an already-narrowed window; otherwise draw a new one.
+    else if (isPartial && f > start + HANDLE_HIT && f < end - HANDLE_HIT) mode = 'pan';
     else { mode = 'new'; onChange(f, Math.min(1, f + MIN_WIDTH)); }
     drag.current = { mode, anchor: f, origS: start, origE: end, startFrac: f };
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ignore */ }
   };
 
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
@@ -65,7 +67,7 @@ export function ChartBrush({ series, start, end, onChange, height = 40 }: {
 
   const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
     drag.current.mode = null;
-    e.currentTarget.releasePointerCapture(e.pointerId);
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
   };
 
   const sel = { left: `${start * 100}%`, width: `${(end - start) * 100}%` };
