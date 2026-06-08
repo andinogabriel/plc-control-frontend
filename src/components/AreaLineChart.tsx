@@ -20,6 +20,12 @@ export interface ReferenceMark {
   color?: string;
 }
 
+export interface VerticalMarker {
+  date: Date;
+  label?: string;
+  color?: string;
+}
+
 const NoLegend = () => null;
 
 /**
@@ -27,7 +33,7 @@ const NoLegend = () => null;
  * a custom clickable legend, threshold reference lines, and optional zoom via a brush bar.
  */
 export function AreaLineChart({
-  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, zoomable = false,
+  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, zoomable = false,
 }: {
   labels: Date[];
   series: ChartSeries[];
@@ -37,6 +43,7 @@ export function AreaLineChart({
   curve?: 'monotoneX' | 'stepAfter' | 'linear' | 'natural';
   onPointClick?: (dataIndex: number) => void;
   referenceLines?: ReferenceMark[];
+  verticalMarkers?: VerticalMarker[];
   zoomable?: boolean;
 }) {
   const theme = useTheme();
@@ -134,12 +141,22 @@ export function AreaLineChart({
       >
         {(referenceLines ?? []).map((ref, i) => (
           <ChartsReferenceLine
-            key={`${ref.value}-${i}`}
+            key={`h-${ref.value}-${i}`}
             y={ref.value}
             label={ref.label}
             labelAlign="end"
             lineStyle={{ stroke: ref.color ?? theme.palette.text.disabled, strokeDasharray: '5 4', strokeWidth: 1.5 }}
             labelStyle={{ fontSize: 10, fill: ref.color ?? theme.palette.text.secondary }}
+          />
+        ))}
+        {(verticalMarkers ?? []).map((m, i) => (
+          <ChartsReferenceLine
+            key={`v-${m.date.getTime()}-${i}`}
+            x={m.date}
+            label={m.label}
+            labelAlign="start"
+            lineStyle={{ stroke: m.color ?? theme.palette.info.main, strokeDasharray: '2 3', strokeWidth: 1.5 }}
+            labelStyle={{ fontSize: 9, fill: m.color ?? theme.palette.info.main }}
           />
         ))}
         <defs>
