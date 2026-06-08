@@ -22,6 +22,7 @@ import { EmptyState } from '../components/EmptyState';
 import { Sparkline } from '../components/Sparkline';
 import { Delta } from '../components/Delta';
 import { RefreshControl } from '../components/RefreshControl';
+import { ControlAnalytics } from '../components/ControlAnalytics';
 import { useCountUp } from '../hooks/useCountUp';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 import { formatRelative } from '../lib/time';
@@ -258,6 +259,17 @@ export function DashboardPage() {
             </Stack>
           </MetricCard>
         </Grid>
+
+        {chartPoints.length > 0 && (
+          <Grid size={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="subtitle1" gutterBottom>Análisis del rango</Typography>
+                <ControlAnalytics points={chartPoints} config={config} />
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
 
         <Grid size={12}>
           <Card>
