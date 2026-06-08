@@ -24,6 +24,7 @@ import { TableToolbar } from '../components/TableToolbar';
 import { MobileCardList } from '../components/MobileCardList';
 import { MobileFilterSheet } from '../components/MobileFilterSheet';
 import { useDensity } from '../hooks/useDensity';
+import { useViewMode } from '../hooks/useViewMode';
 import { exportChartPng, exportCsv } from '../lib/exporters';
 import { formatPct, formatTemp } from '../lib/format';
 import {
@@ -72,6 +73,9 @@ export function HistoryPage() {
 
   const { data: config } = useQuery({ queryKey: ['config-latest'], queryFn: configApi.getLatest, retry: false });
   const [dense, toggleDense] = useDensity();
+  const [viewMode, setViewMode] = useViewMode();
+  const compact = useMediaQuery(theme.breakpoints.down('md'));
+  const showCards = compact || viewMode === 'cards';
   const [mobileFilters, setMobileFilters] = useState(false);
   const tempChartRef = useRef<HTMLDivElement>(null);
   const humChartRef = useRef<HTMLDivElement>(null);
@@ -300,7 +304,7 @@ export function HistoryPage() {
             {chartLoading ? (
               <Skeleton variant="rounded" height={chartHeight} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={chartHeight} mode="date" labels={labels} referenceLines={tempRefs}
+              <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={tempRefs}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main }]} />
             ) : (
@@ -322,7 +326,7 @@ export function HistoryPage() {
             {chartLoading ? (
               <Skeleton variant="rounded" height={chartHeight} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={chartHeight} mode="date" labels={labels} referenceLines={humRefs}
+              <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={humRefs}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main }]} />
             ) : (
@@ -336,23 +340,11 @@ export function HistoryPage() {
       <Card>
         <CardContent>
           <TableToolbar dense={dense} onToggleDense={toggleDense}
+            viewMode={viewMode} onSetViewMode={setViewMode}
             onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0}
-            onOpenFilters={() => setMobileFilters(true)} />
+            onOpenFilters={showCards ? () => setMobileFilters(true) : undefined} />
           <MobileFilterSheet open={mobileFilters} onClose={() => setMobileFilters(false)} columns={columns} />
-          <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-            <AppDataGrid
-              dense={dense}
-              rows={tableData?.content ?? []}
-              columns={columns}
-              rowCount={rowCount}
-              loading={!tableData}
-              slots={{ noRowsOverlay: () => <TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} /> }}
-              paginationModel={{ page, pageSize: size }}
-              onPaginationModelChange={(model) =>
-                updateParams({ page: String(model.page), size: String(model.pageSize) })}
-            />
-          </Box>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          {showCards ? (
             <MobileCardList
               rows={tableData?.content ?? []}
               loading={!tableData}
@@ -371,7 +363,19 @@ export function HistoryPage() {
                 ],
               })}
             />
-          </Box>
+          ) : (
+            <AppDataGrid
+              dense={dense}
+              rows={tableData?.content ?? []}
+              columns={columns}
+              rowCount={rowCount}
+              loading={!tableData}
+              slots={{ noRowsOverlay: () => <TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} /> }}
+              paginationModel={{ page, pageSize: size }}
+              onPaginationModelChange={(model) =>
+                updateParams({ page: String(model.page), size: String(model.pageSize) })}
+            />
+          )}
         </CardContent>
       </Card>
 
