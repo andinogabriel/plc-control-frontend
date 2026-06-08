@@ -1,0 +1,142 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { Box, Chip, IconButton, Stack, Tooltip, Typography, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
+import FullscreenExitRoundedIcon from '@mui/icons-material/FullscreenExitRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import ThermostatIcon from '@mui/icons-material/Thermostat';
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
+import AcUnitIcon from '@mui/icons-material/AcUnit';
+import dayjs from 'dayjs';
+import { measurementApi } from '../api/measurementApi';
+import { configApi } from '../api/configApi';
+import { AreaLineChart } from '../components/AreaLineChart';
+import { StatusChip } from '../components/StatusChip';
+import { SystemHealthBadge } from '../components/SystemHealthBadge';
+import { useCountUp } from '../hooks/useCountUp';
+import { formatPct, formatTemp } from '../lib/format';
+
+const RANGE_MS = 2 * 60 * 60 * 1000; // last 2 hours
+
+function BigTile({ icon, label, value, accent, out }: {
+  icon: React.ReactNode; label: string; value: string; accent: string; out?: boolean;
+}) {
+  return (
+    <Box sx={(t) => ({
+      flex: 1, minWidth: 200, p: { xs: 2, md: 3 }, borderRadius: 4,
+      border: `1px solid ${out ? t.palette.warning.main : t.palette.divider}`,
+      bgcolor: out ? alpha(t.palette.warning.main, 0.12) : 'background.paper',
+    })}>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ color: accent, mb: 1 }}>
+        {icon}
+        <Typography variant="overline" sx={{ letterSpacing: '0.08em', fontWeight: 700 }}>{label}</Typography>
+        {out && <Chip size="small" color="warning" label="Fuera de rango" sx={{ ml: 'auto' }} />}
+      </Stack>
+      <Typography sx={{ fontWeight: 800, fontSize: { xs: 40, md: 64 }, lineHeight: 1 }}>{value}</Typography>
+    </Box>
+  );
+}
+
+/**
+ * Full-screen live monitor for presenting the system (e.g. the TP defence): oversized readings,
+ * a live chart and auto-refresh, with no app chrome. Rendered outside the main Layout.
+ */
+export function KioscoPage() {
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const [now, setNow] = useState(() => dayjs());
+  const [isFs, setIsFs] = useState(false);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(dayjs()), 1000);
+    const onFs = () => setIsFs(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', onFs);
+    return () => { clearInterval(id); document.removeEventListener('fullscreenchange', onFs); };
+  }, []);
+
+  const { data: latest } = useQuery({
+    queryKey: ['measurement-latest'], queryFn: measurementApi.getLatest, retry: false, refetchInterval: 5000,
+  });
+  const { data: config } = useQuery({ queryKey: ['config-latest'], queryFn: configApi.getLatest, retry: false });
+  const { data: recent } = useQuery({
+    queryKey: ['measurements-recent', 'kiosk'],
+    queryFn: () => measurementApi.getMeasurements({ page: 0, size: 800, from: new Date(Date.now() - RANGE_MS).toISOString() }),
+    refetchInterval: 10000,
+    placeholderData: keepPreviousData,
+  });
+
+  const tempCount = useCountUp(latest?.temperature ?? 0);
+  const humCount = useCountUp(latest?.humidity ?? 0);
+  const tempOut = config && latest ? latest.temperature < config.temperatureMin || latest.temperature > config.temperatureMax : false;
+  const humOut = config && latest ? latest.humidity < config.humidityMin || latest.humidity > config.humidityMax : false;
+
+  const points = (recent?.content ?? []).slice().reverse();
+  const labels = points.map((m) => new Date(m.createdAt));
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+    else document.documentElement.requestFullscreen().catch(() => undefined);
+  };
+
+  const exit = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+    navigate('/tablero');
+  };
+
+  return (
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Stack direction="row" alignItems="center" spacing={2}>
+        <ThermostatIcon sx={{ color: 'primary.main', fontSize: 32 }} />
+        <Typography variant="h5" sx={{ fontWeight: 800 }}>Monitor en vivo</Typography>
+        <Box sx={{ flexGrow: 1 }} />
+        <SystemHealthBadge />
+        <Typography variant="h6" sx={{ fontVariantNumeric: 'tabular-nums', color: 'text.secondary' }}>
+          {now.format('HH:mm:ss')}
+        </Typography>
+        <Tooltip title={isFs ? 'Salir de pantalla completa' : 'Pantalla completa'}>
+          <IconButton onClick={toggleFullscreen}>{isFs ? <FullscreenExitRoundedIcon /> : <FullscreenRoundedIcon />}</IconButton>
+        </Tooltip>
+        <Tooltip title="Salir del modo kiosco">
+          <IconButton onClick={exit}><CloseRoundedIcon /></IconButton>
+        </Tooltip>
+      </Stack>
+
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+        <BigTile icon={<ThermostatIcon />} accent={theme.palette.primary.main} label="Temperatura"
+          value={latest ? formatTemp(tempCount) : '—'} out={tempOut} />
+        <BigTile icon={<WaterDropIcon />} accent={theme.palette.secondary.main} label="Humedad"
+          value={latest ? formatPct(humCount) : '—'} out={humOut} />
+        <BigTile icon={<AcUnitIcon />} accent={latest?.coolerOn ? theme.palette.success.main : theme.palette.text.secondary}
+          label="Cooler" value={latest ? (latest.coolerOn ? 'ON' : 'OFF') : '—'} />
+        <Box sx={{ flex: 1, minWidth: 200, p: 3, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
+          <Typography variant="overline" sx={{ letterSpacing: '0.08em', fontWeight: 700, color: 'warning.main' }}>Estado</Typography>
+          <Box sx={{ mt: 1 }}>{latest ? <StatusChip status={latest.status} /> : <Typography variant="h4">—</Typography>}</Box>
+          {config && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+              Rango T {config.temperatureMin}–{config.temperatureMax} °C · H {config.humidityMin}–{config.humidityMax} %
+            </Typography>
+          )}
+        </Box>
+      </Stack>
+
+      <Box sx={{ flexGrow: 1, p: { xs: 1.5, md: 3 }, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>Últimas 2 horas</Typography>
+        {points.length > 0 ? (
+          <AreaLineChart
+            height={360}
+            mode="time"
+            labels={labels}
+            series={[
+              { id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main },
+              { id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main },
+            ]}
+          />
+        ) : (
+          <Typography variant="body2" color="text.secondary">Esperando mediciones…</Typography>
+        )}
+      </Box>
+    </Box>
+  );
+}

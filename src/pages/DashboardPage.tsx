@@ -9,6 +9,7 @@ import { alpha } from '@mui/material/styles';
 import { AxiosError } from 'axios';
 import PrintRoundedIcon from '@mui/icons-material/PrintRounded';
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
+import SlideshowRoundedIcon from '@mui/icons-material/SlideshowRounded';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
@@ -155,6 +156,11 @@ export function DashboardPage() {
         {!isLoading && !isError && (
           <RefreshControl lastUpdated={dataUpdatedAt} paused={paused} onToggle={() => setPaused((p) => !p)} />
         )}
+        <Tooltip title="Modo kiosco (pantalla completa)">
+          <IconButton size="small" onClick={() => navigate('/kiosco')} aria-label="Modo kiosco" className="no-print">
+            <SlideshowRoundedIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Imprimir / guardar PDF">
           <IconButton size="small" onClick={() => window.print()} aria-label="Imprimir" className="no-print">
             <PrintRoundedIcon fontSize="small" />

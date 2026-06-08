@@ -10,6 +10,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import SlideshowRoundedIcon from '@mui/icons-material/SlideshowRounded';
 import type { ReactNode } from 'react';
 import { useColorMode } from '../colorMode';
 
@@ -44,6 +45,7 @@ export function CommandPalette() {
       { id: 'config', label: 'Ir a Configuración', icon: <TuneIcon />, run: go('/configuracion'), keywords: 'umbrales' },
       { id: 'config-history', label: 'Ir a Historial de configuraciones', icon: <HistoryIcon />, run: go('/historial-configuracion'), keywords: 'auditoria' },
       { id: 'measurements', label: 'Ir a Mediciones', icon: <ShowChartIcon />, run: go('/mediciones'), keywords: 'historial lecturas' },
+      { id: 'kiosco', label: 'Modo kiosco (pantalla completa)', icon: <SlideshowRoundedIcon />, run: go('/kiosco'), keywords: 'monitor vivo defensa presentacion' },
       { id: 'light', label: 'Tema claro', icon: <LightModeIcon />, run: () => { setMode('light'); setOpen(false); } },
       { id: 'dark', label: 'Tema oscuro', icon: <DarkModeIcon />, run: () => { setMode('dark'); setOpen(false); } },
     ];
