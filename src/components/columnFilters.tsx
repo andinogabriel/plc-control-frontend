@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
-  Box, Button, IconButton, MenuItem, Popover, Stack, TextField, Typography,
+  Box, Button, Drawer, IconButton, MenuItem, Popover, Stack, TextField, Typography,
+  useMediaQuery, useTheme,
 } from '@mui/material';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -51,8 +52,26 @@ function FilterShell({ label, active, canApply, disabled, sortDirection, onToggl
   sortDirection?: SortDirection; onToggleSort?: () => void;
   onApply: () => void; onClear: () => void; children: ReactNode;
 }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const open = Boolean(anchor);
   const close = () => setAnchor(null);
+
+  const body = (
+    <Box sx={{ p: 2, width: isMobile ? 'auto' : 280 }}>
+      {isMobile && <Typography variant="subtitle2" sx={{ mb: 1.5 }}>Filtrar: {label}</Typography>}
+      {children}
+      <Stack direction="row" justifyContent="flex-end" spacing={1} mt={2}>
+        <Button size={isMobile ? 'medium' : 'small'} onClick={() => { onClear(); close(); }}>Limpiar</Button>
+        <Button size={isMobile ? 'medium' : 'small'} variant="contained" disabled={!canApply}
+          onClick={() => { onApply(); close(); }}>
+          Aplicar
+        </Button>
+      </Stack>
+    </Box>
+  );
+
   return (
     <Stack direction="row" alignItems="center" justifyContent="center" spacing={0} sx={{ width: '100%' }}>
       <SortableTitle label={label} sortDirection={sortDirection} onToggleSort={onToggleSort} />
@@ -60,21 +79,20 @@ function FilterShell({ label, active, canApply, disabled, sortDirection, onToggl
         aria-label={`Filtrar ${label}`} sx={{ p: 0.25, ml: 0.25, flexShrink: 0 }}>
         <FilterAltIcon sx={{ fontSize: 16 }} color={active ? 'primary' : 'disabled'} />
       </IconButton>
-      <Popover
-        open={Boolean(anchor)} anchorEl={anchor} onClose={close}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Box sx={{ p: 2, width: 280 }}>
-          {children}
-          <Stack direction="row" justifyContent="flex-end" spacing={1} mt={2}>
-            <Button size="small" onClick={() => { onClear(); close(); }}>Limpiar</Button>
-            <Button size="small" variant="contained" disabled={!canApply} onClick={() => { onApply(); close(); }}>
-              Aplicar
-            </Button>
-          </Stack>
-        </Box>
-      </Popover>
+      {isMobile ? (
+        <Drawer anchor="bottom" open={open} onClose={close}
+          slotProps={{ paper: { sx: { borderTopLeftRadius: 16, borderTopRightRadius: 16, pb: 'env(safe-area-inset-bottom)' } } }}>
+          {body}
+        </Drawer>
+      ) : (
+        <Popover
+          open={open} anchorEl={anchor} onClose={close}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          {body}
+        </Popover>
+      )}
     </Stack>
   );
 }
