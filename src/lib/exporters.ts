@@ -18,11 +18,16 @@ function csvCell(value: unknown): string {
 
 export interface CsvColumn<T> { header: string; value: (row: T) => unknown }
 
-/** Builds a UTF-8 CSV (BOM included so Excel respects accents) and downloads it. */
-export function exportCsv<T>(filename: string, rows: T[], columns: CsvColumn<T>[]) {
+/** Builds the CSV text (header row + body) for the given rows and columns. */
+export function buildCsv<T>(rows: T[], columns: CsvColumn<T>[]): string {
   const head = columns.map((c) => csvCell(c.header)).join(',');
   const body = rows.map((r) => columns.map((c) => csvCell(c.value(r))).join(',')).join('\n');
-  triggerDownload(new Blob(['﻿', head, '\n', body], { type: 'text/csv;charset=utf-8;' }), filename);
+  return `${head}\n${body}`;
+}
+
+/** Builds a UTF-8 CSV (BOM included so Excel respects accents) and downloads it. */
+export function exportCsv<T>(filename: string, rows: T[], columns: CsvColumn<T>[]) {
+  triggerDownload(new Blob(['﻿', buildCsv(rows, columns)], { type: 'text/csv;charset=utf-8;' }), filename);
 }
 
 // SVG presentation properties that come from CSS classes (our chartStyle) rather than
