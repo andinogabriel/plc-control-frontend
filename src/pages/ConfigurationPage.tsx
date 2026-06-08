@@ -34,7 +34,7 @@ const schema = z
     humidityMax: requiredNumber((n) => n.min(0, 'Mín 0 %').max(100, 'Máx 100 %')),
     hysteresisTemperature: requiredNumber((n) => n.min(0.1, 'Mín 0,1 °C').max(2, 'Máx 2 °C')),
     hysteresisHumidity: requiredNumber((n) => n.min(0.1, 'Mín 0,1 %').max(5, 'Máx 5 %')),
-    measurementIntervalSeconds: requiredNumber((n) => n.int('Debe ser un entero').min(5, 'Mín 5 s').max(3600, 'Máx 3600 s')),
+    measurementIntervalSeconds: requiredNumber((n) => n.int('Debe ser un entero').min(5, 'Mín 5 s').max(1800, 'Máx 1800 s (30 min)')),
   })
   .refine((d) => d.temperatureMin == null || d.temperatureMax == null || d.temperatureMin < d.temperatureMax, {
     message: 'La temperatura mínima debe ser menor que la máxima',
