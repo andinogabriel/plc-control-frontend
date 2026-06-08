@@ -75,6 +75,7 @@ export function ChartBrush({ series, start, end, onChange, height = 40 }: {
   return (
     <Box
       ref={trackRef}
+      className="chart-brush"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
