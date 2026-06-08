@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import { AppThemeProvider } from './colorMode';
 import { ToastProvider } from './components/toast';
+import { AlertsProvider } from './alerts';
 import App from './App';
 
 // Global Spanish locale so dayjs formatting (chart axis labels, etc.) is in Spanish.
@@ -30,11 +31,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <AppThemeProvider>
         <ToastProvider>
-          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </LocalizationProvider>
+          <AlertsProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </LocalizationProvider>
+          </AlertsProvider>
         </ToastProvider>
       </AppThemeProvider>
     </QueryClientProvider>

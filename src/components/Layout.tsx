@@ -18,6 +18,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import { Link, useLocation } from 'react-router-dom';
 import { useColorMode, type ColorMode } from '../colorMode';
 import { SystemHealthBadge } from './SystemHealthBadge';
+import { AlertCenter } from './AlertCenter';
 import { CommandPalette } from './CommandPalette';
 import { TopProgressBar } from './TopProgressBar';
 import { MobileBottomNav } from './MobileBottomNav';
@@ -149,6 +150,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <SearchRoundedIcon />
             </IconButton>
           </Tooltip>
+          <AlertCenter />
           <ColorModeButton />
         </Toolbar>
       </AppBar>
