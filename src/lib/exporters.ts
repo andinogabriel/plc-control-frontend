@@ -56,12 +56,22 @@ function inlineSvgStyles(source: Element, target: Element) {
   }
 }
 
+export interface ChartPngMeta {
+  /** Chart name, drawn as a header (e.g. "Temperatura vs tiempo"). */
+  title?: string;
+  /** Screen the chart came from, drawn in the footer (e.g. "Mediciones"). */
+  source?: string;
+}
+
+const FONT_STACK = 'Inter, Roboto, Helvetica, Arial, sans-serif';
+
 /**
  * Serialises the first chart SVG inside {@code container} to a PNG and downloads it. Computed
  * styles are inlined so the export matches the on-screen chart (colours, strokes, fonts),
- * regardless of light/dark theme.
+ * regardless of light/dark theme. A title header and a footer (source screen + download
+ * date/time) are baked into the image so a saved chart is self-describing.
  */
-export async function exportChartPng(container: HTMLElement | null, filename: string) {
+export async function exportChartPng(container: HTMLElement | null, filename: string, meta: ChartPngMeta = {}) {
   // Target the chart surface specifically: the card also contains the download button's icon
   // SVG (which would otherwise be picked first and exported as a blank image).
   const svg = container?.querySelector('.MuiChartsSurface-root') ?? container?.querySelector('svg');
@@ -76,8 +86,15 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
   clone.setAttribute('width', String(rect.width));
   clone.setAttribute('height', String(rect.height));
 
-  const bg = getComputedStyle(container as Element).backgroundColor || '#ffffff';
+  const styles = getComputedStyle(container as Element);
+  const bg = styles.backgroundColor || '#ffffff';
   const opaqueBg = bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent' ? '#ffffff' : bg;
+  const textColor = styles.color || '#111827';
+
+  const headerH = meta.title ? 36 : 0;
+  const footerH = 26;
+  const w = rect.width;
+  const totalH = headerH + rect.height + footerH;
 
   const xml = new XMLSerializer().serializeToString(clone);
   const url = URL.createObjectURL(new Blob([xml], { type: 'image/svg+xml;charset=utf-8' }));
@@ -86,14 +103,32 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = rect.width * scale;
-      canvas.height = rect.height * scale;
+      canvas.width = w * scale;
+      canvas.height = totalH * scale;
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.scale(scale, scale);
         ctx.fillStyle = opaqueBg;
-        ctx.fillRect(0, 0, rect.width, rect.height);
-        ctx.drawImage(img, 0, 0, rect.width, rect.height);
+        ctx.fillRect(0, 0, w, totalH);
+        ctx.fillStyle = textColor;
+        ctx.textBaseline = 'middle';
+
+        if (meta.title) {
+          ctx.font = `600 16px ${FONT_STACK}`;
+          ctx.textAlign = 'left';
+          ctx.fillText(meta.title, 12, headerH / 2 + 2);
+        }
+
+        ctx.drawImage(img, 0, headerH, w, rect.height);
+
+        const fy = headerH + rect.height + footerH / 2;
+        ctx.globalAlpha = 0.65;
+        ctx.font = `12px ${FONT_STACK}`;
+        if (meta.source) { ctx.textAlign = 'left'; ctx.fillText(meta.source, 12, fy); }
+        ctx.textAlign = 'right';
+        ctx.fillText(`Descargado: ${new Date().toLocaleString('es-AR')}`, w - 12, fy);
+        ctx.globalAlpha = 1;
+
         canvas.toBlob((blob) => { if (blob) triggerDownload(blob, filename); resolve(); }, 'image/png');
       } else resolve();
       URL.revokeObjectURL(url);
