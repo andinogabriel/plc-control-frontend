@@ -298,7 +298,8 @@ export function HistoryPage() {
               <Typography variant="subtitle1" gutterBottom>Temperatura vs tiempo</Typography>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
-                  onClick={() => exportChartPng(tempChartRef.current, 'temperatura.png')} aria-label="Descargar gráfico">
+                  onClick={() => exportChartPng(tempChartRef.current, 'temperatura.png', { title: 'Temperatura vs tiempo', source: 'Mediciones' })}
+                  aria-label="Descargar gráfico">
                   <ImageRoundedIcon fontSize="small" /></IconButton></span>
               </Tooltip>
             </Stack>
@@ -322,7 +323,8 @@ export function HistoryPage() {
               <Typography variant="subtitle1" gutterBottom>Humedad vs tiempo</Typography>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
-                  onClick={() => exportChartPng(humChartRef.current, 'humedad.png')} aria-label="Descargar gráfico">
+                  onClick={() => exportChartPng(humChartRef.current, 'humedad.png', { title: 'Humedad vs tiempo', source: 'Mediciones' })}
+                  aria-label="Descargar gráfico">
                   <ImageRoundedIcon fontSize="small" /></IconButton></span>
               </Tooltip>
             </Stack>

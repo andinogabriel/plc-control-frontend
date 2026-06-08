@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
-  Box, Card, CardContent, Typography, Stack, Button, Chip, Grid, Skeleton, useMediaQuery, useTheme,
+  Box, Card, CardContent, Typography, Stack, Button, Chip, Grid, IconButton, Skeleton, Tooltip,
+  useMediaQuery, useTheme,
 } from '@mui/material';
 import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
+import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { type GridColDef } from '@mui/x-data-grid';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -22,7 +24,7 @@ import { MobileCardList } from '../components/MobileCardList';
 import { MobileFilterSheet } from '../components/MobileFilterSheet';
 import { useViewMode } from '../hooks/useViewMode';
 import { useDensity } from '../hooks/useDensity';
-import { exportCsv } from '../lib/exporters';
+import { exportChartPng, exportCsv } from '../lib/exporters';
 import {
   DateRangeFilterHeader, NumberFilterHeader, SortableHeader, TextFilterHeader, type SortDirection,
 } from '../components/columnFilters';
@@ -40,6 +42,8 @@ export function ConfigHistoryPage() {
   const compact = useMediaQuery(theme.breakpoints.down('md'));
   const showCards = compact || viewMode === 'cards';
   const [mobileFilters, setMobileFilters] = useState(false);
+  const tempChartRef = useRef<HTMLDivElement>(null);
+  const humChartRef = useRef<HTMLDivElement>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // --- Top bar (charts only): date range stored as gfrom/gto ---
@@ -271,8 +275,16 @@ export function ConfigHistoryPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card><CardContent>
-            <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de temperatura</Typography>
+          <Card><CardContent ref={tempChartRef}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de temperatura</Typography>
+              <Tooltip title="Descargar PNG">
+                <span><IconButton size="small" disabled={points.length === 0}
+                  onClick={() => exportChartPng(tempChartRef.current, 'umbrales-temperatura.png', { title: 'Evolución de umbrales de temperatura', source: 'Historial de configuraciones' })}
+                  aria-label="Descargar gráfico">
+                  <ImageRoundedIcon fontSize="small" /></IconButton></span>
+              </Tooltip>
+            </Stack>
             {chartLoading ? (
               <Skeleton variant="rounded" height={260} />
             ) : chartError ? (
@@ -291,8 +303,16 @@ export function ConfigHistoryPage() {
           </CardContent></Card>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card><CardContent>
-            <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de humedad</Typography>
+          <Card><CardContent ref={humChartRef}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de humedad</Typography>
+              <Tooltip title="Descargar PNG">
+                <span><IconButton size="small" disabled={points.length === 0}
+                  onClick={() => exportChartPng(humChartRef.current, 'umbrales-humedad.png', { title: 'Evolución de umbrales de humedad', source: 'Historial de configuraciones' })}
+                  aria-label="Descargar gráfico">
+                  <ImageRoundedIcon fontSize="small" /></IconButton></span>
+              </Tooltip>
+            </Stack>
             {chartLoading ? (
               <Skeleton variant="rounded" height={260} />
             ) : chartError ? (

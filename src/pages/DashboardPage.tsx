@@ -353,7 +353,8 @@ export function DashboardPage() {
                   <Tooltip title="Descargar PNG">
                     <span>
                       <IconButton size="small" className="no-print" disabled={chartPoints.length === 0}
-                        onClick={() => exportChartPng(chartRef.current, 'lecturas.png')} aria-label="Descargar gráfico">
+                        onClick={() => exportChartPng(chartRef.current, 'lecturas.png', { title: 'Últimas lecturas', source: 'Tablero' })}
+                        aria-label="Descargar gráfico">
                         <ImageRoundedIcon fontSize="small" />
                       </IconButton>
                     </span>
