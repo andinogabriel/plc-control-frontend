@@ -18,6 +18,7 @@ import { RelativeTime } from '../components/RelativeTime';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import { TableToolbar } from '../components/TableToolbar';
 import { MobileCardList } from '../components/MobileCardList';
+import { MobileFilterSheet } from '../components/MobileFilterSheet';
 import { useDensity } from '../hooks/useDensity';
 import { exportCsv } from '../lib/exporters';
 import {
@@ -33,6 +34,7 @@ const TABLE_FILTER_KEYS = [
 export function ConfigHistoryPage() {
   const theme = useTheme();
   const [dense, toggleDense] = useDensity();
+  const [mobileFilters, setMobileFilters] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // --- Top bar (charts only): date range stored as gfrom/gto ---
@@ -304,7 +306,9 @@ export function ConfigHistoryPage() {
       <Card>
         <CardContent>
           <TableToolbar dense={dense} onToggleDense={toggleDense}
-            onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0} />
+            onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0}
+            onOpenFilters={() => setMobileFilters(true)} />
+          <MobileFilterSheet open={mobileFilters} onClose={() => setMobileFilters(false)} columns={columns} />
           <Box sx={{ display: { xs: 'none', md: 'block' } }}>
             <AppDataGrid
               dense={dense}

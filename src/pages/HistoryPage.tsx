@@ -22,6 +22,7 @@ import { RelativeTime } from '../components/RelativeTime';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import { TableToolbar } from '../components/TableToolbar';
 import { MobileCardList } from '../components/MobileCardList';
+import { MobileFilterSheet } from '../components/MobileFilterSheet';
 import { useDensity } from '../hooks/useDensity';
 import { exportChartPng, exportCsv } from '../lib/exporters';
 import { formatPct, formatTemp } from '../lib/format';
@@ -71,6 +72,7 @@ export function HistoryPage() {
 
   const { data: config } = useQuery({ queryKey: ['config-latest'], queryFn: configApi.getLatest, retry: false });
   const [dense, toggleDense] = useDensity();
+  const [mobileFilters, setMobileFilters] = useState(false);
   const tempChartRef = useRef<HTMLDivElement>(null);
   const humChartRef = useRef<HTMLDivElement>(null);
 
@@ -334,7 +336,9 @@ export function HistoryPage() {
       <Card>
         <CardContent>
           <TableToolbar dense={dense} onToggleDense={toggleDense}
-            onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0} />
+            onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0}
+            onOpenFilters={() => setMobileFilters(true)} />
+          <MobileFilterSheet open={mobileFilters} onClose={() => setMobileFilters(false)} columns={columns} />
           <Box sx={{ display: { xs: 'none', md: 'block' } }}>
             <AppDataGrid
               dense={dense}
