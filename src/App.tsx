@@ -12,14 +12,24 @@ const ConfigHistoryPage = lazy(() => import('./pages/ConfigHistoryPage').then((m
 const HistoryPage = lazy(() => import('./pages/HistoryPage').then((m) => ({ default: m.HistoryPage })));
 const KioscoPage = lazy(() => import('./pages/KioscoPage').then((m) => ({ default: m.KioscoPage })));
 
-// Print/PDF: drop the chrome (AppBar, sidebar, bottom nav, action buttons) and let the
-// dashboard content flow on a white page.
+// Print/PDF: landscape page with no browser header/footer (margin:0 hides the URL/date that
+// Chrome injects), drop the app chrome and the action buttons, hide the chart's zoom brush, and
+// scale the content so the dashboard fits on a single page. `.print-only` elements (e.g. the
+// "Actualizado: <fecha>" stamp) appear only on paper.
 const printStyles = (
   <GlobalStyles styles={{
+    '.print-only': { display: 'none' },
+    '@page': { size: 'A4 portrait', margin: 0 },
     '@media print': {
-      '.MuiAppBar-root, .MuiDrawer-root, nav, .no-print': { display: 'none !important' },
-      'main#main-content': { padding: '0 !important' },
-      body: { backgroundColor: '#fff' },
+      'html, body': { backgroundColor: '#fff' },
+      '.MuiAppBar-root, .MuiDrawer-root, nav, .no-print, .chart-brush': { display: 'none !important' },
+      // The fixed Toolbar spacer is only needed to clear the (now hidden) AppBar.
+      'main#main-content > .MuiToolbar-root': { display: 'none !important' },
+      '.print-only': { display: 'block !important' },
+      // Padding for the page edges; the one-page scale is applied via inline `zoom` at print time.
+      'main#main-content': { padding: '10mm !important' },
+      '.MuiCard-root': { boxShadow: 'none !important', breakInside: 'avoid' },
+      '.MuiCardContent-root': { minHeight: '0 !important' },
     },
   }} />
 );

@@ -98,6 +98,38 @@ export function DashboardPage() {
   const [range, setRange] = useState(() => localStorage.getItem('dashboardRange') ?? '24h');
   const [paused, setPaused] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
+  const printTimeRef = useRef<HTMLSpanElement>(null);
+
+  // Before printing: (1) stamp a full date/time (with seconds) into the print-only label, and
+  // (2) scale the content with `zoom` so the whole dashboard fits on a single A4 page,
+  // measuring the live height. Reset afterwards.
+  useEffect(() => {
+    const mmPx = (mm: number) => (mm / 25.4) * 96;
+    const stamp = () => {
+      if (printTimeRef.current) printTimeRef.current.textContent = `Actualizado: ${new Date().toLocaleString('es-AR')}`;
+    };
+    const onBefore = () => {
+      stamp();
+      const el = document.getElementById('main-content');
+      if (!el) return;
+      el.style.zoom = '1';
+      const usableW = mmPx(210) - mmPx(20); // A4 portrait minus 10mm padding each side
+      const usableH = mmPx(297) - mmPx(20);
+      const z = Math.min(1, usableW / el.scrollWidth, usableH / el.scrollHeight);
+      el.style.zoom = String(Math.max(0.4, z));
+    };
+    const onAfter = () => {
+      const el = document.getElementById('main-content');
+      if (el) el.style.zoom = '';
+    };
+    stamp();
+    window.addEventListener('beforeprint', onBefore);
+    window.addEventListener('afterprint', onAfter);
+    return () => {
+      window.removeEventListener('beforeprint', onBefore);
+      window.removeEventListener('afterprint', onAfter);
+    };
+  }, []);
   useEffect(() => { localStorage.setItem('dashboardRange', range); }, [range]);
   const rangeMs = RANGE_OPTIONS.find((o) => o.value === range)?.ms ?? RANGE_OPTIONS[2].ms;
 
@@ -151,8 +183,11 @@ export function DashboardPage() {
 
   const header = (
     <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
-      <Typography variant="h4">Dashboard</Typography>
-      <Stack direction="row" spacing={1} alignItems="center">
+      <Stack direction="row" alignItems="baseline" spacing={2}>
+        <Typography variant="h4">Dashboard</Typography>
+        <Typography component="span" ref={printTimeRef} className="print-only" variant="body2" color="text.secondary" />
+      </Stack>
+      <Stack className="no-print" direction="row" spacing={1} alignItems="center">
         {!isLoading && !isError && (
           <RefreshControl lastUpdated={dataUpdatedAt} paused={paused} onToggle={() => setPaused((p) => !p)} />
         )}
