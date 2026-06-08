@@ -300,7 +300,7 @@ export function HistoryPage() {
             {chartLoading ? (
               <Skeleton variant="rounded" height={chartHeight} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={chartHeight} mode="date" labels={labels} referenceLines={tempRefs}
+              <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={tempRefs}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main }]} />
             ) : (
@@ -322,7 +322,7 @@ export function HistoryPage() {
             {chartLoading ? (
               <Skeleton variant="rounded" height={chartHeight} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={chartHeight} mode="date" labels={labels} referenceLines={humRefs}
+              <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={humRefs}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main }]} />
             ) : (

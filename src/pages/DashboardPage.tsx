@@ -302,6 +302,7 @@ export function DashboardPage() {
               {chartPoints.length > 0 ? (
                 <AreaLineChart
                   height={isMobile ? 260 : 340}
+                  zoomable
                   mode={range === '1h' || range === '12h' || range === '24h' ? 'time' : 'date'}
                   labels={labels}
                   onPointClick={(i) => setSelected(chartPoints[i] ?? null)}
