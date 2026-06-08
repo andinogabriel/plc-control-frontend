@@ -34,9 +34,10 @@ permite ajustar esos umbrales.
 - **Tiempo real** con auto-refresco e indicador de “última actualización”.
 - **Alertas** de sensor desconectado, lectura fuera de rango o estado crítico (con avisos del
   navegador opcionales).
-- **Gráficos interactivos**: zoom por arrastre, leyenda para mostrar/ocultar series, bandas de
-  umbral y exportación a imagen.
-- **Datos exportables** a CSV.
+- **Gráficos interactivos**: zoom por arrastre, leyenda para mostrar/ocultar series y bandas de
+  umbral.
+- **Exportar**: imagen (PNG) de cada gráfico —con su título, pantalla y fecha de descarga— y
+  datos a CSV; además un **reporte imprimible / PDF** del tablero en una sola página.
 - **Adaptado a celular**: navegación inferior, vista de tarjetas y “tirar para refrescar”.
 - **Instalable como app (PWA)**, con tema claro/oscuro y atajos de teclado (Ctrl/⌘ + K).
 - **Accesible**: foco visible, soporte de lectores de pantalla y respeto por “reducir
@@ -53,8 +54,9 @@ flowchart LR
   RPi[Raspberry Pi + sensor] -->|publica mediciones| API
 ```
 
-> El detalle del sistema físico (sensor, OpenPLC, relay, cooler y la lógica de control con
-> histéresis) está en el README del backend.
+> El **backend** (API REST + lógica del sistema físico: sensor, OpenPLC, relay, cooler y el
+> control con histéresis) vive en su propio repositorio:
+> [plc-control-backend](https://github.com/andinogabriel/plc-control-backend).
 
 ## Cómo correr
 
