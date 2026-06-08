@@ -62,7 +62,9 @@ function inlineSvgStyles(source: Element, target: Element) {
  * regardless of light/dark theme.
  */
 export async function exportChartPng(container: HTMLElement | null, filename: string) {
-  const svg = container?.querySelector('svg');
+  // Target the chart surface specifically: the card also contains the download button's icon
+  // SVG (which would otherwise be picked first and exported as a blank image).
+  const svg = container?.querySelector('.MuiChartsSurface-root') ?? container?.querySelector('svg');
   if (!svg) return;
 
   const rect = svg.getBoundingClientRect();
