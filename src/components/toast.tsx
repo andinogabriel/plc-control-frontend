@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Alert, Snackbar, type AlertColor } from '@mui/material';
 
 type ShowToast = (message: string, severity?: AlertColor) => void;
@@ -7,6 +7,12 @@ const ToastContext = createContext<ShowToast>(() => undefined);
 
 /** Imperative toast trigger: `const toast = useToast(); toast('Guardado', 'success');` */
 export const useToast = (): ShowToast => useContext(ToastContext);
+
+// Module-level bridge so non-React code (e.g. the react-query cache) can raise toasts.
+let externalHandler: ShowToast | null = null;
+export function notifyToast(message: string, severity: AlertColor = 'info') {
+  externalHandler?.(message, severity);
+}
 
 /**
  * App-wide snackbar provider. A single Snackbar is reused for every toast so they don't stack;
@@ -22,6 +28,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToast({ message, severity });
     setOpen(true);
   }, []);
+
+  // Expose the trigger to module-level callers (query cache, etc.).
+  useEffect(() => {
+    externalHandler = show;
+    return () => { if (externalHandler === show) externalHandler = null; };
+  }, [show]);
 
   const value = useMemo(() => show, [show]);
 

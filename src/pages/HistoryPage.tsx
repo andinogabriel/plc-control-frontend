@@ -18,6 +18,7 @@ import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
+import { ErrorState } from '../components/ErrorState';
 import { RelativeTime } from '../components/RelativeTime';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import { TableToolbar } from '../components/TableToolbar';
@@ -56,7 +57,7 @@ export function HistoryPage() {
   const [gTo, setGTo] = useState<Dayjs | null>(gToParam ? dayjs(gToParam) : null);
   const [gStatus, setGStatus] = useState<SystemStatus | ''>(gStatusParam);
 
-  const { data: chartData, isLoading: chartLoading } = useQuery({
+  const { data: chartData, isLoading: chartLoading, isError: chartError, refetch: refetchChart } = useQuery({
     queryKey: ['measurement-chart', gFromParam, gToParam, gStatusParam],
     queryFn: () => measurementApi.getMeasurements({
       page: 0, size: CHART_PAGE_SIZE,
@@ -104,7 +105,7 @@ export function HistoryPage() {
   };
   const tableKey = JSON.stringify(tableQuery);
 
-  const { data: tableData } = useQuery({
+  const { data: tableData, isError: tableError, refetch: refetchTable } = useQuery({
     queryKey: ['measurement-table', tableKey],
     queryFn: () => measurementApi.getMeasurements(tableQuery),
     placeholderData: keepPreviousData,
@@ -303,6 +304,8 @@ export function HistoryPage() {
             </Stack>
             {chartLoading ? (
               <Skeleton variant="rounded" height={chartHeight} />
+            ) : chartError ? (
+              <ErrorState dense onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={tempRefs}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
@@ -325,6 +328,8 @@ export function HistoryPage() {
             </Stack>
             {chartLoading ? (
               <Skeleton variant="rounded" height={chartHeight} />
+            ) : chartError ? (
+              <ErrorState dense onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={humRefs}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
@@ -344,7 +349,9 @@ export function HistoryPage() {
             onExportCsv={handleExportCsv} exportDisabled={(tableData?.content ?? []).length === 0}
             onOpenFilters={showCards ? () => setMobileFilters(true) : undefined} />
           <MobileFilterSheet open={mobileFilters} onClose={() => setMobileFilters(false)} columns={columns} />
-          {showCards ? (
+          {tableError ? (
+            <ErrorState onRetry={() => refetchTable()} />
+          ) : showCards ? (
             <MobileCardList
               rows={tableData?.content ?? []}
               loading={!tableData}
