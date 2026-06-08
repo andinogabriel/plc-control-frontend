@@ -12,25 +12,27 @@ const ConfigHistoryPage = lazy(() => import('./pages/ConfigHistoryPage').then((m
 const HistoryPage = lazy(() => import('./pages/HistoryPage').then((m) => ({ default: m.HistoryPage })));
 const KioscoPage = lazy(() => import('./pages/KioscoPage').then((m) => ({ default: m.KioscoPage })));
 
-// Print/PDF: landscape page with no browser header/footer (margin:0 hides the URL/date that
-// Chrome injects), drop the app chrome and the action buttons, hide the chart's zoom brush, and
-// scale the content so the dashboard fits on a single page. `.print-only` elements (e.g. the
-// "Actualizado: <fecha>" stamp) appear only on paper.
+// Print/PDF. The print layout is driven by a `print-mode` class toggled on <body> just before
+// printing (so it can also be measured/previewed on screen, unlike `@media print`): it drops the
+// app chrome (AppBar, sidebar, bottom nav, action buttons, zoom brush), forces the metric cards
+// into a single row, reveals `.print-only` elements (the dated stamp) and lets the dashboard be
+// scaled with `zoom` to fill exactly one landscape page. `@media print` repeats the chrome-hiding
+// as a fallback, and `@page` removes the browser's URL/date header (margin:0).
+const printRules = {
+  '.MuiAppBar-root, .MuiDrawer-root, nav, .no-print, .chart-brush': { display: 'none !important' },
+  '#main-content > .MuiToolbar-root': { display: 'none !important' },
+  '.print-only': { display: 'block !important' },
+  '#main-content': { padding: '8mm !important' },
+  '.MuiCard-root': { boxShadow: 'none !important', breakInside: 'avoid' },
+  '.MuiCardContent-root': { minHeight: '0 !important' },
+};
+
 const printStyles = (
   <GlobalStyles styles={{
     '.print-only': { display: 'none' },
     '@page': { size: 'A4 portrait', margin: 0 },
-    '@media print': {
-      'html, body': { backgroundColor: '#fff' },
-      '.MuiAppBar-root, .MuiDrawer-root, nav, .no-print, .chart-brush': { display: 'none !important' },
-      // The fixed Toolbar spacer is only needed to clear the (now hidden) AppBar.
-      'main#main-content > .MuiToolbar-root': { display: 'none !important' },
-      '.print-only': { display: 'block !important' },
-      // Padding for the page edges; the one-page scale is applied via inline `zoom` at print time.
-      'main#main-content': { padding: '10mm !important' },
-      '.MuiCard-root': { boxShadow: 'none !important', breakInside: 'avoid' },
-      '.MuiCardContent-root': { minHeight: '0 !important' },
-    },
+    'body.print-mode': { backgroundColor: '#fff', ...printRules },
+    '@media print': { 'html, body': { backgroundColor: '#fff' }, ...printRules },
   }} />
 );
 
