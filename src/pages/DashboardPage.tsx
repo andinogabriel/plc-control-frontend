@@ -25,6 +25,7 @@ import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { Sparkline } from '../components/Sparkline';
+import { RadialGauge } from '../components/RadialGauge';
 import { Delta } from '../components/Delta';
 import { RefreshControl } from '../components/RefreshControl';
 import { ControlAnalytics } from '../components/ControlAnalytics';
@@ -281,7 +282,9 @@ export function DashboardPage() {
               </Stack>
             )}
             onClick={goToMeasurements}>
-            <Sparkline data={tempSpark} color={theme.palette.primary.main} />
+            {config
+              ? <RadialGauge value={latest.temperature} min={config.temperatureMin} max={config.temperatureMax} hysteresis={config.hysteresisTemperature} unit="°C" />
+              : <Sparkline data={tempSpark} color={theme.palette.primary.main} />}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               {config && (
                 <Typography variant="caption" color="text.secondary">
@@ -301,7 +304,9 @@ export function DashboardPage() {
               </Stack>
             )}
             onClick={goToMeasurements}>
-            <Sparkline data={humSpark} color={theme.palette.secondary.main} />
+            {config
+              ? <RadialGauge value={latest.humidity} min={config.humidityMin} max={config.humidityMax} hysteresis={config.hysteresisHumidity} unit="%" />
+              : <Sparkline data={humSpark} color={theme.palette.secondary.main} />}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               {config && (
                 <Typography variant="caption" color="text.secondary">

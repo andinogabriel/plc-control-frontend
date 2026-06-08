@@ -73,6 +73,11 @@ export function HistoryPage() {
   });
 
   const { data: config } = useQuery({ queryKey: ['config-latest'], queryFn: configApi.getLatest, retry: false });
+  const { data: configChanges } = useQuery({
+    queryKey: ['config-changes', gFromParam, gToParam],
+    queryFn: () => configApi.getHistory({ page: 0, size: 200, from: gFromParam || undefined, to: gToParam || undefined }),
+    placeholderData: keepPreviousData,
+  });
   const [dense, toggleDense] = useDensity();
   const [viewMode, setViewMode] = useViewMode();
   const compact = useMediaQuery(theme.breakpoints.down('md'));
@@ -213,6 +218,14 @@ export function HistoryPage() {
   const points = (chartData?.content ?? []).slice().reverse();
   const labels = points.map((m) => new Date(m.createdAt));
   const chartHeight = isMobile ? 220 : 260;
+
+  // Vertical markers where the configuration changed, within the chart's time span.
+  const spanStart = labels[0]?.getTime();
+  const spanEnd = labels[labels.length - 1]?.getTime();
+  const configMarkers = (configChanges?.content ?? [])
+    .map((c) => new Date(c.createdAt))
+    .filter((d) => spanStart != null && spanEnd != null && d.getTime() >= spanStart && d.getTime() <= spanEnd)
+    .map((date) => ({ date }));
   const [selected, setSelected] = useState<MeasurementResponse | null>(null);
 
   // Active chart-range summary chips: make an applied range visible even when the data looks
@@ -308,7 +321,7 @@ export function HistoryPage() {
             ) : chartError ? (
               <ErrorState dense onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={tempRefs}
+              <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={tempRefs} verticalMarkers={configMarkers}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main }]} />
             ) : (
@@ -333,7 +346,7 @@ export function HistoryPage() {
             ) : chartError ? (
               <ErrorState dense onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={humRefs}
+              <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={humRefs} verticalMarkers={configMarkers}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main }]} />
             ) : (
@@ -343,6 +356,13 @@ export function HistoryPage() {
           </CardContent></Card>
         </Grid>
       </Grid>
+
+      {configMarkers.length > 0 && (
+        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 3, color: 'text.secondary' }}>
+          <Box sx={{ width: 18, borderTop: '2px dashed', borderColor: 'info.main' }} />
+          <Typography variant="caption">Líneas verticales: cambios de configuración ({configMarkers.length})</Typography>
+        </Stack>
+      )}
 
       <Card>
         <CardContent>
