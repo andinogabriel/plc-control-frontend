@@ -101,10 +101,13 @@ export function DashboardPage() {
   const printTimeRef = useRef<HTMLSpanElement>(null);
 
   // Before printing: (1) stamp a full date/time (with seconds) into the print-only label, and
-  // (2) scale the content with `zoom` so the whole dashboard fits on a single A4 page,
-  // measuring the live height. Reset afterwards.
+  // (2) apply the print layout (body.print-mode) at the real A4-landscape page width, then scale
+  // with `zoom` so the whole dashboard fills exactly one page. Measuring with the print layout
+  // active (not the screen layout) is what makes the fit correct. Reset afterwards.
   useEffect(() => {
-    const mmPx = (mm: number) => (mm / 25.4) * 96;
+    // A4 portrait at 96dpi (the dashboard is tall, so portrait fills the page best).
+    const PAGE_W = (210 / 25.4) * 96;
+    const PAGE_H = (297 / 25.4) * 96;
     const stamp = () => {
       if (printTimeRef.current) printTimeRef.current.textContent = `Actualizado: ${new Date().toLocaleString('es-AR')}`;
     };
@@ -112,15 +115,16 @@ export function DashboardPage() {
       stamp();
       const el = document.getElementById('main-content');
       if (!el) return;
+      document.body.classList.add('print-mode');
       el.style.zoom = '1';
-      const usableW = mmPx(210) - mmPx(20); // A4 portrait minus 10mm padding each side
-      const usableH = mmPx(297) - mmPx(20);
-      const z = Math.min(1, usableW / el.scrollWidth, usableH / el.scrollHeight);
+      el.style.width = `${PAGE_W}px`;
+      const z = Math.min(1, PAGE_H / el.scrollHeight);
       el.style.zoom = String(Math.max(0.4, z));
     };
     const onAfter = () => {
       const el = document.getElementById('main-content');
-      if (el) el.style.zoom = '';
+      document.body.classList.remove('print-mode');
+      if (el) { el.style.zoom = ''; el.style.width = ''; }
     };
     stamp();
     window.addEventListener('beforeprint', onBefore);
@@ -268,7 +272,7 @@ export function DashboardPage() {
       )}
 
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
             value={(
               <Stack direction="row" alignItems="baseline" spacing={1}>
@@ -288,7 +292,7 @@ export function DashboardPage() {
             </Stack>
           </MetricCard>
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard icon={<WaterDropIcon />} color={humOut ? 'warning' : 'secondary'} label="Humedad actual"
             value={(
               <Stack direction="row" alignItems="baseline" spacing={1}>
@@ -308,12 +312,12 @@ export function DashboardPage() {
             </Stack>
           </MetricCard>
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard icon={<AcUnitIcon />} color={latest.coolerOn ? 'success' : 'secondary'}
             label="Estado del cooler" value={latest.coolerOn ? 'ENCENDIDO' : 'APAGADO'}
             onClick={goToMeasurements} />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard icon={<InsightsIcon />} color="warning" label="Estado general"
             onClick={goToMeasurements}>
             <Stack spacing={1.25}>
