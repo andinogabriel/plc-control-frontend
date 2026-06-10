@@ -12,6 +12,8 @@ export interface ChartSeries {
   label: string;
   data: number[];
   color: string;
+  /** Render as a dashed line with no area fill (used for comparison/overlay series). */
+  dashed?: boolean;
 }
 
 export interface ReferenceMark {
@@ -78,8 +80,11 @@ export function AreaLineChart({
   const handlePointClick = onPointClick ? (idx: number) => onPointClick(i0 + idx) : undefined;
 
   const areaFillSx = area
-    ? Object.fromEntries(visibleSeries.map((s) => [`& .MuiAreaElement-series-${s.id}`, { fill: `url(#${gradientId(s.id)})` }]))
+    ? Object.fromEntries(visibleSeries.filter((s) => !s.dashed).map((s) => [`& .MuiAreaElement-series-${s.id}`, { fill: `url(#${gradientId(s.id)})` }]))
     : {};
+  const dashSx = Object.fromEntries(
+    visibleSeries.filter((s) => s.dashed).map((s) => [`& .MuiLineElement-series-${s.id}`, { strokeDasharray: '5 5', strokeWidth: 2 }]),
+  );
 
   return (
     <Box>
@@ -117,7 +122,7 @@ export function AreaLineChart({
         skipAnimation={reducedMotion}
         margin={{ top: 8, right: 22, bottom: 24, left: 16 }}
         onAxisClick={handlePointClick ? (_event, data) => { if (data) handlePointClick(data.dataIndex); } : undefined}
-        sx={[chartSx, areaFillSx, handlePointClick ? { cursor: 'pointer' } : {}]}
+        sx={[chartSx, areaFillSx, dashSx, handlePointClick ? { cursor: 'pointer' } : {}]}
         slots={{ legend: NoLegend }}
         slotProps={{ noDataOverlay: { message: 'No hay líneas seleccionadas' } }}
         xAxis={[{
@@ -136,7 +141,7 @@ export function AreaLineChart({
         }]}
         series={visibleSeries.map((s) => ({
           id: s.id, label: s.label, data: s.data, color: s.color,
-          showMark: false, curve, area,
+          showMark: false, curve, area: s.dashed ? false : area,
         }))}
       >
         {(referenceLines ?? []).map((ref, i) => (

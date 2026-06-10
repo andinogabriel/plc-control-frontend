@@ -10,6 +10,7 @@ import { AxiosError } from 'axios';
 import PrintRoundedIcon from '@mui/icons-material/PrintRounded';
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 import SlideshowRoundedIcon from '@mui/icons-material/SlideshowRounded';
+import CompareArrowsRoundedIcon from '@mui/icons-material/CompareArrowsRounded';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
@@ -98,6 +99,7 @@ export function DashboardPage() {
   const [selected, setSelected] = useState<MeasurementResponse | null>(null);
   const [range, setRange] = useState(() => localStorage.getItem('dashboardRange') ?? '24h');
   const [paused, setPaused] = useState(false);
+  const [compare, setCompare] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const printTimeRef = useRef<HTMLSpanElement>(null);
 
@@ -160,6 +162,18 @@ export function DashboardPage() {
     placeholderData: keepPreviousData,
   });
 
+  // Previous equal-length window, only fetched when the comparison is on.
+  const { data: previous } = useQuery({
+    queryKey: ['measurements-previous', range],
+    queryFn: () => measurementApi.getMeasurements({
+      page: 0, size: 1500,
+      from: new Date(Date.now() - 2 * rangeMs).toISOString(),
+      to: new Date(Date.now() - rangeMs).toISOString(),
+    }),
+    enabled: compare,
+    placeholderData: keepPreviousData,
+  });
+
   const health = useSystemHealth();
   // Animated KPI values (count-up). Hooks run unconditionally; 0 until data arrives.
   const tempCount = useCountUp(latest?.temperature ?? 0);
@@ -185,6 +199,23 @@ export function DashboardPage() {
   const rangeLabel = chartPoints.length > 0
     ? `${dayjs(labels[0]).format('D MMM YYYY HH:mm')} – ${dayjs(labels[labels.length - 1]).format('D MMM YYYY HH:mm')}`
     : '';
+
+  // Comparison: align the previous window onto the current x-axis by relative position.
+  const prevPoints = (previous?.content ?? []).slice().reverse();
+  const alignPrev = (select: (m: MeasurementResponse) => number) => chartPoints.map((_, i) => {
+    const idx = Math.round((i / Math.max(1, chartPoints.length - 1)) * (prevPoints.length - 1));
+    return select(prevPoints[idx]);
+  });
+  const showCompare = compare && prevPoints.length > 0 && chartPoints.length > 0;
+
+  const chartSeries = [
+    { id: 'temp', label: 'Temperatura (°C)', data: tempSeries, color: theme.palette.primary.main },
+    { id: 'hum', label: 'Humedad (%)', data: humSeries, color: theme.palette.secondary.main },
+    ...(showCompare ? [
+      { id: 'temp-prev', label: 'Temp. anterior', data: alignPrev((m) => m.temperature), color: theme.palette.primary.main, dashed: true },
+      { id: 'hum-prev', label: 'Humedad anterior', data: alignPrev((m) => m.humidity), color: theme.palette.secondary.main, dashed: true },
+    ] : []),
+  ];
 
   const header = (
     <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
@@ -351,6 +382,14 @@ export function DashboardPage() {
               <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
                 <Typography variant="subtitle1">Últimas lecturas</Typography>
                 <Stack direction="row" spacing={1} alignItems="center">
+                  <Chip
+                    icon={<CompareArrowsRoundedIcon />}
+                    label="Período anterior"
+                    color={compare ? 'primary' : 'default'}
+                    variant={compare ? 'filled' : 'outlined'}
+                    onClick={() => setCompare((c) => !c)}
+                    sx={{ fontWeight: 600 }}
+                  />
                   <TextField
                     select size="small" value={range} onChange={(e) => setRange(e.target.value)}
                     sx={{ minWidth: 160 }}
@@ -386,10 +425,7 @@ export function DashboardPage() {
                   mode={range === '1h' || range === '12h' || range === '24h' ? 'time' : 'date'}
                   labels={labels}
                   onPointClick={(i) => setSelected(chartPoints[i] ?? null)}
-                  series={[
-                    { id: 'temp', label: 'Temperatura (°C)', data: tempSeries, color: theme.palette.primary.main },
-                    { id: 'hum', label: 'Humedad (%)', data: humSeries, color: theme.palette.secondary.main },
-                  ]}
+                  series={chartSeries}
                 />
               ) : (
                 <EmptyState
