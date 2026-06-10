@@ -22,6 +22,8 @@ import { AlertCenter } from './AlertCenter';
 import { CommandPalette } from './CommandPalette';
 import { TopProgressBar } from './TopProgressBar';
 import { MobileBottomNav } from './MobileBottomNav';
+import { MeasurementStream } from './MeasurementStream';
+import { OfflineBanner } from './OfflineBanner';
 import { PullToRefresh } from './PullToRefresh';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
@@ -157,6 +159,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </AppBar>
       <TopProgressBar />
       <CommandPalette />
+      <MeasurementStream />
 
       <Box component="nav" sx={{ width: { md: navWidth }, flexShrink: 0, transition: theme.transitions.create('width') }}>
         <Drawer
@@ -186,6 +189,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <Box component="main" id="main-content"
         sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', p: { xs: 2, md: 3 }, pb: { xs: 10, md: 3 } }}>
         <Toolbar />
+        <Box className="no-print" sx={{ mb: 1 }}><OfflineBanner /></Box>
         <PullToRefresh>
           <Fade in key={location.pathname} timeout={reducedMotion ? 0 : 220}>
             <Box sx={{ flexGrow: 1 }}>{children}</Box>
