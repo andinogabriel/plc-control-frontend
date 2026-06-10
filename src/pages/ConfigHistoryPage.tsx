@@ -221,6 +221,8 @@ export function ConfigHistoryPage() {
   // Active chart-range summary chips (visible feedback that a range was applied).
   const fmtChip = (iso: string) => dayjs(iso).format('D MMM YYYY HH:mm');
   const hasChartFilters = Boolean(gFromParam || gToParam);
+  // Reserve the full chart height (chart + legend) so the card size is stable with/without data.
+  const chartBlock = 260 + 30;
 
   const handleExportCsv = () => exportCsv('historial-configuraciones.csv', tableData?.content ?? [], [
     { header: 'Fecha', value: (r: ConfigResponse) => new Date(r.createdAt).toLocaleString() },
@@ -286,9 +288,9 @@ export function ConfigHistoryPage() {
               </Tooltip>
             </Stack>
             {chartLoading ? (
-              <Skeleton variant="rounded" height={260} />
+              <Skeleton variant="rounded" height={chartBlock} />
             ) : chartError ? (
-              <ErrorState dense onRetry={() => refetchChart()} />
+              <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
@@ -297,7 +299,7 @@ export function ConfigHistoryPage() {
                   { id: 'tmax', label: 'T. máx', data: points.map((c) => c.temperatureMax), color: theme.palette.error.main },
                 ]} />
             ) : (
-              <EmptyState dense icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+              <EmptyState dense height={chartBlock} icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                 title="Sin configuraciones en este rango" description="Ajustá el rango de fechas de los gráficos." />
             )}
           </CardContent></Card>
@@ -314,9 +316,9 @@ export function ConfigHistoryPage() {
               </Tooltip>
             </Stack>
             {chartLoading ? (
-              <Skeleton variant="rounded" height={260} />
+              <Skeleton variant="rounded" height={chartBlock} />
             ) : chartError ? (
-              <ErrorState dense onRetry={() => refetchChart()} />
+              <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
@@ -325,7 +327,7 @@ export function ConfigHistoryPage() {
                   { id: 'hmax', label: 'H. máx', data: points.map((c) => c.humidityMax), color: theme.palette.warning.main },
                 ]} />
             ) : (
-              <EmptyState dense icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+              <EmptyState dense height={chartBlock} icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                 title="Sin configuraciones en este rango" description="Ajustá el rango de fechas de los gráficos." />
             )}
           </CardContent></Card>
