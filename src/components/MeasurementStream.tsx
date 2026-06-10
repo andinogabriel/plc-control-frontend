@@ -22,6 +22,7 @@ export function MeasurementStream() {
         queryClient.setQueryData(['measurement-latest'], measurement);
         // ...and let the range-based views pick up the new point.
         queryClient.invalidateQueries({ queryKey: ['measurements-recent'] });
+        queryClient.invalidateQueries({ queryKey: ['measurements-analytics'] });
         queryClient.invalidateQueries({ queryKey: ['measurement-chart'] });
         queryClient.invalidateQueries({ queryKey: ['measurement-table'] });
       } catch {

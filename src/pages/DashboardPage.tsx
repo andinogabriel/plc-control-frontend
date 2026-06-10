@@ -39,14 +39,26 @@ import type { MeasurementResponse } from '../api/types';
 
 type AccentColor = 'primary' | 'secondary' | 'success' | 'warning' | 'error';
 
+const MIN = 60 * 1000;
+const HOUR = 60 * MIN;
+const DAY = 24 * HOUR;
+
 const RANGE_OPTIONS = [
-  { value: '1h', label: 'Última hora', ms: 60 * 60 * 1000 },
-  { value: '12h', label: 'Últimas 12 h', ms: 12 * 60 * 60 * 1000 },
-  { value: '24h', label: 'Último día', ms: 24 * 60 * 60 * 1000 },
-  { value: '7d', label: 'Última semana', ms: 7 * 24 * 60 * 60 * 1000 },
-  { value: '30d', label: 'Último mes', ms: 30 * 24 * 60 * 60 * 1000 },
-  { value: '365d', label: 'Último año', ms: 365 * 24 * 60 * 60 * 1000 },
+  { value: '10m', label: 'Últimos 10 min', ms: 10 * MIN },
+  { value: '30m', label: 'Última media hora', ms: 30 * MIN },
+  { value: '1h', label: 'Última hora', ms: HOUR },
+  { value: '2h', label: 'Últimas 2 h', ms: 2 * HOUR },
+  { value: '6h', label: 'Últimas 6 h', ms: 6 * HOUR },
+  { value: '12h', label: 'Últimas 12 h', ms: 12 * HOUR },
+  { value: '24h', label: 'Último día', ms: DAY },
+  { value: '7d', label: 'Última semana', ms: 7 * DAY },
+  { value: '30d', label: 'Último mes', ms: 30 * DAY },
+  { value: '365d', label: 'Último año', ms: 365 * DAY },
 ];
+
+const rangeMsOf = (value: string) => RANGE_OPTIONS.find((o) => o.value === value)?.ms ?? DAY;
+// Intraday ranges (<= 1 day) show time-of-day ticks; longer ones show dates.
+const modeOf = (value: string): 'time' | 'date' => (rangeMsOf(value) <= DAY ? 'time' : 'date');
 
 const SPARK_POINTS = 24;
 
@@ -98,8 +110,10 @@ export function DashboardPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [selected, setSelected] = useState<MeasurementResponse | null>(null);
   const [range, setRange] = useState(() => localStorage.getItem('dashboardRange') ?? '24h');
+  const [analyticsRange, setAnalyticsRange] = useState(() => localStorage.getItem('dashboardAnalyticsRange') ?? '7d');
   const [paused, setPaused] = useState(false);
   const [compare, setCompare] = useState(false);
+  useEffect(() => { localStorage.setItem('dashboardAnalyticsRange', analyticsRange); }, [analyticsRange]);
   const chartRef = useRef<HTMLDivElement>(null);
   const printTimeRef = useRef<HTMLSpanElement>(null);
 
@@ -138,7 +152,8 @@ export function DashboardPage() {
     };
   }, []);
   useEffect(() => { localStorage.setItem('dashboardRange', range); }, [range]);
-  const rangeMs = RANGE_OPTIONS.find((o) => o.value === range)?.ms ?? RANGE_OPTIONS[2].ms;
+  const rangeMs = rangeMsOf(range);
+  const analyticsRangeMs = rangeMsOf(analyticsRange);
 
   const { data: latest, isLoading, isError, error, dataUpdatedAt, refetch: refetchLatest } = useQuery({
     queryKey: ['measurement-latest'],
@@ -157,6 +172,16 @@ export function DashboardPage() {
     queryKey: ['measurements-recent', range],
     queryFn: () => measurementApi.getMeasurements({
       page: 0, size: 1500, from: new Date(Date.now() - rangeMs).toISOString(),
+    }),
+    refetchInterval: paused ? false : 15000,
+    placeholderData: keepPreviousData,
+  });
+
+  // Independent window for the "Análisis del rango" panel (its own range selector).
+  const { data: analyticsData, isLoading: analyticsLoading, isError: analyticsError, refetch: refetchAnalytics } = useQuery({
+    queryKey: ['measurements-analytics', analyticsRange],
+    queryFn: () => measurementApi.getMeasurements({
+      page: 0, size: 1500, from: new Date(Date.now() - analyticsRangeMs).toISOString(),
     }),
     refetchInterval: paused ? false : 15000,
     placeholderData: keepPreviousData,
@@ -198,6 +223,12 @@ export function DashboardPage() {
 
   const rangeLabel = chartPoints.length > 0
     ? `${dayjs(labels[0]).format('D MMM YYYY HH:mm')} – ${dayjs(labels[labels.length - 1]).format('D MMM YYYY HH:mm')}`
+    : '';
+
+  // Analysis panel: its own points and date-range caption.
+  const analyticsPoints = (analyticsData?.content ?? []).slice().reverse();
+  const analyticsRangeLabel = analyticsPoints.length > 0
+    ? `${dayjs(analyticsPoints[0].createdAt).format('D MMM YYYY HH:mm')} – ${dayjs(analyticsPoints[analyticsPoints.length - 1].createdAt).format('D MMM YYYY HH:mm')}`
     : '';
 
   // Comparison: align the previous window onto the current x-axis by relative position.
@@ -363,18 +394,40 @@ export function DashboardPage() {
           </MetricCard>
         </Grid>
 
-        {(recentLoading || chartPoints.length > 0) && (
-          <Grid size={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="subtitle1" gutterBottom>Análisis del rango</Typography>
-                {recentLoading
-                  ? <Skeleton variant="rounded" height={120} />
-                  : <ControlAnalytics points={chartPoints} config={config} />}
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
+        <Grid size={12}>
+          <Card>
+            <CardContent>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+                <Typography variant="subtitle1">Análisis del rango</Typography>
+                <TextField
+                  select size="small" value={analyticsRange} onChange={(e) => setAnalyticsRange(e.target.value)}
+                  sx={{ minWidth: 170 }}
+                >
+                  {RANGE_OPTIONS.map((o) => (
+                    <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+              {analyticsRangeLabel && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  {analyticsRangeLabel}
+                </Typography>
+              )}
+              {analyticsLoading ? (
+                <Skeleton variant="rounded" height={120} />
+              ) : analyticsError ? (
+                <ErrorState dense onRetry={() => refetchAnalytics()} />
+              ) : analyticsPoints.length > 0 ? (
+                <ControlAnalytics points={analyticsPoints} config={config} />
+              ) : (
+                <EmptyState dense icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+                  title="Sin lecturas en este rango"
+                  description="Probá ampliar el rango del análisis." />
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
 
         <Grid size={12}>
           <Card>
@@ -422,7 +475,7 @@ export function DashboardPage() {
                 <AreaLineChart
                   height={isMobile ? 260 : 340}
                   zoomable
-                  mode={range === '1h' || range === '12h' || range === '24h' ? 'time' : 'date'}
+                  mode={modeOf(range)}
                   labels={labels}
                   onPointClick={(i) => setSelected(chartPoints[i] ?? null)}
                   series={chartSeries}
