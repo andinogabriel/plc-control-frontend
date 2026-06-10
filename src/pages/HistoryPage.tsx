@@ -218,6 +218,9 @@ export function HistoryPage() {
   const points = (chartData?.content ?? []).slice().reverse();
   const labels = points.map((m) => new Date(m.createdAt));
   const chartHeight = isMobile ? 220 : 260;
+  // Reserve the full rendered chart height (chart + legend + zoom brush) so the card keeps the
+  // same size whether or not there are readings.
+  const chartBlock = chartHeight + 78;
 
   // Vertical markers where the configuration changed, within the chart's time span.
   const spanStart = labels[0]?.getTime();
@@ -317,15 +320,15 @@ export function HistoryPage() {
               </Tooltip>
             </Stack>
             {chartLoading ? (
-              <Skeleton variant="rounded" height={chartHeight} />
+              <Skeleton variant="rounded" height={chartBlock} />
             ) : chartError ? (
-              <ErrorState dense onRetry={() => refetchChart()} />
+              <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={tempRefs} verticalMarkers={configMarkers}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main }]} />
             ) : (
-              <EmptyState dense icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+              <EmptyState dense height={chartBlock} icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                 title="Sin mediciones en este rango" description="Ajustá el rango o los filtros de los gráficos." />
             )}
           </CardContent></Card>
@@ -342,15 +345,15 @@ export function HistoryPage() {
               </Tooltip>
             </Stack>
             {chartLoading ? (
-              <Skeleton variant="rounded" height={chartHeight} />
+              <Skeleton variant="rounded" height={chartBlock} />
             ) : chartError ? (
-              <ErrorState dense onRetry={() => refetchChart()} />
+              <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={humRefs} verticalMarkers={configMarkers}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main }]} />
             ) : (
-              <EmptyState dense icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+              <EmptyState dense height={chartBlock} icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                 title="Sin mediciones en este rango" description="Ajustá el rango o los filtros de los gráficos." />
             )}
           </CardContent></Card>

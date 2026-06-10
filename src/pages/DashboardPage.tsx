@@ -154,6 +154,9 @@ export function DashboardPage() {
   useEffect(() => { localStorage.setItem('dashboardRange', range); }, [range]);
   const rangeMs = rangeMsOf(range);
   const analyticsRangeMs = rangeMsOf(analyticsRange);
+  // Reserve a stable height for the chart/analytics areas so the cards don't resize with/without data.
+  const chartBlock = (isMobile ? 260 : 340) + 78;
+  const analyticsBlock = 150;
 
   const { data: latest, isLoading, isError, error, dataUpdatedAt, refetch: refetchLatest } = useQuery({
     queryKey: ['measurement-latest'],
@@ -414,13 +417,13 @@ export function DashboardPage() {
                 </Typography>
               )}
               {analyticsLoading ? (
-                <Skeleton variant="rounded" height={120} />
+                <Skeleton variant="rounded" height={analyticsBlock} />
               ) : analyticsError ? (
-                <ErrorState dense onRetry={() => refetchAnalytics()} />
+                <ErrorState dense height={analyticsBlock} onRetry={() => refetchAnalytics()} />
               ) : analyticsPoints.length > 0 ? (
                 <ControlAnalytics points={analyticsPoints} config={config} />
               ) : (
-                <EmptyState dense icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
+                <EmptyState dense height={analyticsBlock} icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                   title="Sin lecturas en este rango"
                   description="Probá ampliar el rango del análisis." />
               )}
@@ -468,9 +471,9 @@ export function DashboardPage() {
                 </Typography>
               )}
               {recentLoading ? (
-                <Skeleton variant="rounded" height={isMobile ? 260 : 340} />
+                <Skeleton variant="rounded" height={chartBlock} />
               ) : recentError ? (
-                <ErrorState onRetry={() => refetchRecent()} />
+                <ErrorState height={chartBlock} onRetry={() => refetchRecent()} />
               ) : chartPoints.length > 0 ? (
                 <AreaLineChart
                   height={isMobile ? 260 : 340}
@@ -482,6 +485,7 @@ export function DashboardPage() {
                 />
               ) : (
                 <EmptyState
+                  height={chartBlock}
                   icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                   title="Sin lecturas en este rango"
                   description="Probá ampliar el rango de tiempo o esperá la próxima medición de la Raspberry."
