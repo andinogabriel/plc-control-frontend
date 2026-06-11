@@ -75,8 +75,9 @@ export function CommandPalette() {
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
         <SearchRoundedIcon color="action" />
-        <InputBase
-          autoFocus fullWidth placeholder="Buscar acción o página…"
+        {/* eslint-disable-next-line jsx-a11y/no-autofocus -- the palette is a search dialog opened
+            on demand (Ctrl/Cmd+K); moving focus to its input on open is the expected behavior. */}
+        <InputBase autoFocus fullWidth placeholder="Buscar acción o página…"
           value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={onKeyDown}
         />
         <Typography variant="caption" color="text.secondary" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, px: 0.75 }}>esc</Typography>
