@@ -1,10 +1,19 @@
 import { Box, Grid, Stack, Tooltip, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import type { ConfigResponse, MeasurementResponse } from '../api/types';
 import { formatNumber } from '../lib/format';
 
-function StatTile({ label, value, hint }: { label: string; value: string; hint?: string }) {
+type StatAccent = 'primary' | 'secondary' | 'success' | 'warning';
+
+function StatTile({ label, value, hint, accent = 'primary' }: {
+  label: string; value: string; hint?: string; accent?: StatAccent;
+}) {
   return (
-    <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: 'action.hover', height: '100%' }}>
+    <Box sx={(t) => ({
+      p: 1.5, borderRadius: 2, height: '100%',
+      bgcolor: alpha(t.palette[accent].main, t.palette.mode === 'light' ? 0.08 : 0.14),
+      borderLeft: `3px solid ${t.palette[accent].main}`,
+    })}>
       <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2, display: 'block' }}>{label}</Typography>
       <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>{value}</Typography>
       {hint && <Typography variant="caption" color="text.secondary">{hint}</Typography>}
@@ -60,19 +69,19 @@ export function ControlAnalytics({ points, config }: {
     <Stack spacing={2}>
       <Grid container spacing={1.5}>
         <Grid size={{ xs: 6, md: 3 }}>
-          <StatTile label="Temp prom" value={`${formatNumber(avg(temps))} °C`}
+          <StatTile accent="primary" label="Temp prom" value={`${formatNumber(avg(temps))} °C`}
             hint={`mín ${formatNumber(Math.min(...temps))} · máx ${formatNumber(Math.max(...temps))}`} />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
-          <StatTile label="Humedad prom" value={`${formatNumber(avg(hums))} %`}
+          <StatTile accent="secondary" label="Humedad prom" value={`${formatNumber(avg(hums))} %`}
             hint={`mín ${formatNumber(Math.min(...hums))} · máx ${formatNumber(Math.max(...hums))}`} />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
-          <StatTile label="Fuera de rango" value={config ? pct(tOut, n) : '—'}
+          <StatTile accent="warning" label="Fuera de rango" value={config ? pct(tOut, n) : '—'}
             hint={config ? `temp · humedad ${pct(hOut, n)}` : 'sin config activa'} />
         </Grid>
         <Grid size={{ xs: 6, md: 3 }}>
-          <StatTile label="Cooler encendido" value={pct(coolerOnCount, n)} hint="del tiempo (duty cycle)" />
+          <StatTile accent="success" label="Cooler encendido" value={pct(coolerOnCount, n)} hint="del tiempo (duty cycle)" />
         </Grid>
       </Grid>
 
