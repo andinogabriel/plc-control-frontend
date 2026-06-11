@@ -107,7 +107,10 @@ export function ConfigHistoryPage() {
     });
   }, [setSearchParams]);
 
-  const sortDirFor = (field: string): SortDirection => (sortField === field ? (sortDir as 'asc' | 'desc') : false);
+  const sortDirFor = useCallback(
+    (field: string): SortDirection => (sortField === field ? (sortDir as 'asc' | 'desc') : false),
+    [sortField, sortDir],
+  );
   const toggleSort = useCallback((field: string) => {
     const current = searchParams.get('sort');
     const [f, d] = current ? current.split(',') : ['', ''];
@@ -195,7 +198,7 @@ export function ConfigHistoryPage() {
           ? <Chip label="Activa" color="success" size="small" />
           : <Chip label="—" size="small" variant="outlined" />,
     },
-  ], [searchParams, updateParams, disabledHeaders, sortField, sortDir]);
+  ], [searchParams, updateParams, disabledHeaders, sortDirFor, toggleSort]);
 
   const clearTableFilters = useCallback(() => {
     const cleared: Record<string, undefined> = { page: undefined };
