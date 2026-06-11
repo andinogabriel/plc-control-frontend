@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 12 104 118" role="img" aria-label="UNCAUS">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 116" role="img" aria-label="UNCAUS">
   <title>UNCAUS</title>
-  <path fill="#1C9AD6" d="M14 16 H106 C104 41 95 57 82 63 C72 59 64 51 55 55 C45 60 40 71 29 69 C20 67 16 51 14 40 Z"/>
-  <path fill="#45A636" d="M45 74 C61 68 79 79 78 90 C76 105 66 117 57 124 C51 107 48 90 45 74 Z"/>
+  <path fill="#1C9AD6" d="M8 8 H92 L76 60 C61 52 50 46 43 46 C36 46 31 52 27 53 C20 52 14 50 8 47 Z"/>
+  <path fill="#45A636" d="M41 56 C59 59 71 71 69 85 C67 97 56 105 47 112 C44 93 42 75 41 56 Z"/>
 </svg>
