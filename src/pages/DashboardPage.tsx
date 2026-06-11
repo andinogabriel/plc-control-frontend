@@ -67,7 +67,16 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children }
   onClick: () => void; children?: React.ReactNode;
 }) {
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card sx={(t) => ({
+      height: '100%',
+      // Faint diagonal tint in the metric's accent colour: gives each card a subtle identity
+      // and depth without competing with the content. Barely-there in both light and dark.
+      backgroundImage: `linear-gradient(150deg, ${alpha(t.palette[color].main, 0.07)}, ${alpha(t.palette[color].main, 0)} 60%)`,
+      transition: t.transitions.create('box-shadow', { duration: 180 }),
+      '@media (hover: hover)': {
+        '&:hover': { boxShadow: `0 10px 28px ${alpha(t.palette[color].main, 0.2)}` },
+      },
+    })}>
       <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
         <CardContent sx={{ minHeight: 172, p: 2.5 }}>
           <Box sx={(t) => ({
