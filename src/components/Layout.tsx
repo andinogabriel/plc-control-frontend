@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   AppBar, Box, Divider, Drawer, Fade, IconButton, Link as MuiLink, List, ListItem, ListItemButton,
   ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Tooltip, Typography,
@@ -95,6 +95,19 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const toggle = () => (isDesktop ? setDesktopOpen((o) => !o) : setMobileOpen((o) => !o));
 
+  // Accessibility: on navigation, move focus to the main region so screen readers announce the
+  // new page and keyboard users continue from the content (not the link they just left). Skip
+  // the first render so the app does not steal focus on initial load.
+  const mainRef = useRef<HTMLElement>(null);
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    mainRef.current?.focus();
+  }, [location.pathname]);
+
   const navList = (
     <Box sx={{ height: '100%' }}>
       <Toolbar />
@@ -186,8 +199,8 @@ export function Layout({ children }: { children: ReactNode }) {
         </Drawer>
       </Box>
 
-      <Box component="main" id="main-content"
-        sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', p: { xs: 2, md: 3 }, pb: { xs: 10, md: 3 } }}>
+      <Box component="main" id="main-content" ref={mainRef} tabIndex={-1}
+        sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', outline: 'none', p: { xs: 2, md: 3 }, pb: { xs: 10, md: 3 } }}>
         <Toolbar />
         <Box className="no-print" sx={{ mb: 1 }}><OfflineBanner /></Box>
         <PullToRefresh>
