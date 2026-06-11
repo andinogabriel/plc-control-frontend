@@ -76,7 +76,7 @@ function Footer() {
       mt: 4, pt: 2, borderTop: '1px solid', borderColor: 'divider',
       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1,
     }}>
-      <Box component="img" src="/uncaus-logo.svg" alt="UNCAUS" sx={{ height: 20, display: 'block' }}
+      <Box component="img" src="/uncaus-logo-color.svg" alt="UNCAUS" sx={{ height: 20, display: 'block' }}
         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
       <Typography variant="body2" color="text.secondary">
         Uncaus - Teoría de Control 2026
