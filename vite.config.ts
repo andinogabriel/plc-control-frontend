@@ -1,9 +1,17 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { visualizer } from 'rollup-plugin-visualizer';
 
-export default defineConfig({
-  plugins: [react()],
+// `vite build --mode analyze` (npm run build:analyze) writes a treemap of the bundle to
+// dist/stats.html and opens it, so chunk growth is easy to spot. Normal builds are unaffected.
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    ...(mode === 'analyze'
+      ? [visualizer({ filename: 'dist/stats.html', open: true, gzipSize: true, brotliSize: true })]
+      : []),
+  ],
   server: {
     port: 5173,
   },
@@ -31,4 +39,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

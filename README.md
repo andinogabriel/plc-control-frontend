@@ -71,6 +71,9 @@ npm run dev            # http://localhost:5173
 Para producción: `npm run build` genera el sitio estático en `dist/`, publicable en Vercel,
 Netlify o cualquier hosting estático (configurando `VITE_API_BASE_URL`).
 
+Para inspeccionar el peso del bundle, `npm run build:analyze` genera y abre un treemap por chunk
+en `dist/stats.html` (no afecta al build normal).
+
 ## Variables de entorno
 
 | Variable | Default | Para qué sirve |
