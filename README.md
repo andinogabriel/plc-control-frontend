@@ -71,6 +71,16 @@ npm run dev            # http://localhost:5173
 Para producción: `npm run build` genera el sitio estático en `dist/`, publicable en Vercel,
 Netlify o cualquier hosting estático (configurando `VITE_API_BASE_URL`).
 
+## Variables de entorno
+
+| Variable | Default | Para qué sirve |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | `http://localhost:8080` | URL base de la API del backend. |
+| `VITE_CONFIG_API_KEY` | *(vacío)* | Opcional. Solo si el backend tiene `APP_CONFIG_API_KEY` seteado: el panel la manda como header `X-Api-Key` en `POST /api/config`. |
+
+> Una key embebida en una SPA pública es una barrera mínima anti-abuso, **no** un secreto real.
+> Toda la seguridad de verdad vive en el backend (ver más abajo).
+
 ## Nota de seguridad
 
 Toda la validación y el control de abuso viven en el **backend**. El panel no es la frontera de
