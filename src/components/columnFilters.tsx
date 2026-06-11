@@ -1,3 +1,6 @@
+/* eslint-disable jsx-a11y/no-autofocus -- every autoFocus here is inside a column-filter popover
+   that opens on an explicit click; focusing the field on open is the expected dialog-focus
+   behavior (WAI-ARIA), not an autofocus-on-page-load. */
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   Box, Button, Drawer, IconButton, MenuItem, Popover, Stack, TextField, Typography,
