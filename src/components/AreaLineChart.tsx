@@ -35,7 +35,7 @@ const NoLegend = () => null;
  * a custom clickable legend, threshold reference lines, and optional zoom via a brush bar.
  */
 export function AreaLineChart({
-  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, zoomable = false,
+  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, zoomable = false, xScale = 'time',
 }: {
   labels: Date[];
   series: ChartSeries[];
@@ -47,6 +47,9 @@ export function AreaLineChart({
   referenceLines?: ReferenceMark[];
   verticalMarkers?: VerticalMarker[];
   zoomable?: boolean;
+  /** 'time' spaces points by their timestamp (continuous series); 'point' spaces them evenly
+   *  (discrete events like config versions, so every point stays individually clickable). */
+  xScale?: 'time' | 'point';
 }) {
   const theme = useTheme();
   const reducedMotion = useReducedMotion();
@@ -127,11 +130,11 @@ export function AreaLineChart({
         slotProps={{ noDataOverlay: { message: 'No hay líneas seleccionadas' } }}
         xAxis={[{
           data: viewLabels,
-          scaleType: 'time',
+          scaleType: xScale,
           disableLine: true,
           disableTicks: true,
           tickLabelStyle: { fontSize: 11 },
-          valueFormatter: (value, ctx) => formatAxisDate(value as Date, ctx?.location, mode),
+          valueFormatter: (value: Date, ctx?: { location?: string }) => formatAxisDate(value, ctx?.location, mode),
         }]}
         yAxis={[{
           disableLine: true,
