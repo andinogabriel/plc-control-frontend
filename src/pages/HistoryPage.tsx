@@ -313,8 +313,11 @@ export function HistoryPage() {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={tempChartRef}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography variant="subtitle1" gutterBottom>Temperatura vs tiempo</Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Box sx={{ width: 6, height: 22, borderRadius: 1, bgcolor: 'primary.main' }} />
+                <Typography variant="subtitle1">Temperatura vs tiempo</Typography>
+              </Stack>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
                   onClick={() => exportChartPng(tempChartRef.current, 'temperatura.png', { title: 'Temperatura vs tiempo', source: 'Mediciones' })}
@@ -338,8 +341,11 @@ export function HistoryPage() {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={humChartRef}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography variant="subtitle1" gutterBottom>Humedad vs tiempo</Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Box sx={{ width: 6, height: 22, borderRadius: 1, bgcolor: 'secondary.main' }} />
+                <Typography variant="subtitle1">Humedad vs tiempo</Typography>
+              </Stack>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
                   onClick={() => exportChartPng(humChartRef.current, 'humedad.png', { title: 'Humedad vs tiempo', source: 'Mediciones' })}
