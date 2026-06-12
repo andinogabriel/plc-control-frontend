@@ -62,9 +62,9 @@ const modeOf = (value: string): 'time' | 'date' => (rangeMsOf(value) <= DAY ? 't
 
 const SPARK_POINTS = 24;
 
-function MetricCard({ icon, label, value, color = 'primary', onClick, children }: {
+function MetricCard({ icon, label, value, color = 'primary', onClick, children, index = 0 }: {
   icon: React.ReactNode; label: string; value?: React.ReactNode; color?: AccentColor;
-  onClick: () => void; children?: React.ReactNode;
+  onClick: () => void; children?: React.ReactNode; index?: number;
 }) {
   return (
     <Card sx={(t) => ({
@@ -76,6 +76,14 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children }
       '@media (hover: hover)': {
         '&:hover': { boxShadow: `0 10px 28px ${alpha(t.palette[color].main, 0.2)}` },
       },
+      // Staggered fade-up on mount (e.g. when entering the dashboard). Runs once; honours
+      // reduced-motion. `both` holds the cards hidden until each one's delay elapses.
+      '@keyframes metricIn': {
+        from: { opacity: 0, transform: 'translateY(10px)' },
+        to: { opacity: 1, transform: 'none' },
+      },
+      animation: `metricIn 420ms ease ${index * 80}ms both`,
+      '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
     })}>
       <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
         <CardContent sx={{ minHeight: 172, p: 2.5 }}>
@@ -348,7 +356,7 @@ export function DashboardPage() {
 
       <Grid container spacing={3}>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
+          <MetricCard index={0} icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
             value={(
               <Stack direction="row" alignItems="baseline" spacing={1}>
                 <span>{formatTemp(tempCount)}</span>
@@ -370,7 +378,7 @@ export function DashboardPage() {
           </MetricCard>
         </Grid>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard icon={<WaterDropIcon />} color={humOut ? 'warning' : 'secondary'} label="Humedad actual"
+          <MetricCard index={1} icon={<WaterDropIcon />} color={humOut ? 'warning' : 'secondary'} label="Humedad actual"
             value={(
               <Stack direction="row" alignItems="baseline" spacing={1}>
                 <span>{formatPct(humCount)}</span>
@@ -392,12 +400,12 @@ export function DashboardPage() {
           </MetricCard>
         </Grid>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard icon={<AcUnitIcon />} color={latest.coolerOn ? 'success' : 'secondary'}
+          <MetricCard index={2} icon={<AcUnitIcon />} color={latest.coolerOn ? 'success' : 'secondary'}
             label="Estado del cooler" value={latest.coolerOn ? 'ENCENDIDO' : 'APAGADO'}
             onClick={goToMeasurements} />
         </Grid>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard icon={<InsightsIcon />} color="warning" label="Estado general"
+          <MetricCard index={3} icon={<InsightsIcon />} color="warning" label="Estado general"
             onClick={goToMeasurements}>
             <Stack spacing={1.25}>
               <Box><StatusChip status={latest.status} /></Box>
