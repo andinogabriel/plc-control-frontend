@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -6,7 +7,9 @@ import {
   Box, Card, CardContent, Typography, TextField, Button, Grid, Alert, Stack, Divider,
   InputAdornment, IconButton, Tooltip, Chip,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import ArrowRightAltRoundedIcon from '@mui/icons-material/ArrowRightAltRounded';
@@ -82,7 +85,12 @@ export function ConfigurationPage() {
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: EMPTY_DEFAULTS,
+    mode: 'onChange', // validate live so valid fields can show a check and errors surface as you type
   });
+
+  // Briefly pulse the active-config banner green right after a successful save (it also
+  // re-renders with the new values), reinforcing that the change took effect.
+  const [savedFlash, setSavedFlash] = useState(false);
 
   const mutation = useMutation({
     mutationFn: (values: FormValues) => {
@@ -94,6 +102,8 @@ export function ConfigurationPage() {
       queryClient.invalidateQueries({ queryKey: ['config-latest'] });
       queryClient.invalidateQueries({ queryKey: ['config-history'] });
       toast('Configuración guardada correctamente', 'success');
+      setSavedFlash(true);
+      window.setTimeout(() => setSavedFlash(false), 1600);
     },
     onError: (error) => {
       const axiosError = error as AxiosError<ApiError>;
@@ -130,6 +140,13 @@ export function ConfigurationPage() {
     const val = w[name];
     return { shrink: val !== undefined && val !== '' ? true : undefined };
   };
+
+  // Positive validation feedback: a field shows a green check once it has a value and no error.
+  const isFilledValid = (name: keyof FormInput) => {
+    const val = w[name];
+    return val !== undefined && val !== '' && val !== null && !errors[name];
+  };
+  const validCheck = <CheckCircleRoundedIcon fontSize="small" color="success" />;
   const v = {
     temperatureMin: num(w.temperatureMin), temperatureMax: num(w.temperatureMax),
     humidityMin: num(w.humidityMin), humidityMax: num(w.humidityMax),
@@ -153,11 +170,22 @@ export function ConfigurationPage() {
       <Typography variant="h4" gutterBottom>Configuración de umbrales</Typography>
 
       {latest && (
-        <Alert severity="info" sx={{ mb: 2 }} action={(
+        <Alert severity="info" action={(
           <Button color="inherit" size="small" startIcon={<RestartAltRoundedIcon />} onClick={prefillFromActive}>
             Cargar config activa
           </Button>
-        )}>
+        )}
+          sx={(t) => ({
+            mb: 2,
+            ...(savedFlash && {
+              animation: 'configSaved 1.5s ease',
+              '@keyframes configSaved': {
+                '0%': { boxShadow: `0 0 0 0 ${alpha(t.palette.success.main, 0.55)}` },
+                '70%': { boxShadow: `0 0 0 12px ${alpha(t.palette.success.main, 0)}` },
+                '100%': { boxShadow: `0 0 0 0 ${alpha(t.palette.success.main, 0)}` },
+              },
+            }),
+          })}>
           Config activa: T [{latest.temperatureMin}–{latest.temperatureMax} °C],
           H [{latest.humidityMin}–{latest.humidityMax} %] · cada {latest.measurementIntervalSeconds} s · por {latest.createdByName}
         </Alert>
@@ -173,12 +201,14 @@ export function ConfigurationPage() {
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField fullWidth label="Nombre" {...register('createdByName')}
                       InputLabelProps={shrink('createdByName')}
-                      error={!!errors.createdByName} helperText={errors.createdByName?.message} />
+                      error={!!errors.createdByName} helperText={errors.createdByName?.message}
+                      InputProps={{ endAdornment: isFilledValid('createdByName') ? <InputAdornment position="end">{validCheck}</InputAdornment> : undefined }} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField fullWidth label="Email" {...register('createdByEmail')}
                       InputLabelProps={shrink('createdByEmail')}
-                      error={!!errors.createdByEmail} helperText={errors.createdByEmail?.message} />
+                      error={!!errors.createdByEmail} helperText={errors.createdByEmail?.message}
+                      InputProps={{ endAdornment: isFilledValid('createdByEmail') ? <InputAdornment position="end">{validCheck}</InputAdornment> : undefined }} />
                   </Grid>
                 </Grid>
 
@@ -191,15 +221,20 @@ export function ConfigurationPage() {
                         label={f.label} {...register(f.name)}
                         InputLabelProps={shrink(f.name)}
                         error={!!errors[f.name]} helperText={errors[f.name]?.message}
-                        InputProps={f.help ? {
+                        InputProps={(f.help || isFilledValid(f.name)) ? {
                           endAdornment: (
                             <InputAdornment position="end">
-                              <Tooltip title={f.help} arrow enterTouchDelay={0}
-                                slotProps={{ tooltip: { sx: { maxWidth: 280 } } }}>
-                                <IconButton edge="end" size="small" tabIndex={-1} aria-label="¿Qué es la histéresis?">
-                                  <InfoOutlinedIcon fontSize="small" color="action" />
-                                </IconButton>
-                              </Tooltip>
+                              {isFilledValid(f.name) && (
+                                <CheckCircleRoundedIcon fontSize="small" color="success" sx={{ mr: f.help ? 0.5 : 0 }} />
+                              )}
+                              {f.help && (
+                                <Tooltip title={f.help} arrow enterTouchDelay={0}
+                                  slotProps={{ tooltip: { sx: { maxWidth: 280 } } }}>
+                                  <IconButton edge="end" size="small" tabIndex={-1} aria-label="¿Qué es la histéresis?">
+                                    <InfoOutlinedIcon fontSize="small" color="action" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                             </InputAdornment>
                           ),
                         } : undefined} />
