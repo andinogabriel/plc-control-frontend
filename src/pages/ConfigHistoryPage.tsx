@@ -296,7 +296,7 @@ export function ConfigHistoryPage() {
             ) : chartError ? (
               <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
+              <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" xScale="point" labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[
                   { id: 'tmin', label: 'T. mín', data: points.map((c) => c.temperatureMin), color: theme.palette.primary.main },
@@ -324,7 +324,7 @@ export function ConfigHistoryPage() {
             ) : chartError ? (
               <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" labels={labels}
+              <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" xScale="point" labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[
                   { id: 'hmin', label: 'H. mín', data: points.map((c) => c.humidityMin), color: theme.palette.secondary.main },
