@@ -158,7 +158,11 @@ export function Layout({ children }: { children: ReactNode }) {
             <MenuIcon />
           </IconButton>
           <ThermostatIcon sx={{ mr: 1, color: 'primary.main' }} />
-          <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700 }}>Sistema de Control PLC</Typography>
+          <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700 }}>
+            {/* Full name on tablet+, short name on phones so it never truncates mid-word. */}
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Sistema de Control PLC</Box>
+            <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Control PLC</Box>
+          </Typography>
           <Box sx={{ display: { xs: 'flex', sm: 'none' } }}><SystemHealthBadge compact /></Box>
           <Box sx={{ display: { xs: 'none', sm: 'block' }, mr: 1 }}><SystemHealthBadge /></Box>
           <Tooltip title="Buscar (Ctrl/⌘ + K)">
