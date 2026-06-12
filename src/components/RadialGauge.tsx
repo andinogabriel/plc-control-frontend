@@ -1,4 +1,5 @@
 import { Box, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { formatNumber } from '../lib/format';
 
 const TAU = Math.PI / 180;
@@ -53,9 +54,14 @@ export function RadialGauge({ value, min, max, hysteresis = 0, unit, showValue =
         {hysteresis > 0 && (
           <path d={arc(Math.max(min, max - hysteresis), max)} fill="none" stroke={theme.palette.warning.main} strokeWidth={9} strokeLinecap="round" opacity={0.85} />
         )}
-        {/* Current value marker */}
+        {/* Current value marker: a soft glow makes the reading pop, and the position eases along
+            the arc when the value changes so it feels alive (cx/cy are animatable in SVG). */}
         <circle cx={mx} cy={my} r={6} fill={inRange ? theme.palette.success.main : theme.palette.error.main}
-          stroke={theme.palette.background.paper} strokeWidth={2} />
+          stroke={theme.palette.background.paper} strokeWidth={2}
+          style={{
+            filter: `drop-shadow(0 0 5px ${alpha(inRange ? theme.palette.success.main : theme.palette.error.main, 0.7)})`,
+            transition: 'cx 0.5s ease, cy 0.5s ease',
+          }} />
         {/* Min / max end labels */}
         <text x={pt(cx, cy, r, 180)[0]} y={cy + 12} textAnchor="middle" fontSize={8} fill={theme.palette.text.secondary}>{min}</text>
         <text x={pt(cx, cy, r, 0)[0]} y={cy + 12} textAnchor="middle" fontSize={8} fill={theme.palette.text.secondary}>{max}</text>
