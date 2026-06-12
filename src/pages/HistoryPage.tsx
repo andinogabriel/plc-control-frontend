@@ -14,6 +14,7 @@ import { measurementApi, type MeasurementQuery } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
 import type { MeasurementResponse, SystemStatus } from '../api/types';
 import { AppDataGrid } from '../components/AppDataGrid';
+import { dataGridHeight } from '../components/dataGridLayout';
 import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { FadeIn } from '../components/FadeIn';
@@ -389,7 +390,7 @@ export function HistoryPage() {
             onOpenFilters={showCards ? () => setMobileFilters(true) : undefined} />
           <MobileFilterSheet open={mobileFilters} onClose={() => setMobileFilters(false)} columns={columns} />
           {tableError ? (
-            <ErrorState onRetry={() => refetchTable()} />
+            <ErrorState height={dataGridHeight(dense)} onRetry={() => refetchTable()} />
           ) : showCards ? (
             <MobileCardList
               rows={tableData?.content ?? []}

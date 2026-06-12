@@ -40,13 +40,21 @@ const schema = z
     hysteresisHumidity: requiredNumber((n) => n.min(0.1, 'Mín 0,1 %').max(5, 'Máx 5 %')),
     measurementIntervalSeconds: requiredNumber((n) => n.int('Debe ser un entero').min(5, 'Mín 5 s').max(1800, 'Máx 1800 s (30 min)')),
   })
+  // Cross-field: max must be strictly greater than min (a max below the min is physically
+  // meaningless — the in-range band would be empty). The error is reported on BOTH fields so
+  // whichever one the user is editing shows the message (paired with `deps` on register so
+  // editing one re-validates the other).
   .refine((d) => d.temperatureMin == null || d.temperatureMax == null || d.temperatureMin < d.temperatureMax, {
-    message: 'La temperatura mínima debe ser menor que la máxima',
-    path: ['temperatureMin'],
+    message: 'Debe ser menor que la máxima', path: ['temperatureMin'],
+  })
+  .refine((d) => d.temperatureMin == null || d.temperatureMax == null || d.temperatureMin < d.temperatureMax, {
+    message: 'Debe ser mayor que la mínima', path: ['temperatureMax'],
   })
   .refine((d) => d.humidityMin == null || d.humidityMax == null || d.humidityMin < d.humidityMax, {
-    message: 'La humedad mínima debe ser menor que la máxima',
-    path: ['humidityMin'],
+    message: 'Debe ser menor que la máxima', path: ['humidityMin'],
+  })
+  .refine((d) => d.humidityMin == null || d.humidityMax == null || d.humidityMin < d.humidityMax, {
+    message: 'Debe ser mayor que la mínima', path: ['humidityMax'],
   });
 
 type FormInput = z.input<typeof schema>;
@@ -57,11 +65,13 @@ const HYSTERESIS_HELP =
   + 'constantemente cuando la lectura oscila cerca del límite. El cooler enciende al alcanzar el '
   + 'máximo y recién apaga al bajar a (máximo − histéresis).';
 
-const fields: { name: keyof FormValues; label: string; help?: string }[] = [
-  { name: 'temperatureMin', label: 'Temperatura mín (°C)' },
-  { name: 'temperatureMax', label: 'Temperatura máx (°C)' },
-  { name: 'humidityMin', label: 'Humedad mín (%)' },
-  { name: 'humidityMax', label: 'Humedad máx (%)' },
+// `deps` lists the sibling fields RHF should re-validate when this one changes, so the
+// cross-field (min/max) error surfaces immediately on whichever field is being edited.
+const fields: { name: keyof FormValues; label: string; help?: string; deps?: (keyof FormValues)[] }[] = [
+  { name: 'temperatureMin', label: 'Temperatura mín (°C)', deps: ['temperatureMax'] },
+  { name: 'temperatureMax', label: 'Temperatura máx (°C)', deps: ['temperatureMin'] },
+  { name: 'humidityMin', label: 'Humedad mín (%)', deps: ['humidityMax'] },
+  { name: 'humidityMax', label: 'Humedad máx (%)', deps: ['humidityMin'] },
   { name: 'hysteresisTemperature', label: 'Histéresis temperatura', help: `${HYSTERESIS_HELP} (en °C)` },
   { name: 'hysteresisHumidity', label: 'Histéresis humedad', help: `${HYSTERESIS_HELP} (en %)` },
   { name: 'measurementIntervalSeconds', label: 'Intervalo de medición (s)' },
@@ -218,7 +228,7 @@ export function ConfigurationPage() {
                   {fields.map((f) => (
                     <Grid size={{ xs: 12, sm: 6 }} key={f.name}>
                       <TextField fullWidth type="number" inputProps={{ step: 'any' }}
-                        label={f.label} {...register(f.name)}
+                        label={f.label} {...register(f.name, f.deps ? { deps: f.deps } : undefined)}
                         InputLabelProps={shrink(f.name)}
                         error={!!errors[f.name]} helperText={errors[f.name]?.message}
                         InputProps={(f.help || isFilledValid(f.name)) ? {
