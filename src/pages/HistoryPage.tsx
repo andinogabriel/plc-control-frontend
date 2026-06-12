@@ -16,6 +16,7 @@ import type { MeasurementResponse, SystemStatus } from '../api/types';
 import { AppDataGrid } from '../components/AppDataGrid';
 import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
+import { FadeIn } from '../components/FadeIn';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
@@ -330,9 +331,11 @@ export function HistoryPage() {
             ) : chartError ? (
               <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={tempRefs} verticalMarkers={configMarkers}
-                onPointClick={(i) => setSelected(points[i] ?? null)}
-                series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main }]} />
+              <FadeIn>
+                <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={tempRefs} verticalMarkers={configMarkers}
+                  onPointClick={(i) => setSelected(points[i] ?? null)}
+                  series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main }]} />
+              </FadeIn>
             ) : (
               <EmptyState dense height={chartBlock} icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                 title="Sin mediciones en este rango" description="Ajustá el rango o los filtros de los gráficos." />
@@ -358,9 +361,11 @@ export function HistoryPage() {
             ) : chartError ? (
               <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={humRefs} verticalMarkers={configMarkers}
-                onPointClick={(i) => setSelected(points[i] ?? null)}
-                series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main }]} />
+              <FadeIn>
+                <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={humRefs} verticalMarkers={configMarkers}
+                  onPointClick={(i) => setSelected(points[i] ?? null)}
+                  series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main }]} />
+              </FadeIn>
             ) : (
               <EmptyState dense height={chartBlock} icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                 title="Sin mediciones en este rango" description="Ajustá el rango o los filtros de los gráficos." />
