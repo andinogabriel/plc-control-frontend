@@ -7,6 +7,7 @@ import {
   InputAdornment, IconButton, Tooltip, Chip,
 } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import ArrowRightAltRoundedIcon from '@mui/icons-material/ArrowRightAltRounded';
 import { AxiosError } from 'axios';
@@ -118,6 +119,7 @@ export function ConfigurationPage() {
       hysteresisHumidity: latest.hysteresisHumidity,
       measurementIntervalSeconds: latest.measurementIntervalSeconds,
     });
+    toast('Cargué los valores de la configuración activa', 'info');
   };
 
   // Live values for the preview/diff panel.
@@ -206,8 +208,9 @@ export function ConfigurationPage() {
                 </Grid>
 
                 <Stack direction="row" spacing={2} alignItems="center" justifyContent="flex-end" mt={3}>
-                  <Button type="submit" variant="contained" disabled={mutation.isPending}>
-                    {mutation.isPending ? 'Guardando...' : 'Guardar configuración'}
+                  <Button type="submit" variant="contained"
+                    loading={mutation.isPending} loadingPosition="start" startIcon={<SaveRoundedIcon />}>
+                    Guardar configuración
                   </Button>
                 </Stack>
 

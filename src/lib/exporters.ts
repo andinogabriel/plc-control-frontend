@@ -1,4 +1,5 @@
-/** Tiny client-side exporters for tables (CSV) and charts (PNG). No dependencies. */
+/** Tiny client-side exporters for tables (CSV) and charts (PNG). */
+import { notifyToast } from '../components/toast';
 
 function triggerDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
@@ -9,6 +10,8 @@ function triggerDownload(blob: Blob, filename: string) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+  // Confirm the download started (the browser's own download UI is easy to miss).
+  notifyToast(filename.endsWith('.csv') ? 'CSV descargado' : 'Imagen descargada', 'success');
 }
 
 function csvCell(value: unknown): string {
