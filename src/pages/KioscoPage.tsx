@@ -9,6 +9,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
+import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
 import dayjs from 'dayjs';
 import { measurementApi } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
@@ -16,12 +17,12 @@ import { AreaLineChart } from '../components/AreaLineChart';
 import { StatusChip } from '../components/StatusChip';
 import { SystemHealthBadge } from '../components/SystemHealthBadge';
 import { useCountUp } from '../hooks/useCountUp';
-import { formatPct, formatTemp } from '../lib/format';
+import { formatNumber } from '../lib/format';
 
 const RANGE_MS = 2 * 60 * 60 * 1000; // last 2 hours
 
-function BigTile({ icon, label, value, accent, out }: {
-  icon: React.ReactNode; label: string; value: string; accent: string; out?: boolean;
+function BigTile({ icon, label, value, unit, accent, out }: {
+  icon: React.ReactNode; label: string; value: string; unit?: string; accent: string; out?: boolean;
 }) {
   return (
     <Box sx={(t) => ({
@@ -34,7 +35,18 @@ function BigTile({ icon, label, value, accent, out }: {
         <Typography variant="overline" sx={{ letterSpacing: '0.08em', fontWeight: 700 }}>{label}</Typography>
         {out && <Chip size="small" color="warning" label="Fuera de rango" sx={{ ml: 'auto' }} />}
       </Stack>
-      <Typography sx={{ fontWeight: 800, fontSize: { xs: 40, md: 64 }, lineHeight: 1 }}>{value}</Typography>
+      {/* Number and unit kept on one line: the big value never wraps ("23,0" / "°C"), and the
+          smaller unit reads as a suffix instead of stealing space from the figure. */}
+      <Stack direction="row" alignItems="baseline" spacing={0.75} sx={{ minWidth: 0 }}>
+        <Typography sx={{ fontWeight: 800, fontSize: { xs: 40, md: 64 }, lineHeight: 1, whiteSpace: 'nowrap' }}>
+          {value}
+        </Typography>
+        {unit && (
+          <Typography sx={{ fontWeight: 700, fontSize: { xs: 18, md: 28 }, lineHeight: 1, color: 'text.secondary', whiteSpace: 'nowrap' }}>
+            {unit}
+          </Typography>
+        )}
+      </Stack>
     </Box>
   );
 }
@@ -105,9 +117,9 @@ export function KioscoPage() {
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
         <BigTile icon={<ThermostatIcon />} accent={theme.palette.primary.main} label="Temperatura"
-          value={latest ? formatTemp(tempCount) : '—'} out={tempOut} />
+          value={latest ? formatNumber(tempCount) : '—'} unit={latest ? '°C' : undefined} out={tempOut} />
         <BigTile icon={<WaterDropIcon />} accent={theme.palette.secondary.main} label="Humedad"
-          value={latest ? formatPct(humCount) : '—'} out={humOut} />
+          value={latest ? formatNumber(humCount) : '—'} unit={latest ? '%' : undefined} out={humOut} />
         <BigTile icon={<AcUnitIcon />} accent={latest?.coolerOn ? theme.palette.success.main : theme.palette.text.secondary}
           label="Cooler" value={latest ? (latest.coolerOn ? 'ON' : 'OFF') : '—'} />
         <Box sx={{ flex: 1, minWidth: 200, p: 3, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
@@ -121,7 +133,7 @@ export function KioscoPage() {
         </Box>
       </Stack>
 
-      <Box sx={{ flexGrow: 1, p: { xs: 1.5, md: 3 }, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 1.5, md: 3 }, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
         <Typography variant="subtitle1" sx={{ mb: 1 }}>Últimas 2 horas</Typography>
         {points.length > 0 ? (
           <AreaLineChart
@@ -134,7 +146,10 @@ export function KioscoPage() {
             ]}
           />
         ) : (
-          <Typography variant="body2" color="text.secondary">Esperando mediciones…</Typography>
+          <Stack flexGrow={1} alignItems="center" justifyContent="center" spacing={1} sx={{ color: 'text.secondary', py: 6 }}>
+            <ShowChartRoundedIcon sx={{ fontSize: 48, opacity: 0.5 }} />
+            <Typography variant="body2">Esperando mediciones…</Typography>
+          </Stack>
         )}
       </Box>
     </Box>
