@@ -9,6 +9,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
+import InsightsIcon from '@mui/icons-material/Insights';
 import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
 import dayjs from 'dayjs';
 import { measurementApi } from '../api/measurementApi';
@@ -26,13 +27,19 @@ function BigTile({ icon, label, value, unit, accent, out }: {
 }) {
   return (
     <Box sx={(t) => ({
-      flex: 1, minWidth: 200, p: { xs: 2, md: 3 }, borderRadius: 4,
+      flex: 1, minWidth: 200, p: { xs: 2.5, md: 3 }, borderRadius: 4,
       border: `1px solid ${out ? t.palette.warning.main : t.palette.divider}`,
-      bgcolor: out ? alpha(t.palette.warning.main, 0.12) : 'background.paper',
+      bgcolor: 'background.paper',
+      // Accent tint in the metric colour (warning when out of range) for depth on the big screen.
+      backgroundImage: out
+        ? `linear-gradient(150deg, ${alpha(t.palette.warning.main, 0.16)}, ${alpha(t.palette.warning.main, 0.03)})`
+        : `linear-gradient(150deg, ${alpha(accent, 0.12)}, ${alpha(accent, 0)} 65%)`,
     })}>
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ color: accent, mb: 1 }}>
-        {icon}
-        <Typography variant="overline" sx={{ letterSpacing: '0.08em', fontWeight: 700 }}>{label}</Typography>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+        <Box sx={{ width: 40, height: 40, borderRadius: 2.5, display: 'grid', placeItems: 'center', color: accent, bgcolor: alpha(accent, 0.16) }}>
+          {icon}
+        </Box>
+        <Typography variant="overline" sx={{ letterSpacing: '0.08em', fontWeight: 700, color: accent }}>{label}</Typography>
         {out && <Chip size="small" color="warning" label="Fuera de rango" sx={{ ml: 'auto' }} />}
       </Stack>
       {/* Number and unit kept on one line: the big value never wraps ("23,0" / "°C"), and the
@@ -122,9 +129,18 @@ export function KioscoPage() {
           value={latest ? formatNumber(humCount) : '—'} unit={latest ? '%' : undefined} out={humOut} />
         <BigTile icon={<AcUnitIcon />} accent={latest?.coolerOn ? theme.palette.success.main : theme.palette.text.secondary}
           label="Cooler" value={latest ? (latest.coolerOn ? 'ON' : 'OFF') : '—'} />
-        <Box sx={{ flex: 1, minWidth: 200, p: 3, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
-          <Typography variant="overline" sx={{ letterSpacing: '0.08em', fontWeight: 700, color: 'warning.main' }}>Estado</Typography>
-          <Box sx={{ mt: 1 }}>{latest ? <StatusChip status={latest.status} /> : <Typography variant="h4">—</Typography>}</Box>
+        <Box sx={(t) => ({
+          flex: 1, minWidth: 200, p: { xs: 2.5, md: 3 }, borderRadius: 4,
+          border: `1px solid ${t.palette.divider}`, bgcolor: 'background.paper',
+          backgroundImage: `linear-gradient(150deg, ${alpha(t.palette.warning.main, 0.12)}, ${alpha(t.palette.warning.main, 0)} 65%)`,
+        })}>
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+            <Box sx={(t) => ({ width: 40, height: 40, borderRadius: 2.5, display: 'grid', placeItems: 'center', color: 'warning.main', bgcolor: alpha(t.palette.warning.main, 0.16) })}>
+              <InsightsIcon />
+            </Box>
+            <Typography variant="overline" sx={{ letterSpacing: '0.08em', fontWeight: 700, color: 'warning.main' }}>Estado</Typography>
+          </Stack>
+          <Box>{latest ? <StatusChip status={latest.status} /> : <Typography variant="h4">—</Typography>}</Box>
           {config && (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
               Rango T {config.temperatureMin}–{config.temperatureMax} °C · H {config.humidityMin}–{config.humidityMax} %
