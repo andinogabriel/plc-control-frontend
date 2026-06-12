@@ -12,7 +12,7 @@ import { type GridColDef } from '@mui/x-data-grid';
 import dayjs, { type Dayjs } from 'dayjs';
 import { configApi, type ConfigHistoryQuery } from '../api/configApi';
 import type { ConfigResponse } from '../api/types';
-import { AppDataGrid } from '../components/AppDataGrid';
+import { AppDataGrid, dataGridHeight } from '../components/AppDataGrid';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
@@ -345,7 +345,7 @@ export function ConfigHistoryPage() {
             onOpenFilters={showCards ? () => setMobileFilters(true) : undefined} />
           <MobileFilterSheet open={mobileFilters} onClose={() => setMobileFilters(false)} columns={columns} />
           {tableError ? (
-            <ErrorState onRetry={() => refetchTable()} />
+            <ErrorState height={dataGridHeight(dense)} onRetry={() => refetchTable()} />
           ) : showCards ? (
             <MobileCardList
               rows={tableData?.content ?? []}

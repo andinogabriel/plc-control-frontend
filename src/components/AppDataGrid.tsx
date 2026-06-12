@@ -8,6 +8,11 @@ const FOOTER_HEIGHT = 56;
 const VISIBLE_ROWS = 10;
 const ROW_HEIGHT = { standard: 52, compact: 40 } as const;
 
+/** Fixed height of the grid (10 rows + header + footer). Exported so empty/error states that
+ *  replace the table can reserve the same height and the layout does not jump. */
+export const dataGridHeight = (dense?: boolean) =>
+  HEADER_HEIGHT + (dense ? ROW_HEIGHT.compact : ROW_HEIGHT.standard) * VISIBLE_ROWS + FOOTER_HEIGHT;
+
 /**
  * Project-wide DataGrid wrapper: server pagination, fixed 10-row height with internal scroll,
  * the custom single-row pagination, and Spanish text (provided by the theme's esES locale).
@@ -15,7 +20,7 @@ const ROW_HEIGHT = { standard: 52, compact: 40 } as const;
  */
 export function AppDataGrid({ dense, ...props }: DataGridProps & { dense?: boolean }) {
   const rowHeight = dense ? ROW_HEIGHT.compact : ROW_HEIGHT.standard;
-  const gridHeight = HEADER_HEIGHT + rowHeight * VISIBLE_ROWS + FOOTER_HEIGHT;
+  const gridHeight = dataGridHeight(dense);
   return (
     <Box sx={{ height: gridHeight, width: '100%' }}>
       <DataGrid
