@@ -109,13 +109,16 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children, 
   );
 }
 
-function MetricCardSkeleton() {
+function MetricCardSkeleton({ tall = false }: { tall?: boolean }) {
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent sx={{ minHeight: 172, p: 2.5 }}>
         <Skeleton variant="rounded" width={44} height={44} sx={{ mb: 1.75, borderRadius: 2.5 }} />
         <Skeleton width="60%" height={16} />
         <Skeleton width="45%" height={40} sx={{ mt: 0.5 }} />
+        {/* Reserve the gauge area for the temperature/humidity cards so the skeleton matches the
+            real card height and the layout does not jump when data arrives. */}
+        {tall && <Skeleton variant="rounded" width={150} height={96} sx={{ mt: 1.5, mx: 'auto', borderRadius: 2 }} />}
         <Skeleton width="80%" height={20} sx={{ mt: 1.25 }} />
       </CardContent>
     </Card>
@@ -298,11 +301,21 @@ export function DashboardPage() {
       <Box>
         {header}
         <Grid container spacing={3}>
-          {[0, 1, 2, 3].map((i) => (
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={i}><MetricCardSkeleton /></Grid>
+          {[true, true, false, false].map((tall, i) => (
+            <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={i}><MetricCardSkeleton tall={tall} /></Grid>
           ))}
+          {/* Mirror the loaded layout (range analytics + chart) so the page keeps its height. */}
           <Grid size={12}>
-            <Card><CardContent><Skeleton variant="rounded" height={isMobile ? 260 : 340} /></CardContent></Card>
+            <Card><CardContent>
+              <Skeleton width="30%" height={26} />
+              <Skeleton variant="rounded" height={analyticsBlock} sx={{ mt: 1.5 }} />
+            </CardContent></Card>
+          </Grid>
+          <Grid size={12}>
+            <Card><CardContent>
+              <Skeleton width="30%" height={26} />
+              <Skeleton variant="rounded" height={chartBlock} sx={{ mt: 1.5 }} />
+            </CardContent></Card>
           </Grid>
         </Grid>
       </Box>
@@ -317,7 +330,7 @@ export function DashboardPage() {
       <Box>
         {header}
         <Card>
-          <CardContent>
+          <CardContent sx={{ minHeight: { xs: 360, md: 460 }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {serverError ? (
               <ErrorState onRetry={() => refetchLatest()} />
             ) : (
