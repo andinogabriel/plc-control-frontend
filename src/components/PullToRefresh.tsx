@@ -71,7 +71,9 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
   const visible = pull > 0 || refreshing;
 
   return (
-    <Box sx={{ position: 'relative' }}>
+    // Grow to fill the main flex column so the page footer stays pinned to the bottom even when
+    // the content is short (loading skeletons, empty/error states).
+    <Box sx={{ position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <Box
         aria-hidden
         sx={{

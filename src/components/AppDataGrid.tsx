@@ -2,11 +2,7 @@ import { Box } from '@mui/material';
 import { DataGrid, type DataGridProps } from '@mui/x-data-grid';
 import { DataTablePagination, PAGE_SIZE_OPTIONS } from './DataTablePagination';
 import { TableEmptyOverlay } from './TableEmptyOverlay';
-
-const HEADER_HEIGHT = 56;
-const FOOTER_HEIGHT = 56;
-const VISIBLE_ROWS = 10;
-const ROW_HEIGHT = { standard: 52, compact: 40 } as const;
+import { HEADER_HEIGHT, ROW_HEIGHT, dataGridHeight } from './dataGridLayout';
 
 /**
  * Project-wide DataGrid wrapper: server pagination, fixed 10-row height with internal scroll,
@@ -15,7 +11,7 @@ const ROW_HEIGHT = { standard: 52, compact: 40 } as const;
  */
 export function AppDataGrid({ dense, ...props }: DataGridProps & { dense?: boolean }) {
   const rowHeight = dense ? ROW_HEIGHT.compact : ROW_HEIGHT.standard;
-  const gridHeight = HEADER_HEIGHT + rowHeight * VISIBLE_ROWS + FOOTER_HEIGHT;
+  const gridHeight = dataGridHeight(dense);
   return (
     <Box sx={{ height: gridHeight, width: '100%' }}>
       <DataGrid
