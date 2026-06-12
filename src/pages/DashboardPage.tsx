@@ -22,6 +22,7 @@ import { measurementApi } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
 import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
+import { FadeIn } from '../components/FadeIn';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
@@ -438,7 +439,7 @@ export function DashboardPage() {
               ) : analyticsError ? (
                 <ErrorState dense height={analyticsBlock} onRetry={() => refetchAnalytics()} />
               ) : analyticsPoints.length > 0 ? (
-                <ControlAnalytics points={analyticsPoints} config={config} />
+                <FadeIn><ControlAnalytics points={analyticsPoints} config={config} /></FadeIn>
               ) : (
                 <EmptyState dense height={analyticsBlock} icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                   title="Sin lecturas en este rango"
@@ -492,14 +493,16 @@ export function DashboardPage() {
               ) : recentError ? (
                 <ErrorState height={chartBlock} onRetry={() => refetchRecent()} />
               ) : chartPoints.length > 0 ? (
-                <AreaLineChart
-                  height={isMobile ? 260 : 340}
-                  zoomable
-                  mode={modeOf(range)}
-                  labels={labels}
-                  onPointClick={(i) => setSelected(chartPoints[i] ?? null)}
-                  series={chartSeries}
-                />
+                <FadeIn>
+                  <AreaLineChart
+                    height={isMobile ? 260 : 340}
+                    zoomable
+                    mode={modeOf(range)}
+                    labels={labels}
+                    onPointClick={(i) => setSelected(chartPoints[i] ?? null)}
+                    series={chartSeries}
+                  />
+                </FadeIn>
               ) : (
                 <EmptyState
                   height={chartBlock}
