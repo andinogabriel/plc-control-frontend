@@ -395,7 +395,12 @@ export function ConfigHistoryPage() {
           { label: 'Humedad mín / máx', value: `${selected.humidityMin} / ${selected.humidityMax} %` },
           { label: 'Histéresis T / H', value: `${selected.hysteresisTemperature} / ${selected.hysteresisHumidity}` },
           { label: 'Intervalo de medición', value: `${selected.measurementIntervalSeconds} s` },
-          { label: 'Activa', value: selected.active ? 'Sí' : 'No' },
+          {
+            label: 'Activa',
+            value: selected.active
+              ? <Chip label="Sí" color="success" size="small" />
+              : <Chip label="No" size="small" variant="outlined" />,
+          },
         ] : []}
       />
     </Box>
