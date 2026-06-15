@@ -25,7 +25,9 @@ const toNumber = (v: unknown) => (v === '' || v === null || v === undefined ? un
 const requiredNumber = (apply: (n: z.ZodNumber) => z.ZodNumber) =>
   z.preprocess(
     toNumber,
-    apply(z.number({ required_error: 'Campo obligatorio', invalid_type_error: 'Número inválido' })),
+    // zod 4 unified error customization: one `error` callback; distinguish missing vs wrong type
+    // by whether the input was provided.
+    apply(z.number({ error: (issue) => (issue.input === undefined ? 'Campo obligatorio' : 'Número inválido') })),
   );
 
 const schema = z
