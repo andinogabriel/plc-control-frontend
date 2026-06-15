@@ -374,6 +374,7 @@ export function ConfigHistoryPage() {
               columns={columns}
               rowCount={rowCount}
               loading={!tableData}
+              onRowClick={(p) => setSelected(p.row as ConfigResponse)}
               slots={{ noRowsOverlay: () => <TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} /> }}
               paginationModel={{ page, pageSize: size }}
               onPaginationModelChange={(model) =>
