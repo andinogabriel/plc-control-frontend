@@ -1,5 +1,5 @@
-/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
+import { configDefaults } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 
@@ -20,6 +20,8 @@ export default defineConfig(({ mode }) => ({
     globals: true,
     setupFiles: './src/setupTests.ts',
     css: false,
+    // Playwright owns e2e/**; keep Vitest out of it.
+    exclude: [...configDefaults.exclude, 'e2e/**'],
   },
   build: {
     chunkSizeWarningLimit: 900,

@@ -29,8 +29,8 @@ export default tseslint.config(
     },
   },
   {
-    // Test files run in node/jsdom and use Vitest globals.
-    files: ['**/*.{test,spec}.{ts,tsx}', 'src/setupTests.ts'],
+    // Test / tooling files run in node (Vitest, Playwright config, e2e specs).
+    files: ['**/*.{test,spec}.{ts,tsx}', 'src/setupTests.ts', 'e2e/**', 'playwright.config.ts'],
     languageOptions: {
       globals: { ...globals.node },
     },
