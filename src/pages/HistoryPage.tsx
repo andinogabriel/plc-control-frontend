@@ -417,6 +417,7 @@ export function HistoryPage() {
               columns={columns}
               rowCount={rowCount}
               loading={!tableData}
+              onRowClick={(p) => setSelected(p.row as MeasurementResponse)}
               slots={{ noRowsOverlay: () => <TableEmptyOverlay hasFilters={hasTableFilters} onClear={clearTableFilters} /> }}
               paginationModel={{ page, pageSize: size }}
               onPaginationModelChange={(model) =>

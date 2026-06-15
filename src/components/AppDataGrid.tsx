@@ -39,6 +39,7 @@ export function AppDataGrid({ dense, ...props }: DataGridProps & { dense?: boole
           },
           '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 700 },
           '& .MuiDataGrid-cell': { borderColor: 'rgba(128,128,128,0.20)' },
+          '& .MuiDataGrid-row': { cursor: props.onRowClick ? 'pointer' : 'default' },
           '& .MuiDataGrid-row:hover': { backgroundColor: 'action.hover' },
           '& .MuiDataGrid-columnSeparator': { display: 'none' },
           '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': { outline: 'none' },
