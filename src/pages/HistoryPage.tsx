@@ -296,7 +296,7 @@ export function HistoryPage() {
       </Card>
 
       {hasChartFilters && (
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }} alignItems="center">
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 2, alignItems: 'center' }}>
           <Typography variant="caption" color="text.secondary">Gráficos:</Typography>
           {gFromParam && (
             <Chip size="small" label={`Desde ${fmtChip(gFromParam)}`}
@@ -315,8 +315,8 @@ export function HistoryPage() {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={tempChartRef}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 <Box sx={{ width: 6, height: 22, borderRadius: 1, bgcolor: 'primary.main' }} />
                 <Typography variant="subtitle1">Temperatura vs tiempo</Typography>
               </Stack>
@@ -345,8 +345,8 @@ export function HistoryPage() {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={humChartRef}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 <Box sx={{ width: 6, height: 22, borderRadius: 1, bgcolor: 'secondary.main' }} />
                 <Typography variant="subtitle1">Humedad vs tiempo</Typography>
               </Stack>
@@ -376,7 +376,7 @@ export function HistoryPage() {
       </Grid>
 
       {configMarkers.length > 0 && (
-        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 3, color: 'text.secondary' }}>
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', mb: 3, color: 'text.secondary' }}>
           <Box sx={{ width: 18, borderTop: '2px dashed', borderColor: 'info.main' }} />
           <Typography variant="caption">Líneas verticales: cambios de configuración ({configMarkers.length})</Typography>
         </Stack>

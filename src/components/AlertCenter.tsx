@@ -42,7 +42,7 @@ export function AlertCenter() {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{ paper: { sx: { width: 340, maxWidth: '92vw' } } }}
       >
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.25 }}>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.25 }}>
           <Typography variant="subtitle2">Alertas</Typography>
           {events.length > 0 && <Button size="small" onClick={clear}>Limpiar</Button>}
         </Stack>

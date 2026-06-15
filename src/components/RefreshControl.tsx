@@ -34,7 +34,7 @@ export function RefreshControl({ lastUpdated, paused, onToggle }: {
     : ago == null ? 'Actualizando…' : `Actualizado ${formatAgo(ago)}`;
 
   return (
-    <Stack direction="row" spacing={0.75} alignItems="center">
+    <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
       {!paused && (
         <Box sx={{
           width: 8, height: 8, borderRadius: '50%', bgcolor: 'success.main',

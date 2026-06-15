@@ -22,7 +22,7 @@ export function TableToolbar({ dense, onToggleDense, onExportCsv, exportDisabled
   onSetViewMode?: (mode: ViewMode) => void;
 }) {
   return (
-    <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center" sx={{ mb: 1.5 }}>
+    <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end', alignItems: 'center', mb: 1.5 }}>
       {onOpenFilters && (
         <Button size="small" variant="outlined" startIcon={<FilterAltRoundedIcon />}
           onClick={onOpenFilters} sx={{ mr: 'auto' }}>

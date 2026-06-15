@@ -92,7 +92,7 @@ export function AreaLineChart({
   return (
     <Box>
       {/* Custom clickable legend: tap an item to show/hide its line. */}
-      <Stack direction="row" justifyContent="center" alignItems="center" flexWrap="wrap" gap={2} sx={{ mb: 1, position: 'relative' }}>
+      <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 1, position: 'relative' }}>
         {series.map((s) => {
           const off = hidden.has(s.id);
           return (
@@ -127,7 +127,7 @@ export function AreaLineChart({
         onAxisClick={handlePointClick ? (_event, data) => { if (data) handlePointClick(data.dataIndex); } : undefined}
         sx={[chartSx, areaFillSx, dashSx, handlePointClick ? { cursor: 'pointer' } : {}]}
         slots={{ legend: NoLegend }}
-        slotProps={{ noDataOverlay: { message: 'No hay líneas seleccionadas' } }}
+        localeText={{ noData: 'No hay líneas seleccionadas' }}
         xAxis={[{
           data: viewLabels,
           scaleType: xScale,

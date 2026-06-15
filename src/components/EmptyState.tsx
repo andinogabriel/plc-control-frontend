@@ -17,10 +17,8 @@ export function EmptyState({ icon, title, description, action, dense, height }: 
 }) {
   return (
     <Stack
-      alignItems="center"
-      justifyContent="center"
       spacing={1.25}
-      sx={{ height: height ?? '100%', minHeight: height ?? (dense ? 120 : 180), textAlign: 'center', px: 2, py: dense ? 2 : 4 }}
+      sx={{ alignItems: 'center', justifyContent: 'center', height: height ?? '100%', minHeight: height ?? (dense ? 120 : 180), textAlign: 'center', px: 2, py: dense ? 2 : 4 }}
     >
       <Box sx={{
         width: 56, height: 56, borderRadius: '50%', display: 'grid', placeItems: 'center',

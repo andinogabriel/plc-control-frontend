@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!this.state.error) return this.props.children;
     return (
       <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '60vh', p: 3 }}>
-        <Stack spacing={1.5} alignItems="center" textAlign="center" sx={{ maxWidth: 420 }}>
+        <Stack spacing={1.5} sx={{ alignItems: 'center', textAlign: 'center', maxWidth: 420 }}>
           <ReportProblemOutlinedIcon color="warning" sx={{ fontSize: 48 }} />
           <Typography variant="h6">Algo salió mal en esta vista</Typography>
           <Typography variant="body2" color="text.secondary">
