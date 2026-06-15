@@ -10,8 +10,7 @@ import {
 } from '@mui/material';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
-
-export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+import { PAGE_SIZE_OPTIONS } from './dataGridLayout';
 
 /**
  * Custom DataGrid pagination:

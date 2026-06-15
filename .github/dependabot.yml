@@ -11,6 +11,11 @@ updates:
       npm-minor-patch:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    ignore:
+      # eslint 10 is blocked until eslint-plugin-jsx-a11y supports it (peers eslint <=9).
+      # Remove this once the plugin ships eslint 10 support.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
 
   # Keep the GitHub Actions in the CI workflow current.
   - package-ecosystem: "github-actions"
