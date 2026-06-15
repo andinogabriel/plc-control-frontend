@@ -212,15 +212,19 @@ export function ConfigurationPage() {
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField fullWidth label="Nombre" {...register('createdByName')}
-                      InputLabelProps={shrink('createdByName')}
                       error={!!errors.createdByName} helperText={errors.createdByName?.message}
-                      InputProps={{ endAdornment: isFilledValid('createdByName') ? <InputAdornment position="end">{validCheck}</InputAdornment> : undefined }} />
+                      slotProps={{
+                        inputLabel: shrink('createdByName'),
+                        input: { endAdornment: isFilledValid('createdByName') ? <InputAdornment position="end">{validCheck}</InputAdornment> : undefined },
+                      }} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField fullWidth label="Email" {...register('createdByEmail')}
-                      InputLabelProps={shrink('createdByEmail')}
                       error={!!errors.createdByEmail} helperText={errors.createdByEmail?.message}
-                      InputProps={{ endAdornment: isFilledValid('createdByEmail') ? <InputAdornment position="end">{validCheck}</InputAdornment> : undefined }} />
+                      slotProps={{
+                        inputLabel: shrink('createdByEmail'),
+                        input: { endAdornment: isFilledValid('createdByEmail') ? <InputAdornment position="end">{validCheck}</InputAdornment> : undefined },
+                      }} />
                   </Grid>
                 </Grid>
 
@@ -229,32 +233,35 @@ export function ConfigurationPage() {
                 <Grid container spacing={2}>
                   {fields.map((f) => (
                     <Grid size={{ xs: 12, sm: 6 }} key={f.name}>
-                      <TextField fullWidth type="number" inputProps={{ step: 'any' }}
+                      <TextField fullWidth type="number"
                         label={f.label} {...register(f.name, f.deps ? { deps: f.deps } : undefined)}
-                        InputLabelProps={shrink(f.name)}
                         error={!!errors[f.name]} helperText={errors[f.name]?.message}
-                        InputProps={(f.help || isFilledValid(f.name)) ? {
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              {isFilledValid(f.name) && (
-                                <CheckCircleRoundedIcon fontSize="small" color="success" sx={{ mr: f.help ? 0.5 : 0 }} />
-                              )}
-                              {f.help && (
-                                <Tooltip title={f.help} arrow enterTouchDelay={0}
-                                  slotProps={{ tooltip: { sx: { maxWidth: 280 } } }}>
-                                  <IconButton edge="end" size="small" tabIndex={-1} aria-label="¿Qué es la histéresis?">
-                                    <InfoOutlinedIcon fontSize="small" color="action" />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                            </InputAdornment>
-                          ),
-                        } : undefined} />
+                        slotProps={{
+                          htmlInput: { step: 'any' },
+                          inputLabel: shrink(f.name),
+                          input: (f.help || isFilledValid(f.name)) ? {
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                {isFilledValid(f.name) && (
+                                  <CheckCircleRoundedIcon fontSize="small" color="success" sx={{ mr: f.help ? 0.5 : 0 }} />
+                                )}
+                                {f.help && (
+                                  <Tooltip title={f.help} arrow enterTouchDelay={0}
+                                    slotProps={{ tooltip: { sx: { maxWidth: 280 } } }}>
+                                    <IconButton edge="end" size="small" tabIndex={-1} aria-label="¿Qué es la histéresis?">
+                                      <InfoOutlinedIcon fontSize="small" color="action" />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
+                              </InputAdornment>
+                            ),
+                          } : undefined,
+                        }} />
                     </Grid>
                   ))}
                 </Grid>
 
-                <Stack direction="row" spacing={2} alignItems="center" justifyContent="flex-end" mt={3}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'flex-end', mt: 3 }}>
                   <Button type="submit" variant="contained"
                     loading={mutation.isPending} loadingPosition="start" startIcon={<SaveRoundedIcon />}>
                     Guardar configuración
@@ -303,7 +310,7 @@ export function ConfigurationPage() {
                   ) : (
                     <Stack spacing={1}>
                       {diffRows.map(([label, before, after, unit]) => (
-                        <Stack key={label} direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+                        <Stack key={label} direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                           <Typography variant="body2" sx={{ minWidth: 96 }}>{label}</Typography>
                           <Chip size="small" variant="outlined" label={`${before}${unit}`} />
                           <ArrowRightAltRoundedIcon fontSize="small" color="action" />

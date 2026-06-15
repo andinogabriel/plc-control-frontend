@@ -35,11 +35,9 @@ export function DataTablePagination() {
   return (
     <Stack
       direction="row"
-      alignItems="center"
-      justifyContent="space-between"
-      sx={{ width: '100%', px: { xs: 1, sm: 2 }, py: 0.5, gap: 1 }}
+      sx={{ alignItems: 'center', justifyContent: 'space-between', width: '100%', px: { xs: 1, sm: 2 }, py: 0.5, gap: 1 }}
     >
-      <Stack direction="row" alignItems="center" spacing={1}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
         <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
           Filas:
         </Typography>
@@ -67,7 +65,7 @@ export function DataTablePagination() {
       </Typography>
 
       {isMobile ? (
-        <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
           <IconButton size="small" aria-label="Página anterior"
             disabled={page <= 0} onClick={() => apiRef.current.setPage(page - 1)}>
             <ChevronLeftRoundedIcon />

@@ -22,6 +22,9 @@ export default defineConfig(({ mode }) => ({
     css: false,
     // Playwright owns e2e/**; keep Vitest out of it.
     exclude: [...configDefaults.exclude, 'e2e/**'],
+    // MUI 9 ships .mjs that directory-import react-transition-group, which Node's ESM resolver
+    // (used by Vitest) rejects. Inline them so Vite's resolver handles it.
+    server: { deps: { inline: [/@mui\//, 'react-transition-group'] } },
   },
   build: {
     chunkSizeWarningLimit: 900,

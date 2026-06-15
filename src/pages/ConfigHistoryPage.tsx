@@ -267,7 +267,7 @@ export function ConfigHistoryPage() {
       </Card>
 
       {hasChartFilters && (
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }} alignItems="center">
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 2, alignItems: 'center' }}>
           <Typography variant="caption" color="text.secondary">Gráficos:</Typography>
           {gFromParam && (
             <Chip size="small" label={`Desde ${fmtChip(gFromParam)}`}
@@ -282,7 +282,7 @@ export function ConfigHistoryPage() {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={tempChartRef}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de temperatura</Typography>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
@@ -310,7 +310,7 @@ export function ConfigHistoryPage() {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={humChartRef}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de humedad</Typography>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}

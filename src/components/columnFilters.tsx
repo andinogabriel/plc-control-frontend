@@ -40,7 +40,7 @@ export function SortableHeader({ label, sortDirection, onToggleSort }: {
   label: string; sortDirection?: SortDirection; onToggleSort?: () => void;
 }) {
   return (
-    <Stack direction="row" alignItems="center" justifyContent="center" sx={{ width: '100%' }}>
+    <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}>
       <SortableTitle label={label} sortDirection={sortDirection} onToggleSort={onToggleSort} />
     </Stack>
   );
@@ -65,7 +65,7 @@ function FilterShell({ label, active, canApply, disabled, sortDirection, onToggl
     <Box sx={{ p: 2, width: isMobile ? 'auto' : 280 }}>
       {isMobile && <Typography variant="subtitle2" sx={{ mb: 1.5 }}>Filtrar: {label}</Typography>}
       {children}
-      <Stack direction="row" justifyContent="flex-end" spacing={1} mt={2}>
+      <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end', mt: 2 }}>
         <Button size={isMobile ? 'medium' : 'small'} onClick={() => { onClear(); close(); }}>Limpiar</Button>
         <Button size={isMobile ? 'medium' : 'small'} variant="contained" disabled={!canApply}
           onClick={() => { onApply(); close(); }}>
@@ -76,7 +76,7 @@ function FilterShell({ label, active, canApply, disabled, sortDirection, onToggl
   );
 
   return (
-    <Stack direction="row" alignItems="center" justifyContent="center" spacing={0} sx={{ width: '100%' }}>
+    <Stack direction="row" spacing={0} sx={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}>
       <SortableTitle label={label} sortDirection={sortDirection} onToggleSort={onToggleSort} />
       <IconButton size="small" disabled={disabled} onClick={(e) => setAnchor(e.currentTarget)}
         aria-label={`Filtrar ${label}`} sx={{ p: 0.25, ml: 0.25, flexShrink: 0 }}>
@@ -135,7 +135,7 @@ export function NumberFilterHeader({ label, value, onApply, min, max, disabled, 
       onClear={() => { setDraft(''); onApply(undefined); }}>
       <TextField autoFocus size="small" fullWidth type="number" label="Igual a" value={draft}
         onChange={(e) => setDraft(e.target.value)} error={!valid}
-        helperText={!valid ? `Debe estar entre ${min} y ${max}` : ' '} inputProps={{ step: 'any' }} />
+        helperText={!valid ? `Debe estar entre ${min} y ${max}` : ' '} slotProps={{ htmlInput: { step: 'any' } }} />
     </FilterShell>
   );
 }
@@ -163,9 +163,9 @@ export function NumberRangeFilterHeader({ label, min, max, onApply, lo, hi, disa
       onClear={() => { setDMin(''); setDMax(''); onApply(undefined, undefined); }}>
       <Stack spacing={1.5}>
         <TextField autoFocus size="small" type="number" label="Mín" value={dMin}
-          onChange={(e) => setDMin(e.target.value)} error={!minOk || !rangeOk} inputProps={{ step: 'any' }} />
+          onChange={(e) => setDMin(e.target.value)} error={!minOk || !rangeOk} slotProps={{ htmlInput: { step: 'any' } }} />
         <TextField size="small" type="number" label="Máx" value={dMax}
-          onChange={(e) => setDMax(e.target.value)} error={!maxOk || !rangeOk} inputProps={{ step: 'any' }} />
+          onChange={(e) => setDMax(e.target.value)} error={!maxOk || !rangeOk} slotProps={{ htmlInput: { step: 'any' } }} />
         {!rangeOk && <Typography variant="caption" color="error">Mín debe ser ≤ Máx</Typography>}
         <Typography variant="caption" color="text.secondary">Rango permitido: {lo} a {hi}</Typography>
       </Stack>

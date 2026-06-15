@@ -35,7 +35,7 @@ function BigTile({ icon, label, value, unit, accent, out }: {
         ? `linear-gradient(150deg, ${alpha(t.palette.warning.main, 0.16)}, ${alpha(t.palette.warning.main, 0.03)})`
         : `linear-gradient(150deg, ${alpha(accent, 0.12)}, ${alpha(accent, 0)} 65%)`,
     })}>
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
         <Box sx={{ width: 40, height: 40, borderRadius: 2.5, display: 'grid', placeItems: 'center', color: accent, bgcolor: alpha(accent, 0.16) }}>
           {icon}
         </Box>
@@ -44,7 +44,7 @@ function BigTile({ icon, label, value, unit, accent, out }: {
       </Stack>
       {/* Number and unit kept on one line: the big value never wraps ("23,0" / "°C"), and the
           smaller unit reads as a suffix instead of stealing space from the figure. */}
-      <Stack direction="row" alignItems="baseline" spacing={0.75} sx={{ minWidth: 0 }}>
+      <Stack direction="row" spacing={0.75} sx={{ alignItems: 'baseline', minWidth: 0 }}>
         <Typography sx={{ fontWeight: 800, fontSize: { xs: 40, md: 64 }, lineHeight: 1, whiteSpace: 'nowrap' }}>
           {value}
         </Typography>
@@ -106,7 +106,7 @@ export function KioscoPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Stack direction="row" alignItems="center" spacing={2}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
         <ThermostatIcon sx={{ color: 'primary.main', fontSize: 32 }} />
         <Typography variant="h5" sx={{ fontWeight: 800 }}>Monitor en vivo</Typography>
         <Box sx={{ flexGrow: 1 }} />
@@ -134,7 +134,7 @@ export function KioscoPage() {
           border: `1px solid ${t.palette.divider}`, bgcolor: 'background.paper',
           backgroundImage: `linear-gradient(150deg, ${alpha(t.palette.warning.main, 0.12)}, ${alpha(t.palette.warning.main, 0)} 65%)`,
         })}>
-          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
             <Box sx={(t) => ({ width: 40, height: 40, borderRadius: 2.5, display: 'grid', placeItems: 'center', color: 'warning.main', bgcolor: alpha(t.palette.warning.main, 0.16) })}>
               <InsightsIcon />
             </Box>
@@ -162,7 +162,7 @@ export function KioscoPage() {
             ]}
           />
         ) : (
-          <Stack flexGrow={1} alignItems="center" justifyContent="center" spacing={1} sx={{ color: 'text.secondary', py: 6 }}>
+          <Stack spacing={1} sx={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', color: 'text.secondary', py: 6 }}>
             <ShowChartRoundedIcon sx={{ fontSize: 48, opacity: 0.5 }} />
             <Typography variant="body2">Esperando mediciones…</Typography>
           </Stack>

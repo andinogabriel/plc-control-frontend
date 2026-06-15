@@ -80,9 +80,9 @@ export function DetailDialog({ open, title, rows, onClose }: {
       <DialogContent dividers>
         <Stack divider={<Divider flexItem />} spacing={1.25}>
           {rows.map((r) => (
-            <Stack key={r.label} direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+            <Stack key={r.label} direction="row" spacing={2} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary">{r.label}</Typography>
-              <Typography variant="body2" fontWeight={600} component="div" sx={{ textAlign: 'right' }}>
+              <Typography variant="body2" component="div" sx={{ fontWeight: 600, textAlign: 'right' }}>
                 {r.value}
               </Typography>
             </Stack>

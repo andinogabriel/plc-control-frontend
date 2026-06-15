@@ -100,9 +100,9 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children, 
             {label}
           </Typography>
           {value !== undefined && (
-            <Typography variant="h4" fontWeight={700} sx={{ mt: 0.25 }} component="div">{value}</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 700, mt: 0.25 }} component="div">{value}</Typography>
           )}
-          <Box mt={1.25}>{children}</Box>
+          <Box sx={{ mt: 1.25 }}>{children}</Box>
         </CardContent>
       </CardActionArea>
     </Card>
@@ -273,12 +273,12 @@ export function DashboardPage() {
   ];
 
   const header = (
-    <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
-      <Stack direction="row" alignItems="baseline" spacing={2}>
+    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: 'baseline' }}>
         <Typography variant="h4">Dashboard</Typography>
         <Typography component="span" ref={printTimeRef} className="print-only" variant="body2" color="text.secondary" />
       </Stack>
-      <Stack className="no-print" direction="row" spacing={1} alignItems="center">
+      <Stack className="no-print" direction="row" spacing={1} sx={{ alignItems: 'center' }}>
         {!isLoading && !isError && (
           <RefreshControl lastUpdated={dataUpdatedAt} paused={paused} onToggle={() => setPaused((p) => !p)} />
         )}
@@ -372,7 +372,7 @@ export function DashboardPage() {
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard index={0} icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
             value={(
-              <Stack direction="row" alignItems="baseline" spacing={1}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline' }}>
                 <span>{formatTemp(tempCount)}</span>
                 {tempDelta != null && <Delta value={tempDelta} unit="°C" />}
               </Stack>
@@ -381,7 +381,7 @@ export function DashboardPage() {
             {config
               ? <RadialGauge value={latest.temperature} min={config.temperatureMin} max={config.temperatureMax} hysteresis={config.hysteresisTemperature} unit="°C" />
               : <Sparkline data={tempSpark} color={theme.palette.primary.main} />}
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
               {config && (
                 <Typography variant="caption" color="text.secondary">
                   Rango: {config.temperatureMin}–{config.temperatureMax} °C
@@ -394,7 +394,7 @@ export function DashboardPage() {
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard index={1} icon={<WaterDropIcon />} color={humOut ? 'warning' : 'secondary'} label="Humedad actual"
             value={(
-              <Stack direction="row" alignItems="baseline" spacing={1}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline' }}>
                 <span>{formatPct(humCount)}</span>
                 {humDelta != null && <Delta value={humDelta} unit="%" />}
               </Stack>
@@ -403,7 +403,7 @@ export function DashboardPage() {
             {config
               ? <RadialGauge value={latest.humidity} min={config.humidityMin} max={config.humidityMax} hysteresis={config.hysteresisHumidity} unit="%" />
               : <Sparkline data={humSpark} color={theme.palette.secondary.main} />}
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
               {config && (
                 <Typography variant="caption" color="text.secondary">
                   Rango: {config.humidityMin}–{config.humidityMax} %
@@ -431,7 +431,7 @@ export function DashboardPage() {
         <Grid size={12}>
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                 <Typography variant="subtitle1">Análisis del rango</Typography>
                 <TextField
                   select size="small" value={analyticsRange} onChange={(e) => setAnalyticsRange(e.target.value)}
@@ -466,9 +466,9 @@ export function DashboardPage() {
         <Grid size={12}>
           <Card>
             <CardContent ref={chartRef}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                 <Typography variant="subtitle1">Últimas lecturas</Typography>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                   <Chip
                     icon={<CompareArrowsRoundedIcon />}
                     label="Período anterior"

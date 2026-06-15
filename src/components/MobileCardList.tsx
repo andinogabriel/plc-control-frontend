@@ -39,7 +39,7 @@ export function MobileCardList<T>({ rows, getCard, onRowClick, loading, empty, p
         <Typography variant="subtitle2" sx={{ mb: 1 }}>{card.title}</Typography>
         <Stack divider={<Divider flexItem />} spacing={0.75}>
           {card.fields.map((f) => (
-            <Stack key={f.label} direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+            <Stack key={f.label} direction="row" spacing={2} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="caption" color="text.secondary">{f.label}</Typography>
               <Box sx={{ textAlign: 'right', fontSize: 14, fontWeight: 600 }}>{f.value}</Box>
             </Stack>
@@ -55,7 +55,7 @@ export function MobileCardList<T>({ rows, getCard, onRowClick, loading, empty, p
   };
 
   const pager = (
-    <Stack direction="row" alignItems="center" justifyContent="center" spacing={1} sx={{ pt: 1.5 }}>
+    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'center', pt: 1.5 }}>
       <IconButton size="small" aria-label="Página anterior" disabled={page <= 0} onClick={() => onPageChange(page - 1)}>
         <ChevronLeftRoundedIcon />
       </IconButton>

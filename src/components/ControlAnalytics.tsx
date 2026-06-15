@@ -15,7 +15,7 @@ function StatTile({ label, value, hint, accent = 'primary' }: {
       borderLeft: `3px solid ${t.palette[accent].main}`,
     })}>
       <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2, display: 'block' }}>{label}</Typography>
-      <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>{value}</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>{value}</Typography>
       {hint && <Typography variant="caption" color="text.secondary">{hint}</Typography>}
     </Box>
   );
@@ -101,11 +101,11 @@ export function ControlAnalytics({ points, config }: {
           ))}
         </Box>
         <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
-          <Stack direction="row" spacing={0.5} alignItems="center">
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
             <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: 'success.main', opacity: 0.85 }} />
             <Typography variant="caption" color="text.secondary">Encendido</Typography>
           </Stack>
-          <Stack direction="row" spacing={0.5} alignItems="center">
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
             <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: 'action.hover' }} />
             <Typography variant="caption" color="text.secondary">Apagado</Typography>
           </Stack>
