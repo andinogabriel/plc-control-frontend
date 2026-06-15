@@ -1,8 +1,8 @@
 import { Box } from '@mui/material';
 import { DataGrid, type DataGridProps } from '@mui/x-data-grid';
-import { DataTablePagination, PAGE_SIZE_OPTIONS } from './DataTablePagination';
+import { DataTablePagination } from './DataTablePagination';
 import { TableEmptyOverlay } from './TableEmptyOverlay';
-import { HEADER_HEIGHT, ROW_HEIGHT, dataGridHeight } from './dataGridLayout';
+import { HEADER_HEIGHT, ROW_HEIGHT, PAGE_SIZE_OPTIONS, dataGridHeight } from './dataGridLayout';
 
 /**
  * Project-wide DataGrid wrapper: server pagination, fixed 10-row height with internal scroll,
