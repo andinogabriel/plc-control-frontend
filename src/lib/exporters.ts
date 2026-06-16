@@ -69,6 +69,19 @@ export interface ChartPngMeta {
 const FONT_STACK = 'Inter, Roboto, Helvetica, Arial, sans-serif';
 
 /**
+ * High-contrast ink colour for the given background. The on-screen axis labels use a muted grey
+ * (`text.secondary`) that reads fine in the card but washes out on a flat exported image, so the
+ * export forces a near-black (on light) or near-white (on dark) colour instead.
+ */
+export function contrastInk(bg: string): string {
+  const parts = bg.match(/\d+(\.\d+)?/g);
+  if (!parts || parts.length < 3) return '#0f172a';
+  const [r, g, b] = parts.map(Number);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.55 ? '#0f172a' : '#f8fafc';
+}
+
+/**
  * Serialises the first chart SVG inside {@code container} to a PNG and downloads it. Computed
  * styles are inlined so the export matches the on-screen chart (colours, strokes, fonts),
  * regardless of light/dark theme. A title header and a footer (source screen + download
@@ -90,13 +103,19 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
   const clone = svg.cloneNode(true) as SVGSVGElement;
   inlineSvgStyles(svg, clone);
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  clone.setAttribute('width', String(rect.width));
-  clone.setAttribute('height', String(rect.height));
 
   const styles = getComputedStyle(container as Element);
   const bg = styles.backgroundColor || '#ffffff';
   const opaqueBg = bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent' ? '#ffffff' : bg;
-  const textColor = styles.color || '#111827';
+  const textColor = contrastInk(opaqueBg);
+
+  // The muted-grey axis text washes out on the flat export; force it to the high-contrast ink.
+  // (Reference-line labels live outside `MuiChartsAxis-root`, so their colours are preserved.)
+  clone.querySelectorAll('.MuiChartsAxis-root text, .MuiChartsAxis-root tspan').forEach((el) => {
+    (el as SVGElement).style.fill = textColor;
+  });
+  clone.setAttribute('width', String(rect.width));
+  clone.setAttribute('height', String(rect.height));
 
   const headerH = meta.title ? 36 : 0;
   const footerH = 26;
