@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
-  Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Button, IconButton, Stack, Chip,
+  Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Button, Divider, IconButton, Stack, Chip,
   MenuItem, TextField, Skeleton, Tooltip, useMediaQuery, useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
@@ -485,6 +485,8 @@ export function DashboardPage() {
                       <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
                     ))}
                   </TextField>
+                  {/* Separate the view controls (compare + range) from the export action. */}
+                  <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.75 }} />
                   <Tooltip title="Descargar PNG">
                     <span>
                       <IconButton size="small" className="no-print" disabled={chartPoints.length === 0}
