@@ -45,6 +45,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         autoHideDuration={4000}
         onClose={(_e, reason) => { if (reason !== 'clickaway') setOpen(false); }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        // Lift above the fixed mobile bottom-nav (~56px + iOS safe area); default spacing on md+.
+        sx={{ bottom: { xs: 'calc(72px + env(safe-area-inset-bottom))', md: 24 } }}
       >
         <Alert
           severity={toast.severity}
