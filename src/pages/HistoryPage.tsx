@@ -264,7 +264,7 @@ export function HistoryPage() {
   ]);
 
   return (
-    <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
+    <Box>
       <Typography variant="h4" gutterBottom>Mediciones</Typography>
       <Typography variant="body2" color="text.secondary" gutterBottom>
         Histórico de lecturas de la Raspberry. El rango de arriba ajusta los gráficos; la tabla se

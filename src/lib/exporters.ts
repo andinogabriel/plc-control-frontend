@@ -76,8 +76,12 @@ const FONT_STACK = 'Inter, Roboto, Helvetica, Arial, sans-serif';
  */
 export async function exportChartPng(container: HTMLElement | null, filename: string, meta: ChartPngMeta = {}) {
   // Target the chart surface specifically: the card also contains the download button's icon
-  // SVG (which would otherwise be picked first and exported as a blank image).
-  const svg = container?.querySelector('.MuiChartsSurface-root') ?? container?.querySelector('svg');
+  // SVG (which would otherwise be picked first and exported as a blank image). MUI X v9 moved
+  // the `MuiChartsSurface-root` class onto the layer container (a <div>) with the <svg> nested
+  // inside; older versions put it on the <svg> itself. Resolve to the real <svg> either way.
+  const surface = container?.querySelector('.MuiChartsSurface-root');
+  const svg = (surface instanceof SVGSVGElement ? surface : surface?.querySelector('svg'))
+    ?? container?.querySelector('svg');
   if (!svg) return;
 
   const rect = svg.getBoundingClientRect();
