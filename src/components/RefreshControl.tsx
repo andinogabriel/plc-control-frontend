@@ -39,6 +39,10 @@ export function RefreshControl({ lastUpdated, paused, onToggle }: {
         <Box sx={{
           width: 8, height: 8, borderRadius: '50%', bgcolor: 'success.main',
           boxShadow: (t) => `0 0 0 3px ${t.palette.success.main}22`,
+          // Gentle "live" pulse, matching the AppBar health badge. Off under reduced motion.
+          animation: 'rcPulse 2s ease-in-out infinite',
+          '@keyframes rcPulse': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.45 } },
+          '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
         }} />
       )}
       <Typography variant="caption" color="text.secondary">{label}</Typography>
