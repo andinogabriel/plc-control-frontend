@@ -180,6 +180,10 @@ export function ConfigurationPage() {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Configuración de umbrales</Typography>
+      <Typography variant="body2" color="text.secondary" gutterBottom>
+        Definí la banda objetivo de temperatura y humedad y la histéresis del cooler. Guardar crea
+        una nueva configuración activa para la Raspberry.
+      </Typography>
 
       {latest && (
         <Alert severity="info" action={(
