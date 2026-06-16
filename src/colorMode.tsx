@@ -30,7 +30,9 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
   return (
     <ColorModeContext.Provider value={value}>
       <ThemeProvider theme={theme}>
-        <CssBaseline />
+        {/* enableColorScheme sets the CSS `color-scheme` so native UI (scrollbars, form
+            controls, autofill) follows light/dark instead of staying light on the dark theme. */}
+        <CssBaseline enableColorScheme />
         {children}
       </ThemeProvider>
     </ColorModeContext.Provider>

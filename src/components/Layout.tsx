@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  AppBar, Box, Divider, Drawer, Fade, IconButton, Link as MuiLink, List, ListItem, ListItemButton,
+  AppBar, Box, Divider, Drawer, IconButton, Link as MuiLink, List, ListItem, ListItemButton,
   ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Tooltip, Typography,
   useMediaQuery, useTheme,
 } from '@mui/material';
@@ -120,7 +120,15 @@ export function Layout({ children }: { children: ReactNode }) {
               to={item.path}
               selected={location.pathname === item.path}
               onClick={() => setMobileOpen(false)}
-              sx={{ borderRadius: 2, mx: 1, my: 0.25 }}
+              sx={{
+                borderRadius: 2, mx: 1, my: 0.25, position: 'relative',
+                // Leading accent bar on the active item, on top of the tinted background.
+                '&.Mui-selected::before': {
+                  content: '""', position: 'absolute', left: 3, top: '50%',
+                  transform: 'translateY(-50%)', width: 3, height: '56%',
+                  borderRadius: 4, backgroundColor: 'primary.main',
+                },
+              }}
             >
               <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />
@@ -208,9 +216,21 @@ export function Layout({ children }: { children: ReactNode }) {
         <Toolbar />
         <Box className="no-print" sx={{ mb: 1 }}><OfflineBanner /></Box>
         <PullToRefresh>
-          <Fade in key={location.pathname} timeout={reducedMotion ? 0 : 220}>
-            <Box sx={{ flexGrow: 1 }}>{children}</Box>
-          </Fade>
+          {/* Per-route enter transition: a subtle fade + upward slide. Keyed by pathname so it
+              replays on navigation; disabled under reduced-motion. */}
+          <Box
+            key={location.pathname}
+            sx={{
+              flexGrow: 1,
+              '@keyframes pageIn': {
+                from: { opacity: 0, transform: 'translateY(8px)' },
+                to: { opacity: 1, transform: 'none' },
+              },
+              animation: reducedMotion ? 'none' : 'pageIn 260ms ease',
+            }}
+          >
+            {children}
+          </Box>
         </PullToRefresh>
         <Footer />
       </Box>

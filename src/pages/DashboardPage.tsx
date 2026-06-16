@@ -100,7 +100,7 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children, 
             {label}
           </Typography>
           {value !== undefined && (
-            <Typography variant="h4" sx={{ fontWeight: 700, mt: 0.25 }} component="div">{value}</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 700, mt: 0.25, fontVariantNumeric: 'tabular-nums' }} component="div">{value}</Typography>
           )}
           <Box sx={{ mt: 1.25 }}>{children}</Box>
         </CardContent>

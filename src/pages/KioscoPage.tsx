@@ -45,7 +45,7 @@ function BigTile({ icon, label, value, unit, accent, out }: {
       {/* Number and unit kept on one line: the big value never wraps ("23,0" / "°C"), and the
           smaller unit reads as a suffix instead of stealing space from the figure. */}
       <Stack direction="row" spacing={0.75} sx={{ alignItems: 'baseline', minWidth: 0 }}>
-        <Typography sx={{ fontWeight: 800, fontSize: { xs: 40, md: 64 }, lineHeight: 1, whiteSpace: 'nowrap' }}>
+        <Typography sx={{ fontWeight: 800, fontSize: { xs: 40, md: 64 }, lineHeight: 1, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
           {value}
         </Typography>
         {unit && (

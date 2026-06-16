@@ -48,6 +48,34 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
       components: {
         MuiCssBaseline: {
           styleOverrides: {
+            body: {
+              // Crisper Inter rendering, especially on the dark theme.
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+              textRendering: 'optimizeLegibility',
+            },
+            // Brand-tinted text selection instead of the browser's default blue.
+            '::selection': {
+              backgroundColor: alpha(base.palette.primary.main, 0.24),
+            },
+            // Thin, theme-aware scrollbars (Firefox + WebKit) that blend into the dark UI
+            // instead of showing the default light chrome on the navy background.
+            '*': {
+              scrollbarWidth: 'thin',
+              scrollbarColor: `${alpha(base.palette.text.primary, 0.28)} transparent`,
+            },
+            '*::-webkit-scrollbar': { width: 10, height: 10 },
+            '*::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
+            '*::-webkit-scrollbar-thumb': {
+              backgroundColor: alpha(base.palette.text.primary, 0.22),
+              borderRadius: 8,
+              // Inset the thumb with a transparent border so it reads as a slim pill.
+              border: '2px solid transparent',
+              backgroundClip: 'content-box',
+            },
+            '*::-webkit-scrollbar-thumb:hover': {
+              backgroundColor: alpha(base.palette.text.primary, 0.4),
+            },
             // Visible keyboard focus across the app (mouse clicks stay clean via :focus-visible).
             '*:focus-visible': {
               outline: `2px solid ${base.palette.primary.main}`,
@@ -63,9 +91,12 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
               '@media (hover: hover)': {
                 '&:hover': { transform: 'translateY(-2px)' },
               },
+              // Tactile press feedback: settle slightly on click.
+              '&:active': { transform: 'scale(0.985)' },
               '@media (prefers-reduced-motion: reduce)': {
                 transition: 'none',
                 '&:hover': { transform: 'none' },
+                '&:active': { transform: 'none' },
               },
             },
           },
@@ -107,7 +138,13 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
         MuiButton: {
           defaultProps: { disableElevation: true },
           styleOverrides: {
-            root: { borderRadius: 10, textTransform: 'none', fontWeight: 600, paddingInline: 16 },
+            root: {
+              borderRadius: 10, textTransform: 'none', fontWeight: 600, paddingInline: 16,
+              transition: base.transitions.create(['background-color', 'box-shadow', 'border-color', 'transform'], { duration: 120 }),
+              // Tactile press feedback, mirrored off for reduced motion.
+              '&:active': { transform: 'scale(0.97)' },
+              '@media (prefers-reduced-motion: reduce)': { '&:active': { transform: 'none' } },
+            },
             containedPrimary: {
               boxShadow: 'none',
               '&:hover': { boxShadow: `0 4px 12px ${alpha(base.palette.primary.main, 0.35)}` },
@@ -135,7 +172,17 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
         },
         MuiTooltip: {
           styleOverrides: {
-            tooltip: { borderRadius: 8, fontSize: 12, backgroundColor: alpha('#0f172a', 0.92) },
+            tooltip: {
+              borderRadius: 8,
+              fontSize: 12,
+              // Frosted-glass tooltip matching the AppBar: slightly translucent + blur, with a
+              // hairline edge so it lifts off busy backgrounds (e.g. over a chart).
+              backgroundColor: alpha('#0f172a', 0.82),
+              backdropFilter: 'blur(6px)',
+              border: `1px solid ${alpha('#ffffff', 0.08)}`,
+              boxShadow: '0 6px 20px rgba(2,6,23,0.28)',
+            },
+            arrow: { color: alpha('#0f172a', 0.82) },
           },
         },
       },
