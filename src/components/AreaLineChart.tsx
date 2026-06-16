@@ -35,7 +35,7 @@ const NoLegend = () => null;
  * a custom clickable legend, threshold reference lines, and optional zoom via a brush bar.
  */
 export function AreaLineChart({
-  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, zoomable = false, xScale = 'time',
+  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, zoomable = false, xScale = 'time', showMarks = false,
 }: {
   labels: Date[];
   series: ChartSeries[];
@@ -50,6 +50,9 @@ export function AreaLineChart({
   /** 'time' spaces points by their timestamp (continuous series); 'point' spaces them evenly
    *  (discrete events like config versions, so every point stays individually clickable). */
   xScale?: 'time' | 'point';
+  /** Render a dot at every data point. Useful for discrete series (e.g. config changes) where
+   *  each point is meaningful and clickable; left off for dense continuous series. */
+  showMarks?: boolean;
 }) {
   const theme = useTheme();
   const reducedMotion = useReducedMotion();
@@ -82,11 +85,12 @@ export function AreaLineChart({
 
   const handlePointClick = onPointClick ? (idx: number) => onPointClick(i0 + idx) : undefined;
 
+  // Per-series styling targets the v9 element classes by their `data-series-id` attribute.
   const areaFillSx = area
-    ? Object.fromEntries(visibleSeries.filter((s) => !s.dashed).map((s) => [`& .MuiAreaElement-series-${s.id}`, { fill: `url(#${gradientId(s.id)})` }]))
+    ? Object.fromEntries(visibleSeries.filter((s) => !s.dashed).map((s) => [`& .MuiLineChart-area[data-series-id="${s.id}"]`, { fill: `url(#${gradientId(s.id)})`, fillOpacity: 1 }]))
     : {};
   const dashSx = Object.fromEntries(
-    visibleSeries.filter((s) => s.dashed).map((s) => [`& .MuiLineElement-series-${s.id}`, { strokeDasharray: '5 5', strokeWidth: 2 }]),
+    visibleSeries.filter((s) => s.dashed).map((s) => [`& .MuiLineChart-line[data-series-id="${s.id}"]`, { strokeDasharray: '6 5', strokeWidth: 2 }]),
   );
 
   return (
@@ -144,7 +148,7 @@ export function AreaLineChart({
         }]}
         series={visibleSeries.map((s) => ({
           id: s.id, label: s.label, data: s.data, color: s.color,
-          showMark: false, curve, area: s.dashed ? false : area,
+          showMark: showMarks && !s.dashed, curve, area: s.dashed ? false : area,
         }))}
       >
         {(referenceLines ?? []).map((ref, i) => (
@@ -169,9 +173,13 @@ export function AreaLineChart({
         ))}
         <defs>
           {visibleSeries.map((s) => (
+            // Three-stop fade: a richer tint at the line that drops off quickly, so overlapping
+            // series stay readable (the lower half is near-transparent) and the bottom blends
+            // into the card. The fillOpacity override above lets this gradient show through.
             <linearGradient key={s.id} id={gradientId(s.id)} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={s.color} stopOpacity={0.35} />
-              <stop offset="95%" stopColor={s.color} stopOpacity={0} />
+              <stop offset="0%" stopColor={s.color} stopOpacity={0.3} />
+              <stop offset="55%" stopColor={s.color} stopOpacity={0.08} />
+              <stop offset="100%" stopColor={s.color} stopOpacity={0} />
             </linearGradient>
           ))}
         </defs>

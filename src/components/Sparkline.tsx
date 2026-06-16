@@ -17,7 +17,7 @@ export function Sparkline({ data, color, height = 38 }: { data: number[]; color:
         curve="monotoneX"
         showHighlight
         showTooltip={false}
-        sx={{ '& .MuiAreaElement-root': { fillOpacity: 0.12 } }}
+        sx={{ '& .MuiLineChart-area': { fillOpacity: 0.16 } }}
       />
     </Box>
   );
