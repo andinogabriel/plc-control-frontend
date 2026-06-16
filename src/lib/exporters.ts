@@ -152,7 +152,10 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
         ctx.font = `12px ${FONT_STACK}`;
         if (meta.source) { ctx.textAlign = 'left'; ctx.fillText(meta.source, 12, fy); }
         ctx.textAlign = 'right';
-        ctx.fillText(`Descargado: ${new Date().toLocaleString('es-AR')}`, w - 12, fy);
+        ctx.fillText(
+          `Descargado: ${new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'medium', hour12: false })}`,
+          w - 12, fy,
+        );
         ctx.globalAlpha = 1;
 
         canvas.toBlob((blob) => { if (blob) triggerDownload(blob, filename); resolve(); }, 'image/png');
