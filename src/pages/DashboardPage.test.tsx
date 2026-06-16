@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '../test-utils';
@@ -49,5 +49,42 @@ describe('DashboardPage', () => {
     renderWithProviders(<DashboardPage />);
 
     expect(await screen.findByText('Todavía no hay mediciones')).toBeInTheDocument();
+  });
+
+  // Regression guard for the reported "el selector de Últimas lecturas no se refleja": switching
+  // the range must drive a refetch AND show the result. Here the new window returns no rows, so the
+  // chart must flip to its empty state — proving the select change is reflected in the UI.
+  it('reflects a range change in the "Últimas lecturas" chart', async () => {
+    localStorage.clear(); // start from the default 24h range
+    const dataPage = {
+      content: [
+        latest,
+        { ...latest, id: 'm2', createdAt: new Date(Date.now() - 3 * 3600_000).toISOString() },
+      ],
+      totalElements: 2, totalPages: 1, size: 1500, number: 0,
+    };
+    const emptyPage = { content: [], totalElements: 0, totalPages: 0, size: 1500, number: 0 };
+    // Wide windows (>2h ago) have data; narrow ones (e.g. "Última hora") return nothing.
+    server.use(
+      http.get('*/api/measurements', ({ request }) => {
+        const from = new URL(request.url).searchParams.get('from');
+        const narrow = from != null && Date.now() - new Date(from).getTime() < 2 * 3600_000;
+        return HttpResponse.json(narrow ? emptyPage : dataPage);
+      }),
+    );
+    renderWithProviders(<DashboardPage />);
+
+    // Default 24h window has data → no empty state yet.
+    await screen.findByText('Estado del cooler');
+    expect(screen.queryByText('Sin lecturas en este rango')).toBeNull();
+
+    // Open the chart's range select (its value reads "Último día" for 24h) and pick a 1h window.
+    const chartRangeSelect = screen.getAllByRole('combobox').find((c) => c.textContent === 'Último día');
+    expect(chartRangeSelect).toBeDefined();
+    fireEvent.mouseDown(chartRangeSelect!);
+    fireEvent.click(await screen.findByRole('option', { name: 'Última hora' }));
+
+    // The 1h window returns no rows → the chart must reflect it.
+    expect(await screen.findByText('Sin lecturas en este rango')).toBeInTheDocument();
   });
 });
