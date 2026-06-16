@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Dialog, InputBase, List, ListItemButton, ListItemIcon, ListItemText, Typography,
@@ -59,6 +59,12 @@ export function CommandPalette() {
 
   useEffect(() => { setActive(0); }, [query, open]);
 
+  // Keep the keyboard-selected item visible when the list scrolls past the viewport.
+  const listRef = useRef<HTMLUListElement>(null);
+  useEffect(() => {
+    listRef.current?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
+  }, [active]);
+
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); setActive((i) => Math.min(i + 1, filtered.length - 1)); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((i) => Math.max(i - 1, 0)); }
@@ -82,17 +88,23 @@ export function CommandPalette() {
         />
         <Typography variant="caption" color="text.secondary" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, px: 0.75 }}>esc</Typography>
       </Box>
-      <List sx={{ py: 0.5, maxHeight: 360, overflowY: 'auto' }}>
+      <List ref={listRef} sx={{ py: 0.5, maxHeight: 360, overflowY: 'auto' }}>
         {filtered.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>Sin resultados</Typography>
         )}
         {filtered.map((c, i) => (
-          <ListItemButton key={c.id} selected={i === active} onClick={c.run} onMouseEnter={() => setActive(i)}>
+          <ListItemButton key={c.id} data-active={i === active} selected={i === active} onClick={c.run} onMouseEnter={() => setActive(i)}>
             <ListItemIcon sx={{ minWidth: 40 }}>{c.icon}</ListItemIcon>
             <ListItemText primary={c.label} />
           </ListItemButton>
         ))}
       </List>
+      {/* Keyboard hint footer, the convention for a command palette. */}
+      <Box sx={{ display: 'flex', gap: 1.5, px: 2, py: 1, borderTop: '1px solid', borderColor: 'divider', color: 'text.secondary' }}>
+        <Typography variant="caption">↑↓ navegar</Typography>
+        <Typography variant="caption">↵ seleccionar</Typography>
+        <Typography variant="caption">esc cerrar</Typography>
+      </Box>
     </Dialog>
   );
 }

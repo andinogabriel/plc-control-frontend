@@ -7,6 +7,7 @@ import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { useAlerts, type AlertSeverity } from '../alerts';
 import { formatRelative } from '../lib/time';
 
@@ -49,6 +50,7 @@ export function AlertCenter() {
         <Divider />
         {events.length === 0 ? (
           <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
+            <CheckCircleRoundedIcon sx={{ fontSize: 32, color: 'success.main', opacity: 0.55, mb: 0.5 }} />
             <Typography variant="body2">Sin alertas. Todo en orden.</Typography>
           </Box>
         ) : (

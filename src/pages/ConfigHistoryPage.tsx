@@ -282,8 +282,11 @@ export function ConfigHistoryPage() {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={tempChartRef}>
-            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de temperatura</Typography>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Box sx={{ width: 6, height: 22, borderRadius: 1, bgcolor: 'primary.main' }} />
+                <Typography variant="subtitle1">Evolución de umbrales de temperatura</Typography>
+              </Stack>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
                   onClick={() => exportChartPng(tempChartRef.current, 'umbrales-temperatura.png', { title: 'Evolución de umbrales de temperatura', source: 'Historial de configuraciones' })}
@@ -310,8 +313,11 @@ export function ConfigHistoryPage() {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={humChartRef}>
-            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="subtitle1" gutterBottom>Evolución de umbrales de humedad</Typography>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Box sx={{ width: 6, height: 22, borderRadius: 1, bgcolor: 'secondary.main' }} />
+                <Typography variant="subtitle1">Evolución de umbrales de humedad</Typography>
+              </Stack>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
                   onClick={() => exportChartPng(humChartRef.current, 'umbrales-humedad.png', { title: 'Evolución de umbrales de humedad', source: 'Historial de configuraciones' })}
