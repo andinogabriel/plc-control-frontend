@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
  * Illustrated empty-state: a soft circular icon badge plus a title, optional description and
  * action. Used for charts and tables that have no data to show.
  */
-export function EmptyState({ icon, title, description, action, dense, height }: {
+export function EmptyState({ icon, title, description, action, dense, height, accent = 'primary' }: {
   icon?: ReactNode;
   title: string;
   description?: string;
@@ -15,6 +15,8 @@ export function EmptyState({ icon, title, description, action, dense, height }: 
   dense?: boolean;
   /** Fixed height so a chart card keeps the same size whether or not it has data. */
   height?: number | string;
+  /** Accent colour for the icon halo, so it matches its context (e.g. an error state). */
+  accent?: 'primary' | 'error' | 'warning' | 'success' | 'info';
 }) {
   return (
     <Stack
@@ -23,10 +25,10 @@ export function EmptyState({ icon, title, description, action, dense, height }: 
     >
       <Box sx={(t) => ({
         width: 64, height: 64, borderRadius: '50%', display: 'grid', placeItems: 'center',
-        color: alpha(t.palette.primary.main, 0.8),
-        // Soft brand-tinted halo so the empty state reads as illustrated, not just greyed out.
-        background: `radial-gradient(circle at 50% 38%, ${alpha(t.palette.primary.main, 0.18)}, ${alpha(t.palette.primary.main, 0.04)})`,
-        border: `1px solid ${alpha(t.palette.primary.main, 0.16)}`,
+        color: alpha(t.palette[accent].main, 0.8),
+        // Soft accent-tinted halo so the empty state reads as illustrated, not just greyed out.
+        background: `radial-gradient(circle at 50% 38%, ${alpha(t.palette[accent].main, 0.18)}, ${alpha(t.palette[accent].main, 0.04)})`,
+        border: `1px solid ${alpha(t.palette[accent].main, 0.16)}`,
       })}>
         {icon ?? <InboxOutlinedIcon sx={{ fontSize: 30 }} />}
       </Box>
