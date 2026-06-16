@@ -243,7 +243,7 @@ export function ConfigHistoryPage() {
   ]);
 
   return (
-    <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
+    <Box>
       <Typography variant="h4" gutterBottom>Historial de configuraciones</Typography>
       <Typography variant="body2" color="text.secondary" gutterBottom>
         Auditoría de cada cambio de umbrales. El rango de fechas de arriba ajusta los gráficos;
@@ -299,7 +299,7 @@ export function ConfigHistoryPage() {
             ) : chartError ? (
               <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" xScale="point" showMarks labels={labels}
+              <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" xScale="point" showMarks={points.length <= 30} labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[
                   { id: 'tmin', label: 'T. mín', data: points.map((c) => c.temperatureMin), color: theme.palette.primary.main },
@@ -330,7 +330,7 @@ export function ConfigHistoryPage() {
             ) : chartError ? (
               <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
-              <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" xScale="point" showMarks labels={labels}
+              <AreaLineChart height={260} mode="date" area={false} curve="stepAfter" xScale="point" showMarks={points.length <= 30} labels={labels}
                 onPointClick={(i) => setSelected(points[i] ?? null)}
                 series={[
                   { id: 'hmin', label: 'H. mín', data: points.map((c) => c.humidityMin), color: theme.palette.secondary.main },
