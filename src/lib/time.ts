@@ -15,3 +15,14 @@ export function formatRelative(input: string | number | Date): string {
   if (days < 30) return `hace ${days} d`;
   return then.format('D MMM YYYY');
 }
+
+/** Compact duration label ("45 s" / "12 min" / "2 h 5 min"). Sub-minute spans read as seconds
+ *  rather than a misleading "0 min" (e.g. brief cooler cycles near the threshold). */
+export function formatDuration(ms: number): string {
+  const totalSeconds = Math.round(ms / 1000);
+  if (totalSeconds < 60) return `${totalSeconds} s`;
+  const mins = Math.round(ms / 60000);
+  if (mins < 60) return `${mins} min`;
+  const hours = Math.floor(mins / 60);
+  return `${hours} h ${mins % 60} min`;
+}

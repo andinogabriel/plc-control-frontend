@@ -2,6 +2,7 @@ import { Box, Grid, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { ConfigResponse, MeasurementResponse } from '../api/types';
 import { formatNumber } from '../lib/format';
+import { formatDuration } from '../lib/time';
 
 type StatAccent = 'primary' | 'secondary' | 'success' | 'warning';
 
@@ -23,13 +24,6 @@ function StatTile({ label, value, hint, accent = 'primary' }: {
 
 function pct(part: number, total: number): string {
   return total === 0 ? '—' : `${formatNumber((part / total) * 100)} %`;
-}
-
-function formatDuration(ms: number): string {
-  const mins = Math.round(ms / 60000);
-  if (mins < 60) return `${mins} min`;
-  const h = Math.floor(mins / 60);
-  return `${h} h ${mins % 60} min`;
 }
 
 /**
