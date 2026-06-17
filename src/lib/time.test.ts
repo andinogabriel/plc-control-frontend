@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { formatRelative } from './time';
+import { formatRelative, formatDuration } from './time';
 
 describe('formatRelative', () => {
   beforeEach(() => { vi.useFakeTimers().setSystemTime(new Date('2026-06-07T12:00:00')); });
@@ -23,5 +23,17 @@ describe('formatRelative', () => {
 
   it('shows days', () => {
     expect(formatRelative(new Date('2026-06-04T12:00:00'))).toBe('hace 3 d');
+  });
+});
+
+describe('formatDuration', () => {
+  it('shows seconds for sub-minute runs instead of "0 min"', () => {
+    expect(formatDuration(15_000)).toBe('15 s');
+    expect(formatDuration(59_000)).toBe('59 s');
+  });
+
+  it('shows minutes and hours for longer runs', () => {
+    expect(formatDuration(5 * 60_000)).toBe('5 min');
+    expect(formatDuration((2 * 60 + 30) * 60_000)).toBe('2 h 30 min');
   });
 });
