@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Box, Button, Stack, Typography, useTheme } from '@mui/material';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import { LineChart } from '@mui/x-charts/LineChart';
@@ -35,10 +35,12 @@ const NoLegend = () => null;
  * a custom clickable legend, threshold reference lines, and optional zoom via a brush bar.
  */
 export function AreaLineChart({
-  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, zoomable = false, xScale = 'time', showMarks = false,
+  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, zoomable = false, xScale = 'time', showMarks = false, fill = false,
 }: {
   labels: Date[];
   series: ChartSeries[];
+  /** Chart height in px. When `fill` is set this is only the initial value until the chart is
+   *  measured against its container. */
   height: number;
   mode?: 'date' | 'time';
   area?: boolean;
@@ -53,6 +55,9 @@ export function AreaLineChart({
   /** Render a dot at every data point. Useful for discrete series (e.g. config changes) where
    *  each point is meaningful and clickable; left off for dense continuous series. */
   showMarks?: boolean;
+  /** Grow the chart to fill its parent's height (parent must be a sized flex container) instead
+   *  of using a fixed `height`. Used by the full-screen kiosk so the chart uses all the space. */
+  fill?: boolean;
 }) {
   const theme = useTheme();
   const reducedMotion = useReducedMotion();
@@ -93,38 +98,24 @@ export function AreaLineChart({
     visibleSeries.filter((s) => s.dashed).map((s) => [`& .MuiLineChart-line[data-series-id="${s.id}"]`, { strokeDasharray: '6 5', strokeWidth: 2 }]),
   );
 
-  return (
-    <Box>
-      {/* Custom clickable legend: tap an item to show/hide its line. */}
-      <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 1, position: 'relative' }}>
-        {series.map((s) => {
-          const off = hidden.has(s.id);
-          return (
-            <Box key={s.id} role="button" tabIndex={0}
-              onClick={() => toggle(s.id)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(s.id); } }}
-              sx={{
-                display: 'inline-flex', alignItems: 'center', gap: 0.75, cursor: 'pointer',
-                userSelect: 'none', opacity: off ? 0.4 : 1,
-              }}
-            >
-              <Box sx={{ width: 16, height: 4, borderRadius: 2, backgroundColor: s.color }} />
-              <Typography variant="caption" sx={{ fontWeight: 600, textDecoration: off ? 'line-through' : 'none' }}>
-                {s.label}
-              </Typography>
-            </Box>
-          );
-        })}
-        {zoomed && (
-          <Button size="small" startIcon={<RestartAltRoundedIcon />} onClick={() => setZoom({ s: 0, e: 1 })}
-            sx={{ position: { sm: 'absolute' }, right: 0 }}>
-            Restablecer zoom
-          </Button>
-        )}
-      </Stack>
+  // In `fill` mode the chart sizes to its container: measure the wrapper and feed its height to
+  // the LineChart (which needs a numeric height). `height` is the fallback until measured.
+  const fillRef = useRef<HTMLDivElement>(null);
+  const [measured, setMeasured] = useState<number | null>(null);
+  useEffect(() => {
+    if (!fill || !fillRef.current) return undefined;
+    const ro = new ResizeObserver(([entry]) => {
+      const h = Math.round(entry.contentRect.height);
+      if (h > 0) setMeasured(h);
+    });
+    ro.observe(fillRef.current);
+    return () => ro.disconnect();
+  }, [fill]);
+  const chartHeight = fill ? (measured ?? height) : height;
 
+  const chart = (
       <LineChart
-        height={height}
+        height={chartHeight}
         grid={{ horizontal: true }}
         skipAnimation={reducedMotion}
         margin={{ top: 8, right: 22, bottom: 24, left: 16 }}
@@ -184,6 +175,40 @@ export function AreaLineChart({
           ))}
         </defs>
       </LineChart>
+  );
+
+  return (
+    <Box sx={fill ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' } : undefined}>
+      {/* Custom clickable legend: tap an item to show/hide its line. */}
+      <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 1, position: 'relative' }}>
+        {series.map((s) => {
+          const off = hidden.has(s.id);
+          return (
+            <Box key={s.id} role="button" tabIndex={0}
+              onClick={() => toggle(s.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(s.id); } }}
+              sx={{
+                display: 'inline-flex', alignItems: 'center', gap: 0.75, cursor: 'pointer',
+                userSelect: 'none', opacity: off ? 0.4 : 1,
+              }}
+            >
+              <Box sx={{ width: 16, height: 4, borderRadius: 2, backgroundColor: s.color }} />
+              <Typography variant="caption" sx={{ fontWeight: 600, textDecoration: off ? 'line-through' : 'none' }}>
+                {s.label}
+              </Typography>
+            </Box>
+          );
+        })}
+        {zoomed && (
+          <Button size="small" startIcon={<RestartAltRoundedIcon />} onClick={() => setZoom({ s: 0, e: 1 })}
+            sx={{ position: { sm: 'absolute' }, right: 0 }}>
+            Restablecer zoom
+          </Button>
+        )}
+      </Stack>
+
+      {/* In fill mode the chart lives in a flex:1 box we measure to size it; otherwise it's inline. */}
+      {fill ? <Box ref={fillRef} sx={{ flex: 1, minHeight: 0 }}>{chart}</Box> : chart}
 
       {canZoom && (
         <ChartBrush series={series.filter((s) => !hidden.has(s.id))}

@@ -153,6 +153,7 @@ export function KioscoPage() {
         <Typography variant="subtitle1" sx={{ mb: 1 }}>Últimas 2 horas</Typography>
         {points.length > 0 ? (
           <AreaLineChart
+            fill
             height={360}
             mode="time"
             labels={labels}
