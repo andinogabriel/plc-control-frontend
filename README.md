@@ -91,5 +91,95 @@ seguridad: es solo la cara visible del sistema.
 
 ---
 
-Stack: React · TypeScript · Vite · Material UI. Detalles técnicos y de contribución, en el
-código y en los PRs del repositorio.
+# Arquitectura (para contribuir)
+
+> El resto del README es para *usar* el panel. Esta parte es para *trabajar* en él: por qué está
+> organizado así y qué regla seguir al agregar cosas.
+
+## Estilo arquitectónico
+
+Es una **SPA por capas**, con una regla central: **cada cosa en su capa y una sola dirección de
+dependencias** (`pages → components / hooks → lib / api → theme`). Ninguna capa "salta" a otra:
+un componente no hace `fetch`, una página no define estilos sueltos, una utilidad no conoce React.
+
+```
+src/
+├── api/         Única capa que habla con el backend: un axios client + funciones tipadas.
+│                Nada más en la app hace fetch. Los tipos de respuesta viven en api/types.ts.
+├── pages/       Un componente por ruta ("smart"): orquesta queries y compone componentes.
+├── components/  UI reutilizable, mayormente presentacional (recibe datos por props).
+│                Las pocas "smart" (AlertCenter, CommandPalette, MeasurementStream) son chrome global.
+├── hooks/       Lógica con estado reutilizable (useSystemHealth, useCountUp, useReducedMotion…).
+├── lib/         Helpers puros, sin React ni MUI (format, time, exporters). Fáciles de testear.
+├── theme.ts     Design system centralizado (tema MUI claro/oscuro). El único lugar de "estilo base".
+└── App.tsx / main.tsx   Rutas (lazy por pantalla) y providers (Query, Theme, Toast, Alerts, Router).
+```
+
+Decisiones que conviene respetar:
+
+- **Estado del servidor → TanStack Query.** No se hace fetch manual ni se guarda data del backend
+  en `useState`. Cada vista declara sus `useQuery`/`useMutation` con su `queryKey`; el polling vive
+  en `refetchInterval` y se usa `placeholderData: keepPreviousData` para que no parpadee al cambiar
+  de rango.
+- **Estado de UI → `useState`/hooks**; **estado "compartible" (filtros, rango) → la URL**
+  (`useSearchParams`), así un link reproduce la vista (ver `HistoryPage`/`ConfigHistoryPage`).
+- **Formularios → React Hook Form + Zod.** La validación del front es un *espejo* de la del backend
+  (mismos límites), nunca la única (ver `ConfigurationPage`).
+- **Estilos → `theme` + prop `sx`. No hay archivos `.css`.** Los colores salen del `palette` (para
+  que claro/oscuro funcionen solos). En MUI v9 las system props van dentro de `sx`.
+- **El backend es la frontera de seguridad**, no el front: acá no se valida de verdad ni se loguea
+  información sensible.
+
+## Diseño responsive (por qué desktop ≠ mobile)
+
+Es **una sola base de código** con breakpoints de MUI (`useMediaQuery`), no dos apps. Pero la misma
+data se **reorganiza** según el dispositivo, en vez de encoger el desktop:
+
+| | Desktop | Mobile |
+| --- | --- | --- |
+| Navegación | sidebar persistente (`Drawer`) | barra inferior alcanzable con el pulgar (`MobileBottomNav`) |
+| Tablas | `DataGrid` denso con filtros por columna | lista de tarjetas (`MobileCardList`) |
+| Filtros | en los headers de columna | hoja inferior (`MobileFilterSheet`) |
+| Gestos | hover / click | *pull-to-refresh*, tap |
+| Layout | grilla multi-columna | una columna apilada |
+
+El motivo: un backoffice con mucha data necesita **densidad** en pantalla grande y **ergonomía
+táctil + reflow** en el teléfono; una tabla densa no entra en un celular. El **modo kiosco** es una
+ruta aparte a pantalla completa (sin chrome), por diseño, para mostrar el sistema en vivo.
+
+Accesibilidad como requisito, no extra: foco visible, `aria-label`s, navegación por teclado
+(Ctrl/⌘ + K) y respeto por `prefers-reduced-motion` (hook `useReducedMotion` + media queries en las
+animaciones).
+
+## Cómo agregar algo nuevo
+
+- **Llamada al backend** → función en `api/<x>Api.ts` + tipo en `api/types.ts` (no hagas `fetch`
+  en un componente).
+- **Pantalla** → `pages/XPage.tsx`, ruta `lazy` en `App.tsx`, e ítem en `Layout` **y**
+  `MobileBottomNav`.
+- **UI reutilizable** → `components/`, presentacional, *theme-aware* (`sx`) y accesible.
+- **Lógica reutilizable** → `hooks/`; **helper puro** → `lib/` con su test.
+- **Datos** vía TanStack Query; **formularios** vía RHF + Zod; **animaciones** con guard de
+  reduced-motion.
+- ⚠️ **Regla de Fast Refresh** (la hace cumplir ESLint): *un archivo que exporta un componente debe
+  exportar solo componentes*. Constantes/helpers/hooks van en un módulo aparte (un `.ts` hermano o
+  `lib/`) — si no, salta `react-refresh/only-export-components`.
+
+## Calidad
+
+Antes de abrir un PR, todo en verde:
+
+```bash
+npx tsc --noEmit     # tipos
+npm run lint         # ESLint (flat config) — 0 errores
+npm run test         # Vitest + Testing Library + MSW (unitario e integración)
+npm run test:e2e     # Playwright (smoke)
+npm run build        # build de producción
+```
+
+Tests: lo puro se prueba en `lib/`; los componentes/pantallas con Testing Library + **MSW**
+(mock del backend, ver `pages/DashboardPage.test.tsx`); el `smoke` e2e con Playwright.
+
+---
+
+Stack: React · TypeScript · Vite · Material UI · TanStack Query · React Hook Form + Zod.
