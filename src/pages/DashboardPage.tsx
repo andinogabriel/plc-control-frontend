@@ -456,7 +456,12 @@ export function DashboardPage() {
               ) : (
                 <EmptyState dense height={analyticsBlock} icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                   title="Sin lecturas en este rango"
-                  description="Probá ampliar el rango del análisis." />
+                  description="Probá ampliar el rango del análisis."
+                  action={analyticsRange !== '30d' && (
+                    <Button size="small" variant="outlined" onClick={() => setAnalyticsRange('30d')}>
+                      Ver último mes
+                    </Button>
+                  )} />
               )}
             </CardContent>
           </Card>
@@ -524,6 +529,11 @@ export function DashboardPage() {
                   icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                   title="Sin lecturas en este rango"
                   description="Probá ampliar el rango de tiempo o esperá la próxima medición de la Raspberry."
+                  action={range !== '30d' && (
+                    <Button size="small" variant="outlined" onClick={() => setRange('30d')}>
+                      Ver último mes
+                    </Button>
+                  )}
                 />
               )}
             </CardContent>

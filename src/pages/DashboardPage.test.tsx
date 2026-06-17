@@ -87,4 +87,19 @@ describe('DashboardPage', () => {
     // The 1h window returns no rows → the chart must reflect it.
     expect(await screen.findByText('Sin lecturas en este rango')).toBeInTheDocument();
   });
+
+  it('offers a "Ver último mes" shortcut from an empty range and applies it', async () => {
+    localStorage.clear();
+    const emptyPage = { content: [], totalElements: 0, totalPages: 0, size: 1500, number: 0 };
+    server.use(http.get('*/api/measurements', () => HttpResponse.json(emptyPage)));
+    renderWithProviders(<DashboardPage />);
+
+    // No rows in the default windows → the empty state offers the shortcut.
+    const buttons = await screen.findAllByRole('button', { name: 'Ver último mes' });
+    expect(buttons.length).toBeGreaterThan(0);
+
+    // Applying it jumps that panel's range to "Último mes".
+    fireEvent.click(buttons[0]);
+    expect(await screen.findByText('Último mes')).toBeInTheDocument();
+  });
 });
