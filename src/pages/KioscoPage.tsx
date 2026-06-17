@@ -105,12 +105,16 @@ export function KioscoPage() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 3, overflowX: 'hidden' }}>
+      {/* Wrap on small screens so the title + status + clock + controls never push the page wider
+          than the viewport (a full-screen monitor must never scroll horizontally). */}
+      <Stack direction="row" useFlexGap spacing={{ xs: 1, sm: 2 }} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
         <ThermostatIcon sx={{ color: 'primary.main', fontSize: 32 }} />
-        <Typography variant="h5" sx={{ fontWeight: 800 }}>Monitor en vivo</Typography>
+        <Typography variant="h5" sx={{ fontWeight: 800, minWidth: 0 }}>Monitor en vivo</Typography>
         <Box sx={{ flexGrow: 1 }} />
-        <SystemHealthBadge />
+        {/* Compact dot on phones; full badge with label from sm up. */}
+        <Box sx={{ display: { xs: 'flex', sm: 'none' } }}><SystemHealthBadge compact /></Box>
+        <Box sx={{ display: { xs: 'none', sm: 'flex' } }}><SystemHealthBadge /></Box>
         <Typography variant="h6" sx={{ fontVariantNumeric: 'tabular-nums', color: 'text.secondary' }}>
           {now.format('HH:mm:ss')}
         </Typography>
