@@ -62,7 +62,7 @@ export function HistoryPage() {
   const { data: chartData, isLoading: chartLoading, isError: chartError, refetch: refetchChart } = useQuery({
     queryKey: ['measurement-chart', gFromParam, gToParam, gStatusParam],
     queryFn: () => measurementApi.getMeasurements({
-      page: 0, size: CHART_PAGE_SIZE,
+      page: 0, size: CHART_PAGE_SIZE, maxPoints: CHART_PAGE_SIZE,
       from: gFromParam || undefined, to: gToParam || undefined, status: gStatusParam || undefined,
     }),
     placeholderData: keepPreviousData,

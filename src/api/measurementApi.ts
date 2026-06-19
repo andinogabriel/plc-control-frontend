@@ -14,6 +14,10 @@ export interface MeasurementQuery {
   coolerOn?: boolean;
   // Server-side sort, e.g. "temperature,asc".
   sort?: string;
+  // Charts only: cap the series; if the range has more readings, the backend down-samples to
+  // ~maxPoints spread across the whole range (so wide ranges show their full span, not the
+  // most recent page).
+  maxPoints?: number;
 }
 
 export const measurementApi = {
