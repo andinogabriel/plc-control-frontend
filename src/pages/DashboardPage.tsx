@@ -62,6 +62,10 @@ const rangeMsOf = (value: string) => RANGE_OPTIONS.find((o) => o.value === value
 const modeOf = (value: string): 'time' | 'date' => (rangeMsOf(value) <= DAY ? 'time' : 'date');
 
 const SPARK_POINTS = 24;
+// Chart series cap: wide ranges are down-sampled server-side to ~this many points spread across
+// the whole range, so e.g. "Último mes" and "Última semana" show different spans (not the same
+// most-recent page). Plenty of resolution for the line chart.
+const CHART_MAX_POINTS = 800;
 
 function MetricCard({ icon, label, value, color = 'primary', onClick, children, index = 0 }: {
   icon: React.ReactNode; label: string; value?: React.ReactNode; color?: AccentColor;
@@ -195,7 +199,7 @@ export function DashboardPage() {
   const { data: recent, isLoading: recentLoading, isError: recentError, refetch: refetchRecent } = useQuery({
     queryKey: ['measurements-recent', range],
     queryFn: () => measurementApi.getMeasurements({
-      page: 0, size: 1500, from: new Date(Date.now() - rangeMs).toISOString(),
+      page: 0, size: 1500, maxPoints: CHART_MAX_POINTS, from: new Date(Date.now() - rangeMs).toISOString(),
     }),
     refetchInterval: paused ? false : 15000,
     placeholderData: keepPreviousData,
@@ -205,7 +209,7 @@ export function DashboardPage() {
   const { data: analyticsData, isLoading: analyticsLoading, isError: analyticsError, refetch: refetchAnalytics } = useQuery({
     queryKey: ['measurements-analytics', analyticsRange],
     queryFn: () => measurementApi.getMeasurements({
-      page: 0, size: 1500, from: new Date(Date.now() - analyticsRangeMs).toISOString(),
+      page: 0, size: 1500, maxPoints: CHART_MAX_POINTS, from: new Date(Date.now() - analyticsRangeMs).toISOString(),
     }),
     refetchInterval: paused ? false : 15000,
     placeholderData: keepPreviousData,
@@ -215,7 +219,7 @@ export function DashboardPage() {
   const { data: previous } = useQuery({
     queryKey: ['measurements-previous', range],
     queryFn: () => measurementApi.getMeasurements({
-      page: 0, size: 1500,
+      page: 0, size: 1500, maxPoints: CHART_MAX_POINTS,
       from: new Date(Date.now() - 2 * rangeMs).toISOString(),
       to: new Date(Date.now() - rangeMs).toISOString(),
     }),
