@@ -22,6 +22,7 @@ import { configApi } from '../api/configApi';
 import { StatusChip } from '../components/StatusChip';
 import { StatusLamp } from '../components/StatusLamp';
 import { AlarmBar } from '../components/AlarmBar';
+import { EventLog } from '../components/EventLog';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { FadeIn } from '../components/FadeIn';
 import { DetailDialog } from '../components/DetailDialog';
@@ -254,6 +255,18 @@ export function DashboardPage() {
     enabled: compare,
     placeholderData: keepPreviousData,
   });
+
+  // Event log window: NOT down-sampled (down-sampling would drop the status/cooler transitions the
+  // log is built from). Most-recent rows within the last 14 days.
+  const { data: eventsData } = useQuery({
+    queryKey: ['measurements-events'],
+    queryFn: () => measurementApi.getMeasurements({
+      page: 0, size: 2000, from: new Date(Date.now() - 14 * DAY).toISOString(),
+    }),
+    refetchInterval: paused ? false : 30000,
+    placeholderData: keepPreviousData,
+  });
+  const eventPoints = eventsData?.content ?? [];
 
   const health = useSystemHealth();
   // Animated KPI values (count-up). Hooks run unconditionally; 0 until data arrives.
@@ -583,6 +596,10 @@ export function DashboardPage() {
               )}
             </CardContent>
           </Card>
+        </Grid>
+
+        <Grid size={12}>
+          <EventLog points={eventPoints} />
         </Grid>
       </Grid>
 

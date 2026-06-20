@@ -55,6 +55,18 @@ export function RadialGauge({ value, min, max, hysteresis = 0, unit, showValue =
         {hysteresis > 0 && (
           <path d={arc(Math.max(min, max - hysteresis), max)} fill="none" stroke={theme.palette.warning.main} strokeWidth={9} strokeLinecap="round" opacity={0.85} />
         )}
+        {/* Manometer tick ring just outside the band: a major tick every 25% with shorter minors. */}
+        {Array.from({ length: 21 }, (_, i) => i).map((i) => {
+          const ang = 180 - (i / 20) * 180;
+          const major = i % 5 === 0;
+          const [x1, y1] = pt(cx, cy, 51.5, ang);
+          const [x2, y2] = pt(cx, cy, major ? 56 : 53.5, ang);
+          return (
+            <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} strokeLinecap="round"
+              stroke={major ? theme.palette.text.secondary : theme.palette.text.disabled}
+              strokeWidth={major ? 1.4 : 0.8} />
+          );
+        })}
         {/* Current value marker: a soft glow makes the reading pop, and the position eases along
             the arc when the value changes so it feels alive (cx/cy are animatable in SVG). */}
         <circle cx={mx} cy={my} r={6} fill={inRange ? theme.palette.success.main : theme.palette.error.main}
