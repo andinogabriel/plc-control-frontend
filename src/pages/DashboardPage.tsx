@@ -499,7 +499,10 @@ export function DashboardPage() {
                   <Tooltip title="Descargar PNG">
                     <span>
                       <IconButton size="small" className="no-print" disabled={chartPoints.length === 0}
-                        onClick={() => exportChartPng(chartRef.current, 'lecturas.png', { title: 'Últimas lecturas', source: 'Tablero' })}
+                        onClick={() => exportChartPng(chartRef.current, 'lecturas.png', {
+                          title: 'Últimas lecturas', source: 'Tablero',
+                          legend: chartSeries.map((s) => ({ label: s.label, color: s.color, dashed: s.dashed })),
+                        })}
                         aria-label="Descargar gráfico">
                         <ImageRoundedIcon fontSize="small" />
                       </IconButton>
@@ -510,6 +513,13 @@ export function DashboardPage() {
               {rangeLabel && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                   {rangeLabel}
+                </Typography>
+              )}
+              {/* Comparison is enabled but the prior window has no readings (the history doesn't go
+                  back far enough for this range): say so instead of silently dropping the overlay. */}
+              {compare && chartPoints.length > 0 && prevPoints.length === 0 && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontStyle: 'italic' }}>
+                  Sin datos del período anterior para este rango.
                 </Typography>
               )}
               {recentLoading ? (
