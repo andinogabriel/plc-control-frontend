@@ -54,6 +54,7 @@ export interface EventResponse {
   severity: EventSeverity;
   type: EventType;
   ackable: boolean;
+  acknowledged: boolean;
 }
 
 export interface PageResponse<T> {

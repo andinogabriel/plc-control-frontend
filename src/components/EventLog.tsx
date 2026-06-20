@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Box, Button, Card, CardContent, Chip, IconButton, Skeleton, Stack, Typography } from '@mui/material';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
@@ -26,21 +26,16 @@ export const EVENT_LABEL: Record<EventType, { tag: string; message: string }> = 
   COOLER_OFF: { tag: 'FAN-01', message: 'Cooler apagado' },
 };
 
-const ACK_KEY = 'plc.ackedEvents';
-const loadAcked = (): Set<string> => {
-  try { return new Set(JSON.parse(localStorage.getItem(ACK_KEY) ?? '[]') as string[]); } catch { return new Set(); }
-};
-
 /**
  * Annunciator-style event/alarm log backed by the server-paginated `/api/events` endpoint, so only
- * one page of rows is ever fetched and rendered (a long history never floods the client). Alarms
- * can be acknowledged; the acknowledged set persists in localStorage keyed by the stable event id,
- * so an operator's ACKs survive reloads. Acknowledgement is per page (the rest of the history isn't
- * loaded), which is enough since the newest, active alarms are on the first page.
+ * one page of rows is ever fetched and rendered. Acknowledgement is persisted server-side: ACKs are
+ * shared across clients and survive restarts, and the "sin reconocer" badge is the global count
+ * across the whole window (not just the page). Mutations invalidate the list + count so the UI
+ * reflects the new state immediately.
  */
 export function EventLog() {
   const [page, setPage] = useState(0);
-  const [acked, setAcked] = useState<Set<string>>(loadAcked);
+  const queryClient = useQueryClient();
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['events', page],
@@ -49,22 +44,23 @@ export function EventLog() {
     refetchInterval: 30000,
   });
 
-  const persist = (next: Set<string>) => {
-    setAcked(next);
-    localStorage.setItem(ACK_KEY, JSON.stringify([...next]));
+  const { data: unacked = 0 } = useQuery({
+    queryKey: ['events-unacked'],
+    queryFn: () => eventApi.getUnacknowledgedCount(),
+    refetchInterval: 30000,
+  });
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ['events'] });
+    queryClient.invalidateQueries({ queryKey: ['events-unacked'] });
   };
-  const ack = (id: string) => { const next = new Set(acked); next.add(id); persist(next); };
+  const ackOne = useMutation({ mutationFn: eventApi.ackEvent, onSuccess: invalidate });
+  const ackAll = useMutation({ mutationFn: () => eventApi.ackAll(), onSuccess: invalidate });
 
   const events = data?.content ?? [];
   const totalPages = Math.max(1, data?.totalPages ?? 1);
   const total = data?.totalElements ?? 0;
   const safePage = Math.min(page, totalPages - 1);
-  const ackVisible = () => {
-    const next = new Set(acked);
-    events.forEach((e) => { if (e.ackable) next.add(e.id); });
-    persist(next);
-  };
-  const pageUnacked = events.filter((e) => e.ackable && !acked.has(e.id)).length;
 
   return (
     <Card>
@@ -72,10 +68,12 @@ export function EventLog() {
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <Typography variant="subtitle1">Eventos y alarmas</Typography>
-            {pageUnacked > 0 && <Chip size="small" color="error" label={`${pageUnacked} sin reconocer`} sx={{ fontWeight: 600 }} />}
+            {unacked > 0 && <Chip size="small" color="error" label={`${unacked} sin reconocer`} sx={{ fontWeight: 600 }} />}
           </Stack>
-          {pageUnacked > 0 && (
-            <Button size="small" variant="outlined" onClick={ackVisible}>Reconocer visibles</Button>
+          {unacked > 0 && (
+            <Button size="small" variant="outlined" onClick={() => ackAll.mutate()} disabled={ackAll.isPending}>
+              Reconocer todo
+            </Button>
           )}
         </Stack>
 
@@ -94,7 +92,7 @@ export function EventLog() {
             <Box>
               {events.map((e) => {
                 const { tag, message } = EVENT_LABEL[e.type];
-                const isUnacked = e.ackable && !acked.has(e.id);
+                const isUnacked = e.ackable && !e.acknowledged;
                 return (
                   <Stack key={e.id} direction="row" spacing={1.25}
                     sx={{ alignItems: 'center', py: 0.85, borderBottom: '1px solid', borderColor: 'divider' }}>
@@ -107,7 +105,7 @@ export function EventLog() {
                     </Typography>
                     <Typography component="span" variant="body2" sx={{ flex: 1, minWidth: 0 }}>{message}</Typography>
                     {e.ackable && (isUnacked ? (
-                      <Button size="small" onClick={() => ack(e.id)} sx={{ minWidth: 0, px: 1 }}>ACK</Button>
+                      <Button size="small" onClick={() => ackOne.mutate(e.id)} disabled={ackOne.isPending} sx={{ minWidth: 0, px: 1 }}>ACK</Button>
                     ) : (
                       <Typography component="span" sx={{ fontFamily: MONO_FONT, fontSize: 11, color: 'success.main', whiteSpace: 'nowrap' }}>ACK ✓</Typography>
                     ))}
