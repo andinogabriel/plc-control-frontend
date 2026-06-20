@@ -9,20 +9,24 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
   const base = createTheme({
     palette: {
       mode,
-      primary: { main: '#4f46e5', light: '#6366f1', dark: '#4338ca' },
-      secondary: { main: '#0d9488' },
-      success: { main: '#16a34a' },
-      warning: { main: '#d97706' },
+      // Industrial-instrumentation palette: temperature reads warm (copper), humidity reads cool
+      // (cyan), on a cool slate canvas — an HMI/SCADA feel rather than the generic indigo/teal
+      // dashboard look. Chart series pick these up via `palette.primary` / `palette.secondary`.
+      primary: { main: '#c2410c', light: '#ea580c', dark: '#9a3412' },
+      secondary: { main: '#0891b2', light: '#06b6d4', dark: '#0e7490' },
+      success: { main: '#15803d' },
+      // Caution amber, kept yellow enough to stay distinct from the copper primary.
+      warning: { main: '#ca8a04' },
       error: { main: '#dc2626' },
       background: isLight
-        ? { default: '#f6f7fb', paper: '#ffffff' }
+        ? { default: '#eef1f5', paper: '#ffffff' }
         : { default: '#0b1120', paper: '#111827' },
       text: isLight
         ? { primary: '#0f172a', secondary: '#64748b' }
         : { primary: '#e5e7eb', secondary: '#94a3b8' },
       divider: isLight ? '#e6e8ee' : 'rgba(148,163,184,0.16)',
     },
-    shape: { borderRadius: 12 },
+    shape: { borderRadius: 8 },
     typography: {
       fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
       h4: { fontWeight: 700, letterSpacing: '-0.02em' },
@@ -105,8 +109,8 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
           defaultProps: { color: 'default', elevation: 0 },
           styleOverrides: {
             root: {
-              backgroundColor: alpha(base.palette.background.paper, isLight ? 0.8 : 0.7),
-              backdropFilter: 'blur(8px)',
+              // Solid panel header (no frosted glass) for an instrument-bezel feel.
+              backgroundColor: base.palette.background.paper,
               color: base.palette.text.primary,
               borderBottom: `1px solid ${base.palette.divider}`,
             },
@@ -125,7 +129,7 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
           defaultProps: { elevation: 0 },
           styleOverrides: {
             root: {
-              borderRadius: 16,
+              borderRadius: 10,
               border: `1px solid ${base.palette.divider}`,
               boxShadow: softShadow,
               backgroundImage: 'none',
@@ -139,7 +143,7 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
           defaultProps: { disableElevation: true },
           styleOverrides: {
             root: {
-              borderRadius: 10, textTransform: 'none', fontWeight: 600, paddingInline: 16,
+              borderRadius: 8, textTransform: 'none', fontWeight: 600, paddingInline: 16,
               transition: base.transitions.create(['background-color', 'box-shadow', 'border-color', 'transform'], { duration: 120 }),
               // Tactile press feedback, mirrored off for reduced motion.
               '&:active': { transform: 'scale(0.97)' },
@@ -154,7 +158,7 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
         MuiListItemButton: {
           styleOverrides: {
             root: {
-              borderRadius: 10,
+              borderRadius: 8,
               '&.Mui-selected': {
                 backgroundColor: alpha(base.palette.primary.main, 0.12),
                 color: base.palette.primary.main,
@@ -165,7 +169,7 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
           },
         },
         MuiOutlinedInput: {
-          styleOverrides: { root: { borderRadius: 10 } },
+          styleOverrides: { root: { borderRadius: 8 } },
         },
         MuiChip: {
           styleOverrides: { root: { fontWeight: 600 } },
@@ -173,16 +177,15 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
         MuiTooltip: {
           styleOverrides: {
             tooltip: {
-              borderRadius: 8,
+              borderRadius: 6,
               fontSize: 12,
-              // Frosted-glass tooltip matching the AppBar: slightly translucent + blur, with a
-              // hairline edge so it lifts off busy backgrounds (e.g. over a chart).
-              backgroundColor: alpha('#0f172a', 0.82),
-              backdropFilter: 'blur(6px)',
+              // Solid dark chip (no blur), with a hairline edge so it lifts off busy backgrounds
+              // (e.g. over a chart).
+              backgroundColor: '#1e293b',
               border: `1px solid ${alpha('#ffffff', 0.08)}`,
               boxShadow: '0 6px 20px rgba(2,6,23,0.28)',
             },
-            arrow: { color: alpha('#0f172a', 0.82) },
+            arrow: { color: '#1e293b' },
           },
         },
       },
