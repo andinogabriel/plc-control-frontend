@@ -3,7 +3,7 @@ import { alpha } from '@mui/material/styles';
 import type { ConfigResponse, MeasurementResponse } from '../api/types';
 import { formatNumber } from '../lib/format';
 import { formatDuration } from '../lib/time';
-import { MONO_FONT } from '../theme';
+import { MONO_FONT, LCD_SCREEN } from '../theme';
 
 type StatAccent = 'primary' | 'secondary' | 'success' | 'warning';
 
@@ -12,13 +12,21 @@ function StatTile({ label, value, hint, accent = 'primary' }: {
 }) {
   return (
     <Box sx={(t) => ({
-      p: 1.5, borderRadius: 2, height: '100%',
-      bgcolor: alpha(t.palette[accent].main, t.palette.mode === 'light' ? 0.08 : 0.14),
-      borderLeft: `3px solid ${t.palette[accent].main}`,
+      p: 1.25, borderRadius: '6px', height: '100%',
+      border: `1px solid ${t.palette.divider}`,
+      bgcolor: alpha(t.palette[accent].main, t.palette.mode === 'light' ? 0.05 : 0.08),
     })}>
-      <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2, display: 'block' }}>{label}</Typography>
-      <Typography variant="h6" sx={{ fontFamily: MONO_FONT, fontWeight: 600, lineHeight: 1.2 }}>{value}</Typography>
-      {hint && <Typography variant="caption" color="text.secondary">{hint}</Typography>}
+      <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', mb: 0.75 }}>
+        <Box sx={(t) => ({ width: 6, height: 6, borderRadius: '50%', backgroundColor: t.palette[accent].main, flexShrink: 0 })} />
+        <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{label}</Typography>
+      </Stack>
+      {/* Mini LED readout to match the instrument language of the dashboard cards. */}
+      <Box sx={{ borderRadius: '4px', px: 1, py: 0.5, backgroundColor: LCD_SCREEN, border: `1px solid ${alpha('#ffffff', 0.07)}`, boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>
+        <Typography sx={(t) => ({ fontFamily: MONO_FONT, fontWeight: 600, fontSize: 18, lineHeight: 1.25, fontVariantNumeric: 'tabular-nums', color: t.palette[accent].light, textShadow: `0 0 8px ${alpha(t.palette[accent].light, 0.4)}` })}>
+          {value}
+        </Typography>
+      </Box>
+      {hint && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>{hint}</Typography>}
     </Box>
   );
 }

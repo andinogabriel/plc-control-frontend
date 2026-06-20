@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
-  Grid, Card, CardActionArea, CardContent, Typography, Box, Alert, Button, Divider, IconButton, Stack, Chip,
+  Grid, Card, CardActionArea, CardContent, Typography, Box, Button, Divider, IconButton, Stack, Chip,
   MenuItem, TextField, Skeleton, Tooltip, useMediaQuery, useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
@@ -16,12 +16,12 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 import InsightsIcon from '@mui/icons-material/Insights';
 import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
-import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import dayjs from 'dayjs';
 import { measurementApi } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
 import { StatusChip } from '../components/StatusChip';
 import { StatusLamp } from '../components/StatusLamp';
+import { AlarmBar } from '../components/AlarmBar';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { FadeIn } from '../components/FadeIn';
 import { DetailDialog } from '../components/DetailDialog';
@@ -392,12 +392,13 @@ export function DashboardPage() {
       {header}
 
       {(health.status === 'offline' || health.status === 'delayed') && (
-        <Alert severity={health.status === 'offline' ? 'error' : 'warning'} icon={<WarningAmberRoundedIcon />} sx={{ mb: 2 }}>
-          {health.status === 'offline'
+        <AlarmBar
+          severity={health.status === 'offline' ? 'error' : 'warning'}
+          message={health.status === 'offline'
             ? 'Sin datos recientes: la Raspberry podría estar desconectada.'
             : 'Las mediciones están llegando con demora.'}
-          {health.lastAt && ` Última lectura ${formatRelative(health.lastAt)}.`}
-        </Alert>
+          time={health.lastAt ? `ÚLT. ${formatRelative(health.lastAt)}` : undefined}
+        />
       )}
 
       <Grid container spacing={3}>

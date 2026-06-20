@@ -24,6 +24,7 @@ import { CommandPalette } from './CommandPalette';
 import { TopProgressBar } from './TopProgressBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MeasurementStream } from './MeasurementStream';
+import { AcquisitionBar } from './AcquisitionBar';
 import { OfflineBanner } from './OfflineBanner';
 import { PullToRefresh } from './PullToRefresh';
 import { useReducedMotion } from '../hooks/useReducedMotion';
@@ -235,6 +236,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <Box component="main" id="main-content" ref={mainRef} tabIndex={-1}
         sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', outline: 'none', p: { xs: 2, md: 3 }, pb: { xs: 10, md: 3 } }}>
         <Toolbar />
+        <AcquisitionBar />
         <Box className="no-print" sx={{ mb: 1 }}><OfflineBanner /></Box>
         <PullToRefresh>
           {/* Per-route enter transition: a subtle fade + upward slide. Keyed by pathname so it
