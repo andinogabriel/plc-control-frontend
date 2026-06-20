@@ -5,7 +5,7 @@ import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import dayjs from 'dayjs';
 import { eventApi } from '../api/eventApi';
-import type { EventSeverity, EventType } from '../api/types';
+import type { EventResponse, EventSeverity, EventType, PageResponse } from '../api/types';
 import { StatusLamp, type LampTone } from './StatusLamp';
 import { ErrorState } from './ErrorState';
 import { MONO_FONT } from '../theme';
@@ -54,8 +54,53 @@ export function EventLog() {
     queryClient.invalidateQueries({ queryKey: ['events'] });
     queryClient.invalidateQueries({ queryKey: ['events-unacked'] });
   };
-  const ackOne = useMutation({ mutationFn: eventApi.ackEvent, onSuccess: invalidate });
-  const ackAll = useMutation({ mutationFn: () => eventApi.ackAll(), onSuccess: invalidate });
+
+  // Optimistic ACK: flip the row(s) and the global count immediately, roll back on error, and
+  // reconcile with the server on settle.
+  const snapshot = async () => {
+    await queryClient.cancelQueries({ queryKey: ['events', page] });
+    await queryClient.cancelQueries({ queryKey: ['events-unacked'] });
+    return {
+      prevPage: queryClient.getQueryData<PageResponse<EventResponse>>(['events', page]),
+      prevCount: queryClient.getQueryData<number>(['events-unacked']),
+    };
+  };
+  const rollback = (ctx?: { prevPage?: PageResponse<EventResponse>; prevCount?: number }) => {
+    if (ctx?.prevPage) queryClient.setQueryData(['events', page], ctx.prevPage);
+    if (typeof ctx?.prevCount === 'number') queryClient.setQueryData(['events-unacked'], ctx.prevCount);
+  };
+  const patchPage = (matches: (e: EventResponse) => boolean) => {
+    const prev = queryClient.getQueryData<PageResponse<EventResponse>>(['events', page]);
+    if (prev) {
+      queryClient.setQueryData<PageResponse<EventResponse>>(['events', page], {
+        ...prev,
+        content: prev.content.map((e) => (matches(e) ? { ...e, acknowledged: true } : e)),
+      });
+    }
+  };
+
+  const ackOne = useMutation({
+    mutationFn: eventApi.ackEvent,
+    onMutate: async (id: string) => {
+      const ctx = await snapshot();
+      patchPage((e) => e.id === id);
+      if (typeof ctx.prevCount === 'number') queryClient.setQueryData(['events-unacked'], Math.max(0, ctx.prevCount - 1));
+      return ctx;
+    },
+    onError: (_err, _id, ctx) => rollback(ctx),
+    onSettled: invalidate,
+  });
+  const ackAll = useMutation({
+    mutationFn: () => eventApi.ackAll(),
+    onMutate: async () => {
+      const ctx = await snapshot();
+      patchPage((e) => e.ackable);
+      queryClient.setQueryData(['events-unacked'], 0);
+      return ctx;
+    },
+    onError: (_err, _vars, ctx) => rollback(ctx),
+    onSettled: invalidate,
+  });
 
   const events = data?.content ?? [];
   const totalPages = Math.max(1, data?.totalPages ?? 1);
