@@ -69,52 +69,70 @@ const SPARK_POINTS = 24;
 // most-recent page). Plenty of resolution for the line chart.
 const CHART_MAX_POINTS = 800;
 
-function MetricCard({ icon, label, value, color = 'primary', onClick, children, index = 0 }: {
+function MetricCard({ icon, label, value, color = 'primary', onClick, children, tag }: {
   icon: React.ReactNode; label: string; value?: React.ReactNode; color?: AccentColor;
-  onClick: () => void; children?: React.ReactNode; index?: number;
+  onClick: () => void; children?: React.ReactNode;
+  /** Instrument tag drawn in the module header (e.g. "TT-01"); reads as a real control device. */
+  tag?: string;
 }) {
   return (
     <Card sx={(t) => ({
       height: '100%',
-      // Flat faint tint in the metric's accent colour: a subtle per-card identity without the
-      // diagonal gradient, matching the instrument-panel look. Barely-there in light and dark.
-      backgroundColor: alpha(t.palette[color].main, 0.05),
-      transition: t.transitions.create('box-shadow', { duration: 180 }),
-      '@media (hover: hover)': {
-        '&:hover': { boxShadow: `0 10px 28px ${alpha(t.palette[color].main, 0.2)}` },
-      },
-      // Staggered fade-up on mount (e.g. when entering the dashboard). Runs once; honours
-      // reduced-motion. `both` holds the cards hidden until each one's delay elapses.
-      '@keyframes metricIn': {
-        from: { opacity: 0, transform: 'translateY(10px)' },
-        to: { opacity: 1, transform: 'none' },
-      },
-      animation: `metricIn 420ms ease ${index * 80}ms both`,
-      '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+      // Rectangular, labelled module rather than a soft web card: sharper corners, a coloured
+      // header strip, and a hairline that lights up in the accent on hover (no lift/float).
+      borderRadius: '6px',
+      overflow: 'hidden',
+      transition: t.transitions.create('border-color', { duration: 120 }),
+      '@media (hover: hover)': { '&:hover': { borderColor: alpha(t.palette[color].main, 0.55) } },
     })}>
-      <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
-        <CardContent sx={{ minHeight: 172, p: 2.5 }}>
-          <Box sx={(t) => ({
-            width: 42, height: 42, borderRadius: 1.5, mb: 1.75,
-            display: 'grid', placeItems: 'center',
-            color: t.palette[color].main,
-            backgroundColor: alpha(t.palette[color].main, 0.12),
-            border: `1px solid ${alpha(t.palette[color].main, 0.28)}`,
-          })}>
-            {icon}
-          </Box>
-          <Typography variant="overline" color="text.secondary">
-            {label}
-          </Typography>
-          {value !== undefined && (
-            <Typography variant="h4"
-              sx={{ fontFamily: MONO_FONT, fontWeight: 600, mt: 0.25, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}
-              component="div">{value}</Typography>
+      <CardActionArea onClick={onClick} sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+        {/* Module header: accent strip with icon + label and the instrument tag. */}
+        <Stack direction="row" sx={(t) => ({
+          alignItems: 'center', justifyContent: 'space-between', px: 1.5, py: 0.85,
+          backgroundColor: alpha(t.palette[color].main, 0.1),
+          borderBottom: `1px solid ${t.palette.divider}`,
+        })}>
+          <Stack direction="row" spacing={0.85} sx={{ alignItems: 'center', minWidth: 0 }}>
+            <Box sx={(t) => ({ display: 'inline-flex', color: t.palette[color].main, '& svg': { fontSize: 18 } })}>{icon}</Box>
+            <Typography variant="overline" color="text.secondary" noWrap>{label}</Typography>
+          </Stack>
+          {tag && (
+            <Typography sx={{ fontFamily: MONO_FONT, fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: 'text.disabled' }}>
+              {tag}
+            </Typography>
           )}
-          <Box sx={{ mt: 1.25 }}>{children}</Box>
-        </CardContent>
+        </Stack>
+
+        <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1.25, minHeight: 130, width: '100%' }}>
+          {value !== undefined && (
+            // Recessed LCD-style readout: a sunken dark screen with the value in the accent colour.
+            <Box sx={(t) => ({
+              borderRadius: '5px',
+              px: 1.5, py: 1,
+              backgroundColor: t.palette.mode === 'dark' ? t.palette.background.default : '#f1f3f7',
+              border: `1px solid ${t.palette.divider}`,
+              boxShadow: `inset 0 1px 3px ${alpha('#000', t.palette.mode === 'dark' ? 0.5 : 0.12)}`,
+            })}>
+              <Typography variant="h4" component="div"
+                sx={(t) => ({ fontFamily: MONO_FONT, fontWeight: 600, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: t.palette[color].main })}>
+                {value}
+              </Typography>
+            </Box>
+          )}
+          {children}
+        </Box>
       </CardActionArea>
     </Card>
+  );
+}
+
+/** Low/high limit readout, controller-style: "LO 18  HI 29 °C" with muted tag labels. */
+function LimitReadout({ min, max, unit }: { min: number; max: number; unit: string }) {
+  return (
+    <Typography component="span" sx={{ fontFamily: MONO_FONT, fontSize: 11, fontVariantNumeric: 'tabular-nums' }} color="text.secondary">
+      <Box component="span" sx={{ color: 'text.disabled', mr: 0.4 }}>LO</Box>{min}
+      <Box component="span" sx={{ color: 'text.disabled', mx: 0.4 }}>HI</Box>{max} {unit}
+    </Typography>
   );
 }
 
@@ -284,7 +302,7 @@ export function DashboardPage() {
   const header = (
     <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
       <Stack direction="row" spacing={2} sx={{ alignItems: 'baseline' }}>
-        <Typography variant="h4">Dashboard</Typography>
+        <Typography variant="h4">Monitoreo en tiempo real</Typography>
         <Typography component="span" ref={printTimeRef} className="print-only" variant="body2" color="text.secondary" />
       </Stack>
       <Stack className="no-print" direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -379,7 +397,7 @@ export function DashboardPage() {
 
       <Grid container spacing={3}>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard index={0} icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
+          <MetricCard tag="TT-01" icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
             value={(
               <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline' }}>
                 <span>{formatTemp(tempCount)}</span>
@@ -390,18 +408,14 @@ export function DashboardPage() {
             {config
               ? <RadialGauge value={latest.temperature} min={config.temperatureMin} max={config.temperatureMax} hysteresis={config.hysteresisTemperature} unit="°C" />
               : <Sparkline data={tempSpark} color={theme.palette.primary.main} />}
-            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-              {config && (
-                <Typography variant="caption" color="text.secondary">
-                  Rango: {config.temperatureMin}–{config.temperatureMax} °C
-                </Typography>
-              )}
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+              {config && <LimitReadout min={config.temperatureMin} max={config.temperatureMax} unit="°C" />}
               {tempOut && <Chip size="small" color="warning" variant="outlined" label="Fuera de rango" />}
             </Stack>
           </MetricCard>
         </Grid>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard index={1} icon={<WaterDropIcon />} color={humOut ? 'warning' : 'secondary'} label="Humedad actual"
+          <MetricCard tag="RH-01" icon={<WaterDropIcon />} color={humOut ? 'warning' : 'secondary'} label="Humedad actual"
             value={(
               <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline' }}>
                 <span>{formatPct(humCount)}</span>
@@ -412,18 +426,14 @@ export function DashboardPage() {
             {config
               ? <RadialGauge value={latest.humidity} min={config.humidityMin} max={config.humidityMax} hysteresis={config.hysteresisHumidity} unit="%" />
               : <Sparkline data={humSpark} color={theme.palette.secondary.main} />}
-            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-              {config && (
-                <Typography variant="caption" color="text.secondary">
-                  Rango: {config.humidityMin}–{config.humidityMax} %
-                </Typography>
-              )}
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+              {config && <LimitReadout min={config.humidityMin} max={config.humidityMax} unit="%" />}
               {humOut && <Chip size="small" color="warning" variant="outlined" label="Fuera de rango" />}
             </Stack>
           </MetricCard>
         </Grid>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard index={2} icon={<AcUnitIcon />} color={latest.coolerOn ? 'success' : 'secondary'}
+          <MetricCard tag="FAN-01" icon={<AcUnitIcon />} color={latest.coolerOn ? 'success' : 'secondary'}
             label="Estado del cooler"
             value={(
               <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
@@ -438,7 +448,7 @@ export function DashboardPage() {
           </MetricCard>
         </Grid>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard index={3} icon={<InsightsIcon />} color="warning" label="Estado general"
+          <MetricCard tag="SYS" icon={<InsightsIcon />} color="warning" label="Estado general"
             onClick={goToMeasurements}>
             <Stack spacing={1.25}>
               <Box><StatusChip status={latest.status} /></Box>

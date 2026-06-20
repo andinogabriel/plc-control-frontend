@@ -36,7 +36,7 @@ describe('DashboardPage', () => {
   it('renders the live metrics from the API without crashing', async () => {
     renderWithProviders(<DashboardPage />);
 
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Monitoreo en tiempo real' })).toBeInTheDocument();
     // Cards that only appear once the latest measurement has loaded.
     expect(await screen.findByText('Estado del cooler')).toBeInTheDocument();
     expect(await screen.findByText('OFF')).toBeInTheDocument();
