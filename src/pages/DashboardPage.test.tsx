@@ -39,7 +39,7 @@ describe('DashboardPage', () => {
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
     // Cards that only appear once the latest measurement has loaded.
     expect(await screen.findByText('Estado del cooler')).toBeInTheDocument();
-    expect(await screen.findByText('APAGADO')).toBeInTheDocument();
+    expect(await screen.findByText('OFF')).toBeInTheDocument();
   });
 
   it('shows the empty state when there is no measurement yet', async () => {

@@ -3,6 +3,7 @@ import { DataGrid, type DataGridProps } from '@mui/x-data-grid';
 import { DataTablePagination } from './DataTablePagination';
 import { TableEmptyOverlay } from './TableEmptyOverlay';
 import { HEADER_HEIGHT, ROW_HEIGHT, PAGE_SIZE_OPTIONS, dataGridHeight } from './dataGridLayout';
+import { MONO_FONT } from '../theme';
 
 /**
  * Project-wide DataGrid wrapper: server pagination, fixed 10-row height with internal scroll,
@@ -38,7 +39,13 @@ export function AppDataGrid({ dense, ...props }: DataGridProps & { dense?: boole
             fontSize: 12,
           },
           '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 700 },
-          '& .MuiDataGrid-cell': { borderColor: 'rgba(128,128,128,0.20)' },
+          // Monospaced body cells for a telemetry-readout feel; numbers line up column-to-column.
+          '& .MuiDataGrid-cell': {
+            borderColor: 'rgba(128,128,128,0.20)',
+            fontFamily: MONO_FONT,
+            fontVariantNumeric: 'tabular-nums',
+            fontSize: 13,
+          },
           '& .MuiDataGrid-row': { cursor: props.onRowClick ? 'pointer' : 'default' },
           '& .MuiDataGrid-row:hover': { backgroundColor: 'action.hover' },
           '& .MuiDataGrid-columnSeparator': { display: 'none' },

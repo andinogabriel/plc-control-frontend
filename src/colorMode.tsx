@@ -15,8 +15,9 @@ export const useColorMode = () => useContext(ColorModeContext);
 
 /** Provides the theme with a persisted light/dark/system selection. */
 export function AppThemeProvider({ children }: { children: ReactNode }) {
+  // Dark-first: control rooms run dark, so default to it when the user hasn't chosen yet.
   const [mode, setMode] = useState<ColorMode>(
-    () => (localStorage.getItem(STORAGE_KEY) as ColorMode) || 'system',
+    () => (localStorage.getItem(STORAGE_KEY) as ColorMode) || 'dark',
   );
   const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
 

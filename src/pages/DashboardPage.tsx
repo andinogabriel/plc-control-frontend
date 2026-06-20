@@ -21,6 +21,7 @@ import dayjs from 'dayjs';
 import { measurementApi } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
 import { StatusChip } from '../components/StatusChip';
+import { StatusLamp } from '../components/StatusLamp';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { FadeIn } from '../components/FadeIn';
 import { DetailDialog } from '../components/DetailDialog';
@@ -32,6 +33,7 @@ import { Delta } from '../components/Delta';
 import { RefreshControl } from '../components/RefreshControl';
 import { ControlAnalytics } from '../components/ControlAnalytics';
 import { exportChartPng } from '../lib/exporters';
+import { MONO_FONT } from '../theme';
 import { useCountUp } from '../hooks/useCountUp';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 import { formatRelative } from '../lib/time';
@@ -93,18 +95,21 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children, 
       <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
         <CardContent sx={{ minHeight: 172, p: 2.5 }}>
           <Box sx={(t) => ({
-            width: 44, height: 44, borderRadius: 2.5, mb: 1.75,
+            width: 42, height: 42, borderRadius: 1.5, mb: 1.75,
             display: 'grid', placeItems: 'center',
             color: t.palette[color].main,
             backgroundColor: alpha(t.palette[color].main, 0.12),
+            border: `1px solid ${alpha(t.palette[color].main, 0.28)}`,
           })}>
             {icon}
           </Box>
-          <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: '0.06em' }}>
+          <Typography variant="overline" color="text.secondary">
             {label}
           </Typography>
           {value !== undefined && (
-            <Typography variant="h4" sx={{ fontWeight: 700, mt: 0.25, fontVariantNumeric: 'tabular-nums' }} component="div">{value}</Typography>
+            <Typography variant="h4"
+              sx={{ fontFamily: MONO_FONT, fontWeight: 600, mt: 0.25, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}
+              component="div">{value}</Typography>
           )}
           <Box sx={{ mt: 1.25 }}>{children}</Box>
         </CardContent>
@@ -419,8 +424,18 @@ export function DashboardPage() {
         </Grid>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard index={2} icon={<AcUnitIcon />} color={latest.coolerOn ? 'success' : 'secondary'}
-            label="Estado del cooler" value={latest.coolerOn ? 'ENCENDIDO' : 'APAGADO'}
-            onClick={goToMeasurements} />
+            label="Estado del cooler"
+            value={(
+              <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
+                <StatusLamp tone={latest.coolerOn ? 'success' : 'default'} size={13} pulse={latest.coolerOn} />
+                <span>{latest.coolerOn ? 'ON' : 'OFF'}</span>
+              </Stack>
+            )}
+            onClick={goToMeasurements}>
+            <Typography variant="caption" color="text.secondary">
+              {latest.coolerOn ? 'Refrigeración activa' : 'En reposo'}
+            </Typography>
+          </MetricCard>
         </Grid>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard index={3} icon={<InsightsIcon />} color="warning" label="Estado general"

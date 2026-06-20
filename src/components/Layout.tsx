@@ -17,6 +17,7 @@ import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import CheckIcon from '@mui/icons-material/Check';
 import { Link, useLocation } from 'react-router-dom';
 import { useColorMode, type ColorMode } from '../colorMode';
+import { MONO_FONT } from '../theme';
 import { SystemHealthBadge } from './SystemHealthBadge';
 import { AlertCenter } from './AlertCenter';
 import { CommandPalette } from './CommandPalette';
@@ -67,6 +68,25 @@ function ColorModeButton() {
         ))}
       </Menu>
     </>
+  );
+}
+
+/** Live plant clock for the status bar: a monospaced HH:MM:SS readout, like a console header. */
+function PlantClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <Box component="span" aria-hidden sx={{
+      display: { xs: 'none', md: 'inline-flex' },
+      fontFamily: MONO_FONT, fontSize: 13, fontWeight: 500,
+      color: 'text.secondary', letterSpacing: '0.04em', mr: 1,
+      fontVariantNumeric: 'tabular-nums',
+    }}>
+      {now.toLocaleTimeString('es-AR', { hour12: false })}
+    </Box>
   );
 }
 
@@ -166,11 +186,12 @@ export function Layout({ children }: { children: ReactNode }) {
             <MenuIcon />
           </IconButton>
           <ThermostatIcon sx={{ mr: 1, color: 'primary.main' }} />
-          <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700 }}>
+          <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: '0.02em' }}>
             {/* Full name on tablet+, short name on phones so it never truncates mid-word. */}
             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Sistema de Control PLC</Box>
             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Control PLC</Box>
           </Typography>
+          <PlantClock />
           <Box sx={{ display: { xs: 'flex', sm: 'none' } }}><SystemHealthBadge compact /></Box>
           <Box sx={{ display: { xs: 'none', sm: 'block' }, mr: 1 }}><SystemHealthBadge /></Box>
           <Tooltip title="Buscar (Ctrl/⌘ + K)">

@@ -3,6 +3,7 @@ import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
 import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
 import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
 import { formatNumber } from '../lib/format';
+import { MONO_FONT } from '../theme';
 
 /**
  * Compact change indicator versus the previous reading: an up/down/flat arrow with the signed
@@ -23,7 +24,7 @@ export function Delta({ value, unit, fractionDigits = 1 }: {
   return (
     <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color }}>
       <Icon sx={{ fontSize: 16 }} />
-      <Typography variant="caption" sx={{ fontWeight: 600 }}>
+      <Typography variant="caption" sx={{ fontFamily: MONO_FONT, fontWeight: 600 }}>
         {formatNumber(Math.abs(rounded))} {unit}
       </Typography>
     </Box>

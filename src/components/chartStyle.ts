@@ -1,12 +1,14 @@
 import type { Theme } from '@mui/material';
 import dayjs from 'dayjs';
+import { MONO_FONT } from '../theme';
 
 /** Shared, modern styling for the LineCharts: no axis lines/ticks, subtle dashed grid,
- *  rounded line caps. Exported as a theme function so colors adapt to light/dark. */
+ *  rounded line caps, monospaced axis labels (telemetry readout feel). Exported as a theme
+ *  function so colors adapt to light/dark. */
 export const chartSx = (theme: Theme) => ({
   '& .MuiChartsAxis-line': { display: 'none' },
   '& .MuiChartsAxis-tick': { display: 'none' },
-  '& .MuiChartsAxis-tickLabel': { fontSize: 11, fill: theme.palette.text.secondary },
+  '& .MuiChartsAxis-tickLabel': { fontSize: 11, fontFamily: MONO_FONT, fill: theme.palette.text.secondary },
   '& .MuiChartsGrid-line': {
     stroke: theme.palette.divider,
     strokeDasharray: '4 6',

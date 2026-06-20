@@ -19,6 +19,7 @@ import { StatusChip } from '../components/StatusChip';
 import { SystemHealthBadge } from '../components/SystemHealthBadge';
 import { useCountUp } from '../hooks/useCountUp';
 import { formatNumber } from '../lib/format';
+import { MONO_FONT } from '../theme';
 
 const RANGE_MS = 2 * 60 * 60 * 1000; // last 2 hours
 
@@ -27,25 +28,22 @@ function BigTile({ icon, label, value, unit, accent, out }: {
 }) {
   return (
     <Box sx={(t) => ({
-      flex: 1, minWidth: 200, p: { xs: 2.5, md: 3 }, borderRadius: 4,
+      flex: 1, minWidth: 200, p: { xs: 2.5, md: 3 }, borderRadius: 2,
       border: `1px solid ${out ? t.palette.warning.main : t.palette.divider}`,
-      bgcolor: 'background.paper',
-      // Accent tint in the metric colour (warning when out of range) for depth on the big screen.
-      backgroundImage: out
-        ? `linear-gradient(150deg, ${alpha(t.palette.warning.main, 0.16)}, ${alpha(t.palette.warning.main, 0.03)})`
-        : `linear-gradient(150deg, ${alpha(accent, 0.12)}, ${alpha(accent, 0)} 65%)`,
+      // Flat accent tint (warning when out of range): a console module, not a glossy card.
+      bgcolor: out ? alpha(t.palette.warning.main, 0.1) : alpha(accent, 0.06),
     })}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
-        <Box sx={{ width: 40, height: 40, borderRadius: 2.5, display: 'grid', placeItems: 'center', color: accent, bgcolor: alpha(accent, 0.16) }}>
+        <Box sx={{ width: 40, height: 40, borderRadius: 1.5, display: 'grid', placeItems: 'center', color: accent, bgcolor: alpha(accent, 0.16), border: `1px solid ${alpha(accent, 0.3)}` }}>
           {icon}
         </Box>
-        <Typography variant="overline" sx={{ letterSpacing: '0.08em', fontWeight: 700, color: accent }}>{label}</Typography>
+        <Typography variant="overline" sx={{ fontWeight: 700, color: accent }}>{label}</Typography>
         {out && <Chip size="small" color="warning" label="Fuera de rango" sx={{ ml: 'auto' }} />}
       </Stack>
       {/* Number and unit kept on one line: the big value never wraps ("23,0" / "°C"), and the
           smaller unit reads as a suffix instead of stealing space from the figure. */}
       <Stack direction="row" spacing={0.75} sx={{ alignItems: 'baseline', minWidth: 0 }}>
-        <Typography sx={{ fontWeight: 800, fontSize: { xs: 40, md: 64 }, lineHeight: 1, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+        <Typography sx={{ fontFamily: MONO_FONT, fontWeight: 600, fontSize: { xs: 40, md: 64 }, lineHeight: 1, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
           {value}
         </Typography>
         {unit && (
@@ -115,7 +113,7 @@ export function KioscoPage() {
         {/* Compact dot on phones; full badge with label from sm up. */}
         <Box sx={{ display: { xs: 'flex', sm: 'none' } }}><SystemHealthBadge compact /></Box>
         <Box sx={{ display: { xs: 'none', sm: 'flex' } }}><SystemHealthBadge /></Box>
-        <Typography variant="h6" sx={{ fontVariantNumeric: 'tabular-nums', color: 'text.secondary' }}>
+        <Typography variant="h6" sx={{ fontFamily: MONO_FONT, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', color: 'text.secondary' }}>
           {now.format('HH:mm:ss')}
         </Typography>
         <Tooltip title={isFs ? 'Salir de pantalla completa' : 'Pantalla completa'}>
@@ -134,15 +132,14 @@ export function KioscoPage() {
         <BigTile icon={<AcUnitIcon />} accent={latest?.coolerOn ? theme.palette.success.main : theme.palette.text.secondary}
           label="Cooler" value={latest ? (latest.coolerOn ? 'ON' : 'OFF') : '—'} />
         <Box sx={(t) => ({
-          flex: 1, minWidth: 200, p: { xs: 2.5, md: 3 }, borderRadius: 4,
-          border: `1px solid ${t.palette.divider}`, bgcolor: 'background.paper',
-          backgroundImage: `linear-gradient(150deg, ${alpha(t.palette.warning.main, 0.12)}, ${alpha(t.palette.warning.main, 0)} 65%)`,
+          flex: 1, minWidth: 200, p: { xs: 2.5, md: 3 }, borderRadius: 2,
+          border: `1px solid ${t.palette.divider}`, bgcolor: alpha(t.palette.warning.main, 0.06),
         })}>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
-            <Box sx={(t) => ({ width: 40, height: 40, borderRadius: 2.5, display: 'grid', placeItems: 'center', color: 'warning.main', bgcolor: alpha(t.palette.warning.main, 0.16) })}>
+            <Box sx={(t) => ({ width: 40, height: 40, borderRadius: 1.5, display: 'grid', placeItems: 'center', color: 'warning.main', bgcolor: alpha(t.palette.warning.main, 0.16), border: `1px solid ${alpha(t.palette.warning.main, 0.3)}` })}>
               <InsightsIcon />
             </Box>
-            <Typography variant="overline" sx={{ letterSpacing: '0.08em', fontWeight: 700, color: 'warning.main' }}>Estado</Typography>
+            <Typography variant="overline" sx={{ fontWeight: 700, color: 'warning.main' }}>Estado</Typography>
           </Stack>
           <Box>{latest ? <StatusChip status={latest.status} /> : <Typography variant="h4">—</Typography>}</Box>
           {config && (
@@ -153,8 +150,8 @@ export function KioscoPage() {
         </Box>
       </Stack>
 
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 1.5, md: 3 }, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
-        <Typography variant="subtitle1" sx={{ mb: 1 }}>Últimas 2 horas</Typography>
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 1.5, md: 3 }, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
+        <Typography variant="overline" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Últimas 2 horas</Typography>
         {points.length > 0 ? (
           <AreaLineChart
             fill
