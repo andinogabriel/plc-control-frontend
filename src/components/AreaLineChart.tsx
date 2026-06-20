@@ -164,13 +164,12 @@ export function AreaLineChart({
         ))}
         <defs>
           {visibleSeries.map((s) => (
-            // Three-stop fade: a richer tint at the line that drops off quickly, so overlapping
-            // series stay readable (the lower half is near-transparent) and the bottom blends
-            // into the card. The fillOpacity override above lets this gradient show through.
+            // Flat low-opacity tint (no glossy fade) for an instrument-readout look. Kept light so
+            // overlapping temperature/humidity bands stay readable. The fillOpacity override above
+            // lets this fill show through.
             <linearGradient key={s.id} id={gradientId(s.id)} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={s.color} stopOpacity={0.3} />
-              <stop offset="55%" stopColor={s.color} stopOpacity={0.08} />
-              <stop offset="100%" stopColor={s.color} stopOpacity={0} />
+              <stop offset="0%" stopColor={s.color} stopOpacity={0.1} />
+              <stop offset="100%" stopColor={s.color} stopOpacity={0.1} />
             </linearGradient>
           ))}
         </defs>

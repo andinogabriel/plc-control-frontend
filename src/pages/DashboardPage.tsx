@@ -74,9 +74,9 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children, 
   return (
     <Card sx={(t) => ({
       height: '100%',
-      // Faint diagonal tint in the metric's accent colour: gives each card a subtle identity
-      // and depth without competing with the content. Barely-there in both light and dark.
-      backgroundImage: `linear-gradient(150deg, ${alpha(t.palette[color].main, 0.07)}, ${alpha(t.palette[color].main, 0)} 60%)`,
+      // Flat faint tint in the metric's accent colour: a subtle per-card identity without the
+      // diagonal gradient, matching the instrument-panel look. Barely-there in light and dark.
+      backgroundColor: alpha(t.palette[color].main, 0.05),
       transition: t.transitions.create('box-shadow', { duration: 180 }),
       '@media (hover: hover)': {
         '&:hover': { boxShadow: `0 10px 28px ${alpha(t.palette[color].main, 0.2)}` },
