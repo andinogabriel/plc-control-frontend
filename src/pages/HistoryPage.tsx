@@ -326,7 +326,7 @@ export function HistoryPage() {
               </Stack>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
-                  onClick={() => exportChartPng(tempChartRef.current, 'temperatura.png', { title: 'Temperatura vs tiempo', source: 'Mediciones' })}
+                  onClick={() => exportChartPng(tempChartRef.current, 'temperatura.png', { title: 'Temperatura vs tiempo', source: 'Mediciones', legend: [{ label: 'Temperatura (°C)', color: theme.palette.primary.main }] })}
                   aria-label="Descargar gráfico">
                   <ImageRoundedIcon fontSize="small" /></IconButton></span>
               </Tooltip>
@@ -356,7 +356,7 @@ export function HistoryPage() {
               </Stack>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
-                  onClick={() => exportChartPng(humChartRef.current, 'humedad.png', { title: 'Humedad vs tiempo', source: 'Mediciones' })}
+                  onClick={() => exportChartPng(humChartRef.current, 'humedad.png', { title: 'Humedad vs tiempo', source: 'Mediciones', legend: [{ label: 'Humedad (%)', color: theme.palette.secondary.main }] })}
                   aria-label="Descargar gráfico">
                   <ImageRoundedIcon fontSize="small" /></IconButton></span>
               </Tooltip>
