@@ -289,7 +289,7 @@ export function ConfigHistoryPage() {
               </Stack>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
-                  onClick={() => exportChartPng(tempChartRef.current, 'umbrales-temperatura.png', { title: 'Evolución de umbrales de temperatura', source: 'Historial de configuraciones' })}
+                  onClick={() => exportChartPng(tempChartRef.current, 'umbrales-temperatura.png', { title: 'Evolución de umbrales de temperatura', source: 'Historial de configuraciones', legend: [{ label: 'T. mín', color: theme.palette.primary.main }, { label: 'T. máx', color: theme.palette.error.main }] })}
                   aria-label="Descargar gráfico">
                   <ImageRoundedIcon fontSize="small" /></IconButton></span>
               </Tooltip>
@@ -320,7 +320,7 @@ export function ConfigHistoryPage() {
               </Stack>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
-                  onClick={() => exportChartPng(humChartRef.current, 'umbrales-humedad.png', { title: 'Evolución de umbrales de humedad', source: 'Historial de configuraciones' })}
+                  onClick={() => exportChartPng(humChartRef.current, 'umbrales-humedad.png', { title: 'Evolución de umbrales de humedad', source: 'Historial de configuraciones', legend: [{ label: 'H. mín', color: theme.palette.secondary.main }, { label: 'H. máx', color: theme.palette.warning.main }] })}
                   aria-label="Descargar gráfico">
                   <ImageRoundedIcon fontSize="small" /></IconButton></span>
               </Tooltip>

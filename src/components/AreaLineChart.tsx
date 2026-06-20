@@ -191,7 +191,14 @@ export function AreaLineChart({
                 userSelect: 'none', opacity: off ? 0.4 : 1,
               }}
             >
-              <Box sx={{ width: 16, height: 4, borderRadius: 2, backgroundColor: s.color }} />
+              {/* Swatch mirrors the line style: a dashed stroke for comparison/overlay series. */}
+              {s.dashed ? (
+                <Box component="svg" viewBox="0 0 16 4" sx={{ width: 16, height: 4, display: 'block', overflow: 'visible' }}>
+                  <line x1="0" y1="2" x2="16" y2="2" stroke={s.color} strokeWidth={3} strokeDasharray="4 3" strokeLinecap="round" />
+                </Box>
+              ) : (
+                <Box sx={{ width: 16, height: 4, borderRadius: 2, backgroundColor: s.color }} />
+              )}
               <Typography variant="caption" sx={{ fontWeight: 600, textDecoration: off ? 'line-through' : 'none' }}>
                 {s.label}
               </Typography>

@@ -64,6 +64,9 @@ export interface ChartPngMeta {
   title?: string;
   /** Screen the chart came from, drawn in the footer (e.g. "Mediciones"). */
   source?: string;
+  /** Series legend, drawn under the title (the on-screen legend is HTML, not part of the SVG, so
+   *  the export would otherwise have no colour key). */
+  legend?: { label: string; color: string; dashed?: boolean }[];
 }
 
 const FONT_STACK = 'Inter, Roboto, Helvetica, Arial, sans-serif';
@@ -117,10 +120,12 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
   clone.setAttribute('width', String(rect.width));
   clone.setAttribute('height', String(rect.height));
 
+  const legend = meta.legend ?? [];
   const headerH = meta.title ? 36 : 0;
+  const legendH = legend.length ? 24 : 0;
   const footerH = 26;
   const w = rect.width;
-  const totalH = headerH + rect.height + footerH;
+  const totalH = headerH + legendH + rect.height + footerH;
 
   const xml = new XMLSerializer().serializeToString(clone);
   const url = URL.createObjectURL(new Blob([xml], { type: 'image/svg+xml;charset=utf-8' }));
@@ -145,9 +150,35 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
           ctx.fillText(meta.title, 12, headerH / 2 + 2);
         }
 
-        ctx.drawImage(img, 0, headerH, w, rect.height);
+        // Legend row (line swatch + label), centred under the title — solid or dashed per series.
+        if (legend.length) {
+          ctx.font = `600 12px ${FONT_STACK}`;
+          const swatch = 18;
+          const gap = 6;
+          const itemGap = 18;
+          const items = legend.map((l) => ({ ...l, tw: ctx.measureText(l.label).width }));
+          const totalW = items.reduce((acc, it) => acc + swatch + gap + it.tw, 0) + itemGap * (items.length - 1);
+          let x = Math.max(12, (w - totalW) / 2);
+          const ly = headerH + legendH / 2;
+          for (const it of items) {
+            ctx.strokeStyle = it.color;
+            ctx.lineWidth = 3;
+            ctx.setLineDash(it.dashed ? [5, 4] : []);
+            ctx.beginPath();
+            ctx.moveTo(x, ly);
+            ctx.lineTo(x + swatch, ly);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'left';
+            ctx.fillText(it.label, x + swatch + gap, ly);
+            x += swatch + gap + it.tw + itemGap;
+          }
+        }
 
-        const fy = headerH + rect.height + footerH / 2;
+        ctx.drawImage(img, 0, headerH + legendH, w, rect.height);
+
+        const fy = headerH + legendH + rect.height + footerH / 2;
         ctx.globalAlpha = 0.65;
         ctx.font = `12px ${FONT_STACK}`;
         if (meta.source) { ctx.textAlign = 'left'; ctx.fillText(meta.source, 12, fy); }
