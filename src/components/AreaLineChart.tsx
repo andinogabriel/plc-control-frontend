@@ -6,6 +6,7 @@ import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine';
 import { chartSx, formatAxisDate } from './chartStyle';
 import { ChartBrush } from './ChartBrush';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import { MONO_FONT } from '../theme';
 
 export interface ChartSeries {
   id: string;
@@ -128,14 +129,14 @@ export function AreaLineChart({
           scaleType: xScale,
           disableLine: true,
           disableTicks: true,
-          tickLabelStyle: { fontSize: 11 },
+          tickLabelStyle: { fontSize: 11, fontFamily: MONO_FONT },
           valueFormatter: (value: Date, ctx?: { location?: string }) => formatAxisDate(value, ctx?.location, mode),
         }]}
         yAxis={[{
           disableLine: true,
           disableTicks: true,
           width: 44,
-          tickLabelStyle: { fontSize: 11 },
+          tickLabelStyle: { fontSize: 11, fontFamily: MONO_FONT },
         }]}
         series={visibleSeries.map((s) => ({
           id: s.id, label: s.label, data: s.data, color: s.color,

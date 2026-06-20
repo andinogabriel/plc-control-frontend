@@ -1,6 +1,7 @@
 import { Box, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { formatNumber } from '../lib/format';
+import { MONO_FONT } from '../theme';
 
 const TAU = Math.PI / 180;
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
@@ -63,10 +64,10 @@ export function RadialGauge({ value, min, max, hysteresis = 0, unit, showValue =
             transition: 'cx 0.5s ease, cy 0.5s ease',
           }} />
         {/* Min / max end labels */}
-        <text x={pt(cx, cy, r, 180)[0]} y={cy + 12} textAnchor="middle" fontSize={8} fill={theme.palette.text.secondary}>{min}</text>
-        <text x={pt(cx, cy, r, 0)[0]} y={cy + 12} textAnchor="middle" fontSize={8} fill={theme.palette.text.secondary}>{max}</text>
+        <text x={pt(cx, cy, r, 180)[0]} y={cy + 12} textAnchor="middle" fontSize={8} fontFamily={MONO_FONT} fill={theme.palette.text.secondary}>{min}</text>
+        <text x={pt(cx, cy, r, 0)[0]} y={cy + 12} textAnchor="middle" fontSize={8} fontFamily={MONO_FONT} fill={theme.palette.text.secondary}>{max}</text>
         {showValue && (
-          <text x={cx} y={cy - 6} textAnchor="middle" fontSize={16} fontWeight={700} fill={theme.palette.text.primary}>
+          <text x={cx} y={cy - 6} textAnchor="middle" fontSize={16} fontFamily={MONO_FONT} fontWeight={600} fill={theme.palette.text.primary}>
             {formatNumber(value)}{unit}
           </text>
         )}

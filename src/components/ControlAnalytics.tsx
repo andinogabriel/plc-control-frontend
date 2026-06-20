@@ -3,6 +3,7 @@ import { alpha } from '@mui/material/styles';
 import type { ConfigResponse, MeasurementResponse } from '../api/types';
 import { formatNumber } from '../lib/format';
 import { formatDuration } from '../lib/time';
+import { MONO_FONT } from '../theme';
 
 type StatAccent = 'primary' | 'secondary' | 'success' | 'warning';
 
@@ -16,7 +17,7 @@ function StatTile({ label, value, hint, accent = 'primary' }: {
       borderLeft: `3px solid ${t.palette[accent].main}`,
     })}>
       <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2, display: 'block' }}>{label}</Typography>
-      <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>{value}</Typography>
+      <Typography variant="h6" sx={{ fontFamily: MONO_FONT, fontWeight: 600, lineHeight: 1.2 }}>{value}</Typography>
       {hint && <Typography variant="caption" color="text.secondary">{hint}</Typography>}
     </Box>
   );

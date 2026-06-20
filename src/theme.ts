@@ -2,7 +2,12 @@ import { alpha, createTheme, type Theme } from '@mui/material/styles';
 import { esES as coreEsES } from '@mui/material/locale';
 import { esES as dataGridEsES } from '@mui/x-data-grid/locales';
 
-/** Builds the app theme for the given palette mode (light/dark), with Spanish locales. */
+/** Monospaced stack for instrument readouts: live values, axis ticks, telemetry table cells and
+ *  the plant clock. Imported by components that render numbers so the whole app reads like a panel. */
+export const MONO_FONT = '"JetBrains Mono", "Roboto Mono", ui-monospace, "SFMono-Regular", "Menlo", monospace';
+
+/** Builds the app theme for the given palette mode (light/dark), with Spanish locales.
+ *  The dark mode is the primary, control-room target; light mode stays usable as an option. */
 export function createAppTheme(mode: 'light' | 'dark'): Theme {
   const isLight = mode === 'light';
 
@@ -10,25 +15,29 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
     palette: {
       mode,
       // Industrial-instrumentation palette: temperature reads warm (copper), humidity reads cool
-      // (cyan), on a cool slate canvas — an HMI/SCADA feel rather than the generic indigo/teal
-      // dashboard look. Chart series pick these up via `palette.primary` / `palette.secondary`.
+      // (cyan). Chart series pick these up via `palette.primary` / `palette.secondary`. Semantic
+      // colours brighten on dark so status lamps read as glowing LEDs against the panel.
       primary: { main: '#c2410c', light: '#ea580c', dark: '#9a3412' },
       secondary: { main: '#0891b2', light: '#06b6d4', dark: '#0e7490' },
-      success: { main: '#15803d' },
+      success: { main: isLight ? '#15803d' : '#22c55e' },
       // Caution amber, kept yellow enough to stay distinct from the copper primary.
-      warning: { main: '#ca8a04' },
-      error: { main: '#dc2626' },
+      warning: { main: isLight ? '#ca8a04' : '#f59e0b' },
+      error: { main: isLight ? '#dc2626' : '#ef4444' },
+      info: { main: isLight ? '#0e7490' : '#38bdf8' },
+      // Deep navy console on dark: near-black canvas with raised steel panels.
       background: isLight
         ? { default: '#eef1f5', paper: '#ffffff' }
-        : { default: '#0b1120', paper: '#111827' },
+        : { default: '#070b14', paper: '#0f1729' },
       text: isLight
         ? { primary: '#0f172a', secondary: '#64748b' }
         : { primary: '#e5e7eb', secondary: '#94a3b8' },
-      divider: isLight ? '#e6e8ee' : 'rgba(148,163,184,0.16)',
+      divider: isLight ? '#e6e8ee' : 'rgba(148,163,184,0.14)',
     },
     shape: { borderRadius: 8 },
     typography: {
       fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+      // Headings stay sans but tightened; section labels use the wide-tracked overline as panel
+      // captions ("TEMPERATURA", "ACTUADORES").
       h4: { fontWeight: 700, letterSpacing: '-0.02em' },
       h5: { fontWeight: 700, letterSpacing: '-0.01em' },
       h6: { fontWeight: 700, letterSpacing: '-0.01em' },
@@ -38,9 +47,12 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
       body1: { lineHeight: 1.6 },
       body2: { lineHeight: 1.6 },
       caption: { lineHeight: 1.5 },
-      overline: { letterSpacing: '0.08em', fontWeight: 600 },
+      overline: { letterSpacing: '0.12em', fontWeight: 600, fontSize: '0.68rem' },
     },
   });
+
+  // Hairline bezel around panels: a touch brighter than the divider so cards read as raised steel.
+  const panelBorder = isLight ? '#e2e5ec' : 'rgba(148,163,184,0.18)';
 
   const softShadow = isLight
     ? '0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06)'
@@ -130,8 +142,12 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
           styleOverrides: {
             root: {
               borderRadius: 10,
-              border: `1px solid ${base.palette.divider}`,
-              boxShadow: softShadow,
+              // Raised steel panel: hairline bezel + a faint inner top highlight (dark only) so the
+              // surface catches light like a console module.
+              border: `1px solid ${panelBorder}`,
+              boxShadow: isLight
+                ? softShadow
+                : `${softShadow}, inset 0 1px 0 ${alpha('#ffffff', 0.04)}`,
               backgroundImage: 'none',
             },
           },
