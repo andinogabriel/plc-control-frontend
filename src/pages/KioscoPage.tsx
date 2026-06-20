@@ -103,6 +103,9 @@ export function KioscoPage() {
     return () => { clearInterval(id); document.removeEventListener('fullscreenchange', onFs); };
   }, []);
 
+  // The kiosk renders outside the app shell, so it sets its own tab title.
+  useEffect(() => { document.title = 'Monitor en vivo · Sistema de Control PLC'; }, []);
+
   const { data: latest } = useQuery({
     queryKey: ['measurement-latest'], queryFn: measurementApi.getLatest, retry: false, refetchInterval: 5000,
   });

@@ -16,9 +16,11 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import CheckIcon from '@mui/icons-material/Check';
 import { Link, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useColorMode, type ColorMode } from '../colorMode';
+import { eventApi } from '../api/eventApi';
+import { setFaviconAlarm } from '../lib/favicon';
 import { MONO_FONT } from '../theme';
-import { SystemHealthBadge } from './SystemHealthBadge';
 import { AlertCenter } from './AlertCenter';
 import { CommandPalette } from './CommandPalette';
 import { TopProgressBar } from './TopProgressBar';
@@ -33,6 +35,14 @@ const openCommandPalette = () =>
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
 
 const DRAWER_WIDTH = 240;
+
+/** Concise per-route names for the browser tab title. */
+const PAGE_TITLES: Record<string, string> = {
+  '/tablero': 'Monitoreo',
+  '/configuracion': 'Configuración',
+  '/historial-configuracion': 'Historial de configuración',
+  '/mediciones': 'Mediciones',
+};
 
 const navItems = [
   { label: 'Dashboard', path: '/tablero', icon: <SpaceDashboardIcon /> },
@@ -116,6 +126,21 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const toggle = () => (isDesktop ? setDesktopOpen((o) => !o) : setMobileOpen((o) => !o));
 
+  // Global unacknowledged-alarm count (shared cache with the event log). Surfaced in the tab title
+  // so an operator sees pending alarms even from another tab — a control-room habit.
+  const { data: unackedAlarms = 0 } = useQuery({
+    queryKey: ['events-unacked'],
+    queryFn: () => eventApi.getUnacknowledgedCount(),
+    refetchInterval: 30000,
+  });
+  useEffect(() => {
+    const base = 'Sistema de Control PLC';
+    const page = PAGE_TITLES[location.pathname];
+    const name = page ? `${page} · ${base}` : base;
+    document.title = unackedAlarms > 0 ? `(${unackedAlarms}) ${name}` : name;
+  }, [location.pathname, unackedAlarms]);
+  useEffect(() => { setFaviconAlarm(unackedAlarms > 0); }, [unackedAlarms]);
+
   // Accessibility: on navigation, move focus to the main region so screen readers announce the
   // new page and keyboard users continue from the content (not the link they just left). Skip
   // the first render so the app does not steal focus on initial load.
@@ -193,8 +218,6 @@ export function Layout({ children }: { children: ReactNode }) {
             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Control PLC</Box>
           </Typography>
           <PlantClock />
-          <Box sx={{ display: { xs: 'flex', sm: 'none' } }}><SystemHealthBadge compact /></Box>
-          <Box sx={{ display: { xs: 'none', sm: 'block' }, mr: 1 }}><SystemHealthBadge /></Box>
           <Tooltip title="Buscar (Ctrl/⌘ + K)">
             <IconButton color="inherit" onClick={openCommandPalette} aria-label="Abrir buscador">
               <SearchRoundedIcon />
