@@ -38,6 +38,25 @@ export interface MeasurementResponse {
   createdAt: string;
 }
 
+export type EventSeverity = 'INFO' | 'SUCCESS' | 'WARNING' | 'CRITICAL';
+
+export type EventType =
+  | 'TEMP_OUT_OF_RANGE'
+  | 'HUMIDITY_OUT_OF_RANGE'
+  | 'CRITICAL'
+  | 'RETURN_TO_NORMAL'
+  | 'COOLER_ON'
+  | 'COOLER_OFF';
+
+export interface EventResponse {
+  id: string;
+  time: string;
+  severity: EventSeverity;
+  type: EventType;
+  ackable: boolean;
+  acknowledged: boolean;
+}
+
 export interface PageResponse<T> {
   content: T[];
   totalElements: number;

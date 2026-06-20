@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Box, Chip, IconButton, Stack, Tooltip, Typography, useTheme } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { Box, Grid, IconButton, Stack, Tooltip, Typography, useTheme } from '@mui/material';
+import { alpha, lighten } from '@mui/material/styles';
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
 import FullscreenExitRoundedIcon from '@mui/icons-material/FullscreenExitRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -16,42 +16,72 @@ import { measurementApi } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { StatusChip } from '../components/StatusChip';
+import { StatusLamp } from '../components/StatusLamp';
 import { SystemHealthBadge } from '../components/SystemHealthBadge';
 import { useCountUp } from '../hooks/useCountUp';
 import { formatNumber } from '../lib/format';
-import { MONO_FONT } from '../theme';
+import { MONO_FONT, LCD_SCREEN } from '../theme';
 
 const RANGE_MS = 2 * 60 * 60 * 1000; // last 2 hours
 
-function BigTile({ icon, label, value, unit, accent, out }: {
-  icon: React.ReactNode; label: string; value: string; unit?: string; accent: string; out?: boolean;
+/** Module header strip shared by the kiosk tiles: accent icon + label on the left, tag on the
+ *  right, over an accent-tinted bar with a hairline divider. */
+function TileHeader({ icon, label, accent, tag, out, children }: {
+  icon: React.ReactNode; label: string; accent: string; tag?: string; out?: boolean; children?: React.ReactNode;
 }) {
   return (
-    <Box sx={(t) => ({
-      flex: 1, minWidth: 200, p: { xs: 2.5, md: 3 }, borderRadius: 2,
-      border: `1px solid ${out ? t.palette.warning.main : t.palette.divider}`,
-      // Flat accent tint (warning when out of range): a console module, not a glossy card.
-      bgcolor: out ? alpha(t.palette.warning.main, 0.1) : alpha(accent, 0.06),
+    <Stack direction="row" sx={(t) => ({
+      alignItems: 'center', justifyContent: 'space-between', px: { xs: 2, md: 2.5 }, py: 1,
+      backgroundColor: out ? alpha(t.palette.warning.main, 0.12) : alpha(accent, 0.1),
+      borderBottom: `1px solid ${t.palette.divider}`,
     })}>
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
-        <Box sx={{ width: 40, height: 40, borderRadius: 1.5, display: 'grid', placeItems: 'center', color: accent, bgcolor: alpha(accent, 0.16), border: `1px solid ${alpha(accent, 0.3)}` }}>
-          {icon}
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+        <Box sx={{ display: 'inline-flex', color: accent, '& svg': { fontSize: 22 } }}>{icon}</Box>
+        <Typography variant="overline" sx={{ fontWeight: 700, color: accent }} noWrap>{label}</Typography>
+      </Stack>
+      <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
+        {children}
+        {tag && <Typography noWrap sx={{ fontFamily: MONO_FONT, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', color: 'text.disabled' }}>{tag}</Typography>}
+      </Stack>
+    </Stack>
+  );
+}
+
+function BigTile({ icon, label, value, unit, accent, out, tag }: {
+  icon: React.ReactNode; label: string; value: string; unit?: string; accent: string; out?: boolean; tag?: string;
+}) {
+  // Brighten the accent so the digits glow on the near-black meter screen.
+  const digitColor = lighten(accent, 0.2);
+  return (
+    <Box sx={(t) => ({
+      height: '100%', borderRadius: 2, overflow: 'hidden',
+      border: `1px solid ${out ? t.palette.warning.main : t.palette.divider}`,
+      bgcolor: 'background.paper',
+    })}>
+      <TileHeader icon={icon} label={label} accent={accent} tag={tag} out={out}>
+        {out && <StatusLamp tone="warning" size={11} pulse />}
+      </TileHeader>
+      <Box sx={{ p: { xs: 1.75, md: 2.5 } }}>
+        {/* LED meter readout: a dark screen in both themes, digits glowing in the accent (warning
+            on alarm). Value and unit stay on one line so the figure never wraps. */}
+        <Box sx={{
+          borderRadius: 1.5, px: { xs: 1.5, md: 2 }, py: { xs: 1, md: 1.5 }, overflow: 'hidden',
+          backgroundColor: LCD_SCREEN,
+          border: `1px solid ${alpha('#ffffff', 0.07)}`,
+          boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.55)',
+        }}>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'baseline', minWidth: 0 }}>
+            <Typography sx={(t) => ({ fontFamily: MONO_FONT, fontWeight: 600, fontSize: { xs: 40, md: 56 }, lineHeight: 1, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', color: out ? t.palette.warning.light : digitColor, textShadow: `0 0 12px ${alpha(out ? t.palette.warning.light : digitColor, 0.45)}` })}>
+              {value}
+            </Typography>
+            {unit && (
+              <Typography sx={{ fontFamily: MONO_FONT, fontWeight: 600, fontSize: { xs: 18, md: 26 }, lineHeight: 1, color: alpha('#cbd5e1', 0.8), whiteSpace: 'nowrap' }}>
+                {unit}
+              </Typography>
+            )}
+          </Stack>
         </Box>
-        <Typography variant="overline" sx={{ fontWeight: 700, color: accent }}>{label}</Typography>
-        {out && <Chip size="small" color="warning" label="Fuera de rango" sx={{ ml: 'auto' }} />}
-      </Stack>
-      {/* Number and unit kept on one line: the big value never wraps ("23,0" / "°C"), and the
-          smaller unit reads as a suffix instead of stealing space from the figure. */}
-      <Stack direction="row" spacing={0.75} sx={{ alignItems: 'baseline', minWidth: 0 }}>
-        <Typography sx={{ fontFamily: MONO_FONT, fontWeight: 600, fontSize: { xs: 40, md: 64 }, lineHeight: 1, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-          {value}
-        </Typography>
-        {unit && (
-          <Typography sx={{ fontWeight: 700, fontSize: { xs: 18, md: 28 }, lineHeight: 1, color: 'text.secondary', whiteSpace: 'nowrap' }}>
-            {unit}
-          </Typography>
-        )}
-      </Stack>
+      </Box>
     </Box>
   );
 }
@@ -124,31 +154,36 @@ export function KioscoPage() {
         </Tooltip>
       </Stack>
 
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-        <BigTile icon={<ThermostatIcon />} accent={theme.palette.primary.main} label="Temperatura"
-          value={latest ? formatNumber(tempCount) : '—'} unit={latest ? '°C' : undefined} out={tempOut} />
-        <BigTile icon={<WaterDropIcon />} accent={theme.palette.secondary.main} label="Humedad"
-          value={latest ? formatNumber(humCount) : '—'} unit={latest ? '%' : undefined} out={humOut} />
-        <BigTile icon={<AcUnitIcon />} accent={latest?.coolerOn ? theme.palette.success.main : theme.palette.text.secondary}
-          label="Cooler" value={latest ? (latest.coolerOn ? 'ON' : 'OFF') : '—'} />
-        <Box sx={(t) => ({
-          flex: 1, minWidth: 200, p: { xs: 2.5, md: 3 }, borderRadius: 2,
-          border: `1px solid ${t.palette.divider}`, bgcolor: alpha(t.palette.warning.main, 0.06),
-        })}>
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
-            <Box sx={(t) => ({ width: 40, height: 40, borderRadius: 1.5, display: 'grid', placeItems: 'center', color: 'warning.main', bgcolor: alpha(t.palette.warning.main, 0.16), border: `1px solid ${alpha(t.palette.warning.main, 0.3)}` })}>
-              <InsightsIcon />
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <BigTile tag="TT-01" icon={<ThermostatIcon />} accent={theme.palette.primary.main} label="Temperatura"
+            value={latest ? formatNumber(tempCount) : '—'} unit={latest ? '°C' : undefined} out={tempOut} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <BigTile tag="RH-01" icon={<WaterDropIcon />} accent={theme.palette.secondary.main} label="Humedad"
+            value={latest ? formatNumber(humCount) : '—'} unit={latest ? '%' : undefined} out={humOut} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <BigTile tag="FAN-01" icon={<AcUnitIcon />} accent={latest?.coolerOn ? theme.palette.success.main : theme.palette.text.secondary}
+            label="Cooler" value={latest ? (latest.coolerOn ? 'ON' : 'OFF') : '—'} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Box sx={(t) => ({
+            height: '100%', borderRadius: 2, overflow: 'hidden',
+            border: `1px solid ${t.palette.divider}`, bgcolor: 'background.paper',
+          })}>
+            <TileHeader tag="SYS" icon={<InsightsIcon />} label="Estado" accent={theme.palette.warning.main} />
+            <Box sx={{ p: { xs: 2, md: 2.5 } }}>
+              <Box>{latest ? <StatusChip status={latest.status} /> : <Typography variant="h4" sx={{ fontFamily: MONO_FONT }}>—</Typography>}</Box>
+              {config && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, fontFamily: MONO_FONT }}>
+                  T {config.temperatureMin}–{config.temperatureMax} °C · H {config.humidityMin}–{config.humidityMax} %
+                </Typography>
+              )}
             </Box>
-            <Typography variant="overline" sx={{ fontWeight: 700, color: 'warning.main' }}>Estado</Typography>
-          </Stack>
-          <Box>{latest ? <StatusChip status={latest.status} /> : <Typography variant="h4">—</Typography>}</Box>
-          {config && (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-              Rango T {config.temperatureMin}–{config.temperatureMax} °C · H {config.humidityMin}–{config.humidityMax} %
-            </Typography>
-          )}
-        </Box>
-      </Stack>
+          </Box>
+        </Grid>
+      </Grid>
 
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 1.5, md: 3 }, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
         <Typography variant="overline" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Últimas 2 horas</Typography>

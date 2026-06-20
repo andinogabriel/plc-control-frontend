@@ -3,6 +3,7 @@ import { Box, Button, Stack, Typography, useTheme } from '@mui/material';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine';
+import { useDrawingArea, useYScale } from '@mui/x-charts/hooks';
 import { chartSx, formatAxisDate } from './chartStyle';
 import { ChartBrush } from './ChartBrush';
 import { useReducedMotion } from '../hooks/useReducedMotion';
@@ -29,14 +30,37 @@ export interface VerticalMarker {
   color?: string;
 }
 
+/** Acceptable setpoint band (LO-HI) drawn as a shaded zone behind the series, like a chart
+ *  recorder: at a glance you see when the value left the band. */
+export interface SetpointBandSpec {
+  from: number;
+  to: number;
+  color?: string;
+}
+
 const NoLegend = () => null;
+
+/** Renders the setpoint band as a rect spanning the plot width, clamped to the drawing area.
+ *  Lives inside the chart so it can read the live y-scale and drawing area. */
+function SetpointBand({ from, to, color }: { from: number; to: number; color: string }) {
+  const { left, width, top, height } = useDrawingArea();
+  const yScale = useYScale() as (v: number) => number;
+  const ya = yScale(to);
+  const yb = yScale(from);
+  if (ya == null || yb == null) return null;
+  const y1 = Math.max(top, Math.min(ya, yb));
+  const y2 = Math.min(top + height, Math.max(ya, yb));
+  if (y2 <= y1) return null;
+  // Fill only: the min/max reference lines already mark the band edges, so edges here would double up.
+  return <rect x={left} y={y1} width={width} height={y2 - y1} fill={color} fillOpacity={0.16} />;
+}
 
 /**
  * Modern line chart: smooth/step curves, no axis chrome, subtle grid, optional gradient area,
  * a custom clickable legend, threshold reference lines, and optional zoom via a brush bar.
  */
 export function AreaLineChart({
-  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, zoomable = false, xScale = 'time', showMarks = false, fill = false,
+  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, band, zoomable = false, xScale = 'time', showMarks = false, fill = false,
 }: {
   labels: Date[];
   series: ChartSeries[];
@@ -49,6 +73,8 @@ export function AreaLineChart({
   onPointClick?: (dataIndex: number) => void;
   referenceLines?: ReferenceMark[];
   verticalMarkers?: VerticalMarker[];
+  /** Shaded acceptable band (LO-HI) drawn behind the series. */
+  band?: SetpointBandSpec;
   zoomable?: boolean;
   /** 'time' spaces points by their timestamp (continuous series); 'point' spaces them evenly
    *  (discrete events like config versions, so every point stays individually clickable). */
@@ -143,6 +169,7 @@ export function AreaLineChart({
           showMark: showMarks && !s.dashed, curve, area: s.dashed ? false : area,
         }))}
       >
+        {band && <SetpointBand from={band.from} to={band.to} color={band.color ?? theme.palette.success.main} />}
         {(referenceLines ?? []).map((ref, i) => (
           <ChartsReferenceLine
             key={`h-${ref.value}-${i}`}
