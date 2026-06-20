@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Box, Grid, IconButton, Stack, Tooltip, Typography, useTheme } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { alpha, lighten } from '@mui/material/styles';
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
 import FullscreenExitRoundedIcon from '@mui/icons-material/FullscreenExitRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -20,7 +20,7 @@ import { StatusLamp } from '../components/StatusLamp';
 import { SystemHealthBadge } from '../components/SystemHealthBadge';
 import { useCountUp } from '../hooks/useCountUp';
 import { formatNumber } from '../lib/format';
-import { MONO_FONT } from '../theme';
+import { MONO_FONT, LCD_SCREEN } from '../theme';
 
 const RANGE_MS = 2 * 60 * 60 * 1000; // last 2 hours
 
@@ -50,6 +50,8 @@ function TileHeader({ icon, label, accent, tag, out, children }: {
 function BigTile({ icon, label, value, unit, accent, out, tag }: {
   icon: React.ReactNode; label: string; value: string; unit?: string; accent: string; out?: boolean; tag?: string;
 }) {
+  // Brighten the accent so the digits glow on the near-black meter screen.
+  const digitColor = lighten(accent, 0.2);
   return (
     <Box sx={(t) => ({
       height: '100%', borderRadius: 2, overflow: 'hidden',
@@ -60,20 +62,20 @@ function BigTile({ icon, label, value, unit, accent, out, tag }: {
         {out && <StatusLamp tone="warning" size={11} pulse />}
       </TileHeader>
       <Box sx={{ p: { xs: 1.75, md: 2.5 } }}>
-        {/* Recessed LCD readout: sunken dark screen, digits in the accent (warning on alarm). The
-            value and unit stay on one line so the figure never wraps. */}
-        <Box sx={(t) => ({
+        {/* LED meter readout: a dark screen in both themes, digits glowing in the accent (warning
+            on alarm). Value and unit stay on one line so the figure never wraps. */}
+        <Box sx={{
           borderRadius: 1.5, px: { xs: 1.5, md: 2 }, py: { xs: 1, md: 1.5 }, overflow: 'hidden',
-          backgroundColor: t.palette.mode === 'dark' ? t.palette.background.default : '#f1f3f7',
-          border: `1px solid ${t.palette.divider}`,
-          boxShadow: `inset 0 1px 4px ${alpha('#000', t.palette.mode === 'dark' ? 0.55 : 0.12)}`,
-        })}>
+          backgroundColor: LCD_SCREEN,
+          border: `1px solid ${alpha('#ffffff', 0.07)}`,
+          boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.55)',
+        }}>
           <Stack direction="row" spacing={0.75} sx={{ alignItems: 'baseline', minWidth: 0 }}>
-            <Typography sx={(t) => ({ fontFamily: MONO_FONT, fontWeight: 600, fontSize: { xs: 40, md: 56 }, lineHeight: 1, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', color: out ? t.palette.warning.main : accent })}>
+            <Typography sx={(t) => ({ fontFamily: MONO_FONT, fontWeight: 600, fontSize: { xs: 40, md: 56 }, lineHeight: 1, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', color: out ? t.palette.warning.light : digitColor, textShadow: `0 0 12px ${alpha(out ? t.palette.warning.light : digitColor, 0.45)}` })}>
               {value}
             </Typography>
             {unit && (
-              <Typography sx={{ fontFamily: MONO_FONT, fontWeight: 600, fontSize: { xs: 18, md: 26 }, lineHeight: 1, color: 'text.secondary', whiteSpace: 'nowrap' }}>
+              <Typography sx={{ fontFamily: MONO_FONT, fontWeight: 600, fontSize: { xs: 18, md: 26 }, lineHeight: 1, color: alpha('#cbd5e1', 0.8), whiteSpace: 'nowrap' }}>
                 {unit}
               </Typography>
             )}

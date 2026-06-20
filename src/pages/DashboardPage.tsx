@@ -33,7 +33,7 @@ import { Delta } from '../components/Delta';
 import { RefreshControl } from '../components/RefreshControl';
 import { ControlAnalytics } from '../components/ControlAnalytics';
 import { exportChartPng } from '../lib/exporters';
-import { MONO_FONT } from '../theme';
+import { MONO_FONT, LCD_SCREEN } from '../theme';
 import { useCountUp } from '../hooks/useCountUp';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 import { formatRelative } from '../lib/time';
@@ -105,16 +105,21 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children, 
 
         <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1.25, minHeight: 130, width: '100%' }}>
           {value !== undefined && (
-            // Recessed LCD-style readout: a sunken dark screen with the value in the accent colour.
-            <Box sx={(t) => ({
+            // LED meter readout: a dark screen in BOTH themes (like a real digital instrument),
+            // with bright accent digits and a faint glow so it reads as a lit segment display.
+            <Box sx={{
               borderRadius: '5px',
               px: 1.5, py: 1,
-              backgroundColor: t.palette.mode === 'dark' ? t.palette.background.default : '#f1f3f7',
-              border: `1px solid ${t.palette.divider}`,
-              boxShadow: `inset 0 1px 3px ${alpha('#000', t.palette.mode === 'dark' ? 0.5 : 0.12)}`,
-            })}>
+              backgroundColor: LCD_SCREEN,
+              border: `1px solid ${alpha('#ffffff', 0.07)}`,
+              boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.55)',
+            }}>
               <Typography variant="h4" component="div"
-                sx={(t) => ({ fontFamily: MONO_FONT, fontWeight: 600, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', color: t.palette[color].main })}>
+                sx={(t) => ({
+                  fontFamily: MONO_FONT, fontWeight: 600, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums',
+                  color: t.palette[color].light,
+                  textShadow: `0 0 10px ${alpha(t.palette[color].light, 0.45)}`,
+                })}>
                 {value}
               </Typography>
             </Box>

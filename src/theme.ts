@@ -6,6 +6,10 @@ import { esES as dataGridEsES } from '@mui/x-data-grid/locales';
  *  the plant clock. Imported by components that render numbers so the whole app reads like a panel. */
 export const MONO_FONT = '"JetBrains Mono", "Roboto Mono", ui-monospace, "SFMono-Regular", "Menlo", monospace';
 
+/** Dark screen colour for the LED/LCD instrument readouts. Intentionally near-black in BOTH light
+ *  and dark themes so a live value always reads like a real lit meter display, not a web field. */
+export const LCD_SCREEN = '#0c1424';
+
 /** Builds the app theme for the given palette mode (light/dark), with Spanish locales.
  *  The dark mode is the primary, control-room target; light mode stays usable as an option. */
 export function createAppTheme(mode: 'light' | 'dark'): Theme {
