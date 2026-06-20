@@ -1,54 +1,23 @@
 import { describe, it, expect } from 'vitest';
-import { deriveEvents } from './EventLog';
-import type { MeasurementResponse } from '../api/types';
+import { EVENT_LABEL } from './EventLog';
+import type { EventType } from '../api/types';
 
-function m(over: Partial<MeasurementResponse> & { createdAt: string }): MeasurementResponse {
-  return {
-    id: over.createdAt,
-    temperature: 20,
-    humidity: 50,
-    coolerOn: false,
-    relayOn: false,
-    status: 'NORMAL',
-    ...over,
-  } as MeasurementResponse;
-}
+const ALL_TYPES: EventType[] = [
+  'TEMP_OUT_OF_RANGE', 'HUMIDITY_OUT_OF_RANGE', 'CRITICAL',
+  'RETURN_TO_NORMAL', 'COOLER_ON', 'COOLER_OFF',
+];
 
-describe('deriveEvents', () => {
-  it('emits an ackable alarm when the status enters an out-of-range state', () => {
-    const events = deriveEvents([
-      m({ createdAt: '2026-06-01T10:00:00Z', status: 'NORMAL' }),
-      m({ createdAt: '2026-06-01T10:01:00Z', status: 'WARNING_TEMP' }),
-    ]);
-    expect(events).toHaveLength(1);
-    expect(events[0]).toMatchObject({ severity: 'warning', tag: 'TT-01', ackable: true });
+describe('EVENT_LABEL', () => {
+  it('maps every backend event type to a non-empty tag and message', () => {
+    for (const type of ALL_TYPES) {
+      expect(EVENT_LABEL[type]?.tag).toBeTruthy();
+      expect(EVENT_LABEL[type]?.message).toBeTruthy();
+    }
   });
 
-  it('emits a non-ackable success event when returning to normal', () => {
-    const events = deriveEvents([
-      m({ createdAt: '2026-06-01T10:00:00Z', status: 'WARNING_HUMIDITY' }),
-      m({ createdAt: '2026-06-01T10:01:00Z', status: 'NORMAL' }),
-    ]);
-    expect(events).toHaveLength(1);
-    expect(events[0]).toMatchObject({ severity: 'success', ackable: false });
-  });
-
-  it('emits an info event (not ackable) on a cooler toggle', () => {
-    const events = deriveEvents([
-      m({ createdAt: '2026-06-01T10:00:00Z', coolerOn: false }),
-      m({ createdAt: '2026-06-01T10:01:00Z', coolerOn: true }),
-    ]);
-    expect(events).toHaveLength(1);
-    expect(events[0]).toMatchObject({ severity: 'info', tag: 'FAN-01', ackable: false });
-  });
-
-  it('returns events newest-first and ignores the first sample (no prior state)', () => {
-    const events = deriveEvents([
-      m({ createdAt: '2026-06-01T10:00:00Z', status: 'WARNING_TEMP' }),
-      m({ createdAt: '2026-06-01T10:01:00Z', status: 'NORMAL' }),
-      m({ createdAt: '2026-06-01T10:02:00Z', status: 'CRITICAL' }),
-    ]);
-    // Transitions: ->NORMAL (success) then ->CRITICAL (error). Newest first => CRITICAL leads.
-    expect(events.map((e) => e.severity)).toEqual(['error', 'success']);
+  it('uses instrument tags for the out-of-range alarms', () => {
+    expect(EVENT_LABEL.TEMP_OUT_OF_RANGE.tag).toBe('TT-01');
+    expect(EVENT_LABEL.HUMIDITY_OUT_OF_RANGE.tag).toBe('RH-01');
+    expect(EVENT_LABEL.COOLER_ON.tag).toBe('FAN-01');
   });
 });

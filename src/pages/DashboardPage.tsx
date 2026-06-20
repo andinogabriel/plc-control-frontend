@@ -256,18 +256,6 @@ export function DashboardPage() {
     placeholderData: keepPreviousData,
   });
 
-  // Event log window: NOT down-sampled (down-sampling would drop the status/cooler transitions the
-  // log is built from). Most-recent rows within the last 14 days.
-  const { data: eventsData } = useQuery({
-    queryKey: ['measurements-events'],
-    queryFn: () => measurementApi.getMeasurements({
-      page: 0, size: 2000, from: new Date(Date.now() - 14 * DAY).toISOString(),
-    }),
-    refetchInterval: paused ? false : 30000,
-    placeholderData: keepPreviousData,
-  });
-  const eventPoints = eventsData?.content ?? [];
-
   const health = useSystemHealth();
   // Animated KPI values (count-up). Hooks run unconditionally; 0 until data arrives.
   const tempCount = useCountUp(latest?.temperature ?? 0);
@@ -599,7 +587,7 @@ export function DashboardPage() {
         </Grid>
 
         <Grid size={12}>
-          <EventLog points={eventPoints} />
+          <EventLog />
         </Grid>
       </Grid>
 
