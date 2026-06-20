@@ -33,7 +33,7 @@ test.beforeEach(async ({ page }) => {
 test('demo flow: dashboard -> save config -> kiosco', async ({ page }) => {
   // Dashboard renders with live metrics.
   await page.goto('/tablero');
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Monitoreo en tiempo real' })).toBeVisible();
   await expect(page.getByText('Estado del cooler')).toBeVisible();
 
   // Configuration: load the active config and save.
