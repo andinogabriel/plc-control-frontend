@@ -68,6 +68,25 @@ export function ControlAnalytics({ points, config }: {
     else runs.push({ on, ms, widthPct: (ms / span) * 100 });
   }
 
+  // Control-quality metrics. Cooler cycles = number of ON runs; switching frequency and the mean
+  // ON/OFF durations describe the controller's effort. Band metrics (needs config) describe how
+  // well it kept the variable inside the configured band.
+  const onRuns = runs.filter((r) => r.on);
+  const offRuns = runs.filter((r) => !r.on);
+  const cycles = onRuns.length;
+  const days = span / 86_400_000;
+  const cyclesPerDay = days > 0 ? cycles / days : 0;
+  const avgOnMs = onRuns.length ? onRuns.reduce((a, r) => a + r.ms, 0) / onRuns.length : 0;
+  const avgOffMs = offRuns.length ? offRuns.reduce((a, r) => a + r.ms, 0) / offRuns.length : 0;
+
+  const inBand = config
+    ? points.filter((p) => p.temperature >= config.temperatureMin && p.temperature <= config.temperatureMax
+        && p.humidity >= config.humidityMin && p.humidity <= config.humidityMax).length
+    : 0;
+  const tempOvershoot = config
+    ? Math.max(0, Math.max(...temps) - config.temperatureMax, config.temperatureMin - Math.min(...temps))
+    : 0;
+
   return (
     <Stack spacing={2}>
       <Grid container spacing={1.5}>
@@ -87,6 +106,31 @@ export function ControlAnalytics({ points, config }: {
           <StatTile accent="success" label="Cooler encendido" value={pct(coolerOnCount, n)} hint="del tiempo (duty cycle)" />
         </Grid>
       </Grid>
+
+      {config && (
+        <Box>
+          <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
+            Calidad de control
+          </Typography>
+          <Grid container spacing={1.5}>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <StatTile accent="success" label="Tiempo en banda" value={pct(inBand, n)} hint="temp y humedad dentro" />
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <StatTile accent="primary" label="Ciclos del cooler" value={`${cycles}`}
+                hint={`${formatNumber(cyclesPerDay)} /día de conmutación`} />
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <StatTile accent="warning" label="Sobreoscilación máx" value={`${formatNumber(tempOvershoot)} °C`}
+                hint="fuera de la banda (temp)" />
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <StatTile accent="secondary" label="Tiempo medio ON" value={formatDuration(avgOnMs)}
+                hint={`OFF ${formatDuration(avgOffMs)} · por ciclo`} />
+            </Grid>
+          </Grid>
+        </Box>
+      )}
 
       <Box>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>

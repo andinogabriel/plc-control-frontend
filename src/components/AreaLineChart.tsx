@@ -3,7 +3,7 @@ import { Box, Button, Stack, Typography, useTheme } from '@mui/material';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine';
-import { useDrawingArea, useYScale } from '@mui/x-charts/hooks';
+import { useDrawingArea, useXScale, useYScale } from '@mui/x-charts/hooks';
 import { chartSx, formatAxisDate } from './chartStyle';
 import { ChartBrush } from './ChartBrush';
 import { useReducedMotion } from '../hooks/useReducedMotion';
@@ -55,12 +55,39 @@ function SetpointBand({ from, to, color }: { from: number; to: number; color: st
   return <rect x={left} y={y1} width={width} height={y2 - y1} fill={color} fillOpacity={0.16} />;
 }
 
+/** Shades the vertical regions where {@code mask[i]} is true (e.g. the cooler was ON), so the
+ *  control action is visible against the trend. Reads the live x-scale to place each run. */
+function MaskRegions({ labels, mask, color }: { labels: Date[]; mask: boolean[]; color: string }) {
+  const { top, height } = useDrawingArea();
+  const xScale = useXScale() as (v: Date) => number;
+  const rects: { x: number; w: number }[] = [];
+  let runStart = -1;
+  for (let i = 0; i < labels.length; i += 1) {
+    const on = Boolean(mask[i]);
+    if (on && runStart === -1) runStart = i;
+    if ((!on || i === labels.length - 1) && runStart !== -1) {
+      const end = on ? i : i - 1;
+      const xa = xScale(labels[runStart]);
+      const xb = xScale(labels[Math.min(end + 1, labels.length - 1)]);
+      if (xa != null && xb != null && xb > xa) rects.push({ x: xa, w: xb - xa });
+      runStart = -1;
+    }
+  }
+  return (
+    <>
+      {rects.map((r, i) => (
+        <rect key={i} x={r.x} y={top} width={r.w} height={height} fill={color} fillOpacity={0.12} />
+      ))}
+    </>
+  );
+}
+
 /**
  * Modern line chart: smooth/step curves, no axis chrome, subtle grid, optional gradient area,
  * a custom clickable legend, threshold reference lines, and optional zoom via a brush bar.
  */
 export function AreaLineChart({
-  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, band, zoomable = false, xScale = 'time', showMarks = false, fill = false,
+  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, band, shadeMask, zoomable = false, xScale = 'time', showMarks = false, fill = false,
 }: {
   labels: Date[];
   series: ChartSeries[];
@@ -75,6 +102,8 @@ export function AreaLineChart({
   verticalMarkers?: VerticalMarker[];
   /** Shaded acceptable band (LO-HI) drawn behind the series. */
   band?: SetpointBandSpec;
+  /** Shades vertical regions where the mask is true (aligned to `labels`), e.g. cooler ON. */
+  shadeMask?: { values: boolean[]; color?: string };
   zoomable?: boolean;
   /** 'time' spaces points by their timestamp (continuous series); 'point' spaces them evenly
    *  (discrete events like config versions, so every point stays individually clickable). */
@@ -113,6 +142,7 @@ export function AreaLineChart({
   const viewSeries = canZoom
     ? series.map((s) => ({ ...s, data: s.data.slice(i0, i1 + 1) }))
     : series;
+  const viewMask = shadeMask ? (canZoom ? shadeMask.values.slice(i0, i1 + 1) : shadeMask.values) : undefined;
   const visibleSeries = viewSeries.filter((s) => !hidden.has(s.id));
 
   const handlePointClick = onPointClick ? (idx: number) => onPointClick(i0 + idx) : undefined;
@@ -169,6 +199,7 @@ export function AreaLineChart({
           showMark: showMarks && !s.dashed, curve, area: s.dashed ? false : area,
         }))}
       >
+        {viewMask && <MaskRegions labels={viewLabels} mask={viewMask} color={shadeMask?.color ?? theme.palette.success.main} />}
         {band && <SetpointBand from={band.from} to={band.to} color={band.color ?? theme.palette.success.main} />}
         {(referenceLines ?? []).map((ref, i) => (
           <ChartsReferenceLine
