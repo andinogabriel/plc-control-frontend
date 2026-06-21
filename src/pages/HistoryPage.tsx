@@ -439,8 +439,8 @@ export function HistoryPage() {
         onClose={() => setSelected(null)}
         rows={selected ? [
           { label: 'Fecha', value: new Date(selected.createdAt).toLocaleString() },
-          { label: 'Temperatura', value: `${selected.temperature} °C` },
-          { label: 'Humedad', value: `${selected.humidity} %` },
+          { label: 'Temperatura', value: formatTemp(selected.temperature) },
+          { label: 'Humedad', value: formatPct(selected.humidity) },
           { label: 'Cooler', value: selected.coolerOn ? 'ON' : 'OFF' },
           { label: 'Relay', value: selected.relayOn ? 'ON' : 'OFF' },
           { label: 'Estado', value: <StatusChip status={selected.status} /> },

@@ -6,6 +6,12 @@ export function formatNumber(value: number): string {
   return nf1.format(value);
 }
 
+/** Locale number with up to one decimal but no forced trailing zero: 18 -> "18", 1.5 -> "1,5". */
+const nfFlex = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
+export function formatNum(value: number): string {
+  return nfFlex.format(value);
+}
+
 /** Temperature with unit, e.g. "20,7 °C". */
 export function formatTemp(value: number): string {
   return `${nf1.format(value)} °C`;
