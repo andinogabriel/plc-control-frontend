@@ -1,9 +1,10 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { Box, CircularProgress, GlobalStyles } from '@mui/material';
+import { Box, CircularProgress, GlobalStyles, Typography } from '@mui/material';
 import { Layout } from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ServiceWorkerUpdater } from './components/ServiceWorkerUpdater';
+import { MONO_FONT } from './theme';
 
 // Route-level code splitting: each page is its own chunk, loaded on demand.
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
@@ -38,8 +39,11 @@ const printStyles = (
 
 function PageFallback() {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-      <CircularProgress />
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, mt: 8, color: 'text.secondary' }}>
+      <CircularProgress size={20} thickness={5} />
+      <Typography component="span" sx={{ fontFamily: MONO_FONT, fontSize: 13, letterSpacing: '0.04em' }}>
+        Cargando módulo…
+      </Typography>
     </Box>
   );
 }

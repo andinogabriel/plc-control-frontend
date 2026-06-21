@@ -1,11 +1,16 @@
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import { configDefaults } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 
+// App version, surfaced in the UI footer (an "engineered product" detail).
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')) as { version: string };
+
 // `vite build --mode analyze` (npm run build:analyze) writes a treemap of the bundle to
 // dist/stats.html and opens it, so chunk growth is easy to spot. Normal builds are unaffected.
 export default defineConfig(({ mode }) => ({
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
     react(),
     ...(mode === 'analyze'

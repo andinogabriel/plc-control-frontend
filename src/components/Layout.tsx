@@ -112,6 +112,9 @@ function Footer() {
       <Typography variant="body2" color="text.secondary">
         Uncaus - Teoría de Control 2026
       </Typography>
+      <Typography component="span" sx={{ fontFamily: MONO_FONT, fontSize: 11, color: 'text.disabled' }}>
+        v{__APP_VERSION__}
+      </Typography>
     </Box>
   );
 }
