@@ -19,7 +19,7 @@ export function ErrorState({ title = 'No se pudieron cargar los datos', descript
       dense={dense}
       height={height}
       accent="error"
-      icon={<CloudOffRoundedIcon sx={{ fontSize: 30 }} color="error" />}
+      icon={<CloudOffRoundedIcon sx={{ fontSize: 24 }} />}
       title={title}
       description={description ?? 'Hubo un problema al consultar el servidor. Probá de nuevo en unos segundos.'}
       action={onRetry && (

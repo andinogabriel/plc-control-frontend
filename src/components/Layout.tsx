@@ -6,7 +6,6 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import ThermostatIcon from '@mui/icons-material/Thermostat';
 import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard';
 import TuneIcon from '@mui/icons-material/Tune';
 import HistoryIcon from '@mui/icons-material/History';
@@ -19,12 +18,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useColorMode, type ColorMode } from '../colorMode';
 import { eventApi } from '../api/eventApi';
+import { BrandMark } from './BrandMark';
 import { setFaviconAlarm } from '../lib/favicon';
 import { MONO_FONT } from '../theme';
 import { AlertCenter } from './AlertCenter';
 import { CommandPalette } from './CommandPalette';
 import { TopProgressBar } from './TopProgressBar';
 import { MobileBottomNav } from './MobileBottomNav';
+import { StatusBar } from './StatusBar';
 import { MeasurementStream } from './MeasurementStream';
 import { AcquisitionBar } from './AcquisitionBar';
 import { OfflineBanner } from './OfflineBanner';
@@ -111,6 +112,9 @@ function Footer() {
         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
       <Typography variant="body2" color="text.secondary">
         Uncaus - Teoría de Control 2026
+      </Typography>
+      <Typography component="span" sx={{ fontFamily: MONO_FONT, fontSize: 11, color: 'text.disabled' }}>
+        v{__APP_VERSION__}
       </Typography>
     </Box>
   );
@@ -211,7 +215,7 @@ export function Layout({ children }: { children: ReactNode }) {
             }}>
             <MenuIcon />
           </IconButton>
-          <ThermostatIcon sx={{ mr: 1, color: 'primary.main' }} />
+          <Box sx={{ mr: 1, display: 'flex' }}><BrandMark size={26} /></Box>
           <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: '0.02em' }}>
             {/* Full name on tablet+, short name on phones so it never truncates mid-word. */}
             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Sistema de Control PLC</Box>
@@ -257,7 +261,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </Box>
 
       <Box component="main" id="main-content" ref={mainRef} tabIndex={-1}
-        sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', outline: 'none', p: { xs: 2, md: 3 }, pb: { xs: 10, md: 3 } }}>
+        sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', outline: 'none', p: { xs: 2, md: 3 }, pb: { xs: 10, md: 6 } }}>
         <Toolbar />
         <AcquisitionBar />
         <Box className="no-print" sx={{ mb: 1 }}><OfflineBanner /></Box>
@@ -282,6 +286,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </Box>
 
       <MobileBottomNav />
+      <StatusBar left={navWidth} />
     </Box>
   );
 }

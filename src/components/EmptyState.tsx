@@ -4,8 +4,9 @@ import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import type { ReactNode } from 'react';
 
 /**
- * Illustrated empty-state: a soft circular icon badge plus a title, optional description and
- * action. Used for charts and tables that have no data to show.
+ * Empty-state: a squared, flat instrument-style icon tile plus a title, optional description and
+ * action — matches the control-panel language instead of a soft illustrated badge. Used for charts
+ * and tables with no data.
  */
 export function EmptyState({ icon, title, description, action, dense, height, accent = 'primary' }: {
   icon?: ReactNode;
@@ -24,13 +25,13 @@ export function EmptyState({ icon, title, description, action, dense, height, ac
       sx={{ alignItems: 'center', justifyContent: 'center', height: height ?? '100%', minHeight: height ?? (dense ? 120 : 180), textAlign: 'center', px: 2, py: dense ? 2 : 4 }}
     >
       <Box sx={(t) => ({
-        width: 64, height: 64, borderRadius: '50%', display: 'grid', placeItems: 'center',
-        color: alpha(t.palette[accent].main, 0.8),
-        // Soft accent-tinted halo so the empty state reads as illustrated, not just greyed out.
-        background: `radial-gradient(circle at 50% 38%, ${alpha(t.palette[accent].main, 0.18)}, ${alpha(t.palette[accent].main, 0.04)})`,
-        border: `1px solid ${alpha(t.palette[accent].main, 0.16)}`,
+        width: 46, height: 46, borderRadius: 1.5, display: 'grid', placeItems: 'center',
+        color: t.palette[accent].main,
+        // Flat squared tile with a hairline edge — same instrument language as the metric tiles.
+        backgroundColor: alpha(t.palette[accent].main, 0.1),
+        border: `1px solid ${alpha(t.palette[accent].main, 0.28)}`,
       })}>
-        {icon ?? <InboxOutlinedIcon sx={{ fontSize: 30 }} />}
+        {icon ?? <InboxOutlinedIcon sx={{ fontSize: 24 }} />}
       </Box>
       <Typography variant="subtitle2" color="text.primary">{title}</Typography>
       {description && (

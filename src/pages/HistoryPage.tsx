@@ -162,7 +162,7 @@ export function HistoryPage() {
       renderCell: (params) => <RelativeTime value={params.value as string} />,
     },
     {
-      field: 'temperature', headerName: 'Temp (°C)', flex: 1, minWidth: 130, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
+      field: 'temperature', headerName: 'Temp (°C)', flex: 1, minWidth: 130, type: 'number', sortable: false, align: 'right', headerAlign: 'right',
       renderHeader: () => (
         <NumberRangeFilterHeader label="Temp (°C)" lo={-10} hi={100} disabled={disabledHeaders}
           sortDirection={sortDirFor('temperature')} onToggleSort={() => toggleSort('temperature')}
@@ -171,7 +171,7 @@ export function HistoryPage() {
       ),
     },
     {
-      field: 'humidity', headerName: 'Humedad (%)', flex: 1, minWidth: 140, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
+      field: 'humidity', headerName: 'Humedad (%)', flex: 1, minWidth: 140, type: 'number', sortable: false, align: 'right', headerAlign: 'right',
       renderHeader: () => (
         <NumberRangeFilterHeader label="Humedad (%)" lo={0} hi={100} disabled={disabledHeaders}
           sortDirection={sortDirFor('humidity')} onToggleSort={() => toggleSort('humidity')}
@@ -317,7 +317,7 @@ export function HistoryPage() {
         </Stack>
       )}
 
-      <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid container spacing={2.5} sx={{ mb: 2.5 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={tempChartRef}>
             <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
