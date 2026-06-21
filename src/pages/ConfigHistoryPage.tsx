@@ -26,6 +26,7 @@ import { MobileFilterSheet } from '../components/MobileFilterSheet';
 import { useViewMode } from '../hooks/useViewMode';
 import { useDensity } from '../hooks/useDensity';
 import { exportChartPng, exportCsv } from '../lib/exporters';
+import { formatNum } from '../lib/format';
 import {
   DateRangeFilterHeader, NumberFilterHeader, SortableHeader, TextFilterHeader, type SortDirection,
 } from '../components/columnFilters';
@@ -366,8 +367,8 @@ export function ConfigHistoryPage() {
                 title: <RelativeTime value={c.createdAt} />,
                 fields: [
                   { label: 'Nombre', value: c.createdByName },
-                  { label: 'Temp', value: `${c.temperatureMin}–${c.temperatureMax} °C` },
-                  { label: 'Humedad', value: `${c.humidityMin}–${c.humidityMax} %` },
+                  { label: 'Temp', value: `${formatNum(c.temperatureMin)}–${formatNum(c.temperatureMax)} °C` },
+                  { label: 'Humedad', value: `${formatNum(c.humidityMin)}–${formatNum(c.humidityMax)} %` },
                   { label: 'Intervalo', value: `${c.measurementIntervalSeconds} s` },
                   { label: 'Activa', value: c.active ? <Chip label="Activa" color="success" size="small" /> : '—' },
                 ],
@@ -398,9 +399,9 @@ export function ConfigHistoryPage() {
           { label: 'Fecha', value: new Date(selected.createdAt).toLocaleString() },
           { label: 'Nombre', value: selected.createdByName },
           { label: 'Email', value: selected.createdByEmail },
-          { label: 'Temperatura mín / máx', value: `${selected.temperatureMin} / ${selected.temperatureMax} °C` },
-          { label: 'Humedad mín / máx', value: `${selected.humidityMin} / ${selected.humidityMax} %` },
-          { label: 'Histéresis T / H', value: `${selected.hysteresisTemperature} / ${selected.hysteresisHumidity}` },
+          { label: 'Temperatura mín / máx', value: `${formatNum(selected.temperatureMin)} / ${formatNum(selected.temperatureMax)} °C` },
+          { label: 'Humedad mín / máx', value: `${formatNum(selected.humidityMin)} / ${formatNum(selected.humidityMax)} %` },
+          { label: 'Histéresis T / H', value: `${formatNum(selected.hysteresisTemperature)} / ${formatNum(selected.hysteresisHumidity)}` },
           { label: 'Intervalo de medición', value: `${selected.measurementIntervalSeconds} s` },
           {
             label: 'Activa',

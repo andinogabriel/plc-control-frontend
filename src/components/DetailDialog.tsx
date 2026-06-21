@@ -4,6 +4,7 @@ import {
   useMediaQuery, useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { MONO_FONT } from '../theme';
 
 export interface DetailRow {
   label: string;
@@ -82,7 +83,8 @@ export function DetailDialog({ open, title, rows, onClose }: {
           {rows.map((r) => (
             <Stack key={r.label} direction="row" spacing={2} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary">{r.label}</Typography>
-              <Typography variant="body2" component="div" sx={{ fontWeight: 600, textAlign: 'right' }}>
+              <Typography variant="body2" component="div"
+                sx={{ fontFamily: MONO_FONT, fontWeight: 600, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>
                 {r.value}
               </Typography>
             </Stack>
