@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Box, Card, CardContent, Typography, TextField, Button, Grid, Alert, Stack, Divider,
+  Box, Card, CardContent, Typography, TextField, Button, Grid, Stack, Divider,
   InputAdornment, IconButton, Tooltip, Chip,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
@@ -17,6 +17,7 @@ import { AxiosError } from 'axios';
 import { configApi } from '../api/configApi';
 import { useToast } from '../components/toast';
 import { HysteresisDiagram } from '../components/HysteresisDiagram';
+import { NoticeBar } from '../components/NoticeBar';
 import type { ApiError, ConfigRequest } from '../api/types';
 
 // Empty input ('' / null / undefined) -> undefined so z.number reports "requerido".
@@ -186,11 +187,12 @@ export function ConfigurationPage() {
       </Typography>
 
       {latest && (
-        <Alert severity="info" action={(
-          <Button color="inherit" size="small" startIcon={<RestartAltRoundedIcon />} onClick={prefillFromActive}>
-            Cargar config activa
-          </Button>
-        )}
+        <NoticeBar severity="info"
+          action={(
+            <Button color="inherit" size="small" startIcon={<RestartAltRoundedIcon />} onClick={prefillFromActive}>
+              Cargar config activa
+            </Button>
+          )}
           sx={(t) => ({
             mb: 2,
             ...(savedFlash && {
@@ -204,7 +206,7 @@ export function ConfigurationPage() {
           })}>
           Config activa: T [{latest.temperatureMin}–{latest.temperatureMax} °C],
           H [{latest.humidityMin}–{latest.humidityMax} %] · cada {latest.measurementIntervalSeconds} s · por {latest.createdByName}
-        </Alert>
+        </NoticeBar>
       )}
 
       <Grid container spacing={3}>
@@ -273,11 +275,11 @@ export function ConfigurationPage() {
                 </Stack>
 
                 {serverError?.response?.data?.details && serverError.response.data.details.length > 0 && (
-                  <Alert severity="error" sx={{ mt: 2 }}>
+                  <NoticeBar severity="error" sx={{ mt: 2 }}>
                     {serverError.response.data.details.map((d) => (
                       <div key={d}>· {d}</div>
                     ))}
-                  </Alert>
+                  </NoticeBar>
                 )}
               </form>
             </CardContent>

@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { Alert, Collapse } from '@mui/material';
+import { Collapse } from '@mui/material';
 import WifiOffRoundedIcon from '@mui/icons-material/WifiOffRounded';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { NoticeBar } from './NoticeBar';
 
 /**
  * Thin banner under the AppBar shown while the browser is offline. On reconnection it refetches
@@ -23,9 +24,9 @@ export function OfflineBanner() {
 
   return (
     <Collapse in={!online} unmountOnExit>
-      <Alert severity="warning" icon={<WifiOffRoundedIcon />} square sx={{ borderRadius: 0 }}>
+      <NoticeBar severity="warning" icon={<WifiOffRoundedIcon />} square>
         Sin conexión a internet. Los datos pueden estar desactualizados; se actualizarán al reconectar.
-      </Alert>
+      </NoticeBar>
     </Collapse>
   );
 }
