@@ -156,6 +156,13 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
             },
           },
         },
+        MuiCardContent: {
+          styleOverrides: {
+            // Uniform 16px padding: MUI's default adds an extra 24px at the bottom, which reads as
+            // airy. Tightening it gives the denser, instrument-tool feel.
+            root: { padding: 16, '&:last-child': { paddingBottom: 16 } },
+          },
+        },
         MuiPaper: {
           styleOverrides: { root: { backgroundImage: 'none' } },
         },
