@@ -18,6 +18,7 @@ import { configApi } from '../api/configApi';
 import { useToast } from '../components/toast';
 import { HysteresisDiagram } from '../components/HysteresisDiagram';
 import { NoticeBar } from '../components/NoticeBar';
+import { PanelTitle } from '../components/PanelTitle';
 import type { ApiError, ConfigRequest } from '../api/types';
 
 // Empty input ('' / null / undefined) -> undefined so z.number reports "requerido".
@@ -182,8 +183,7 @@ export function ConfigurationPage() {
     <Box>
       <Typography variant="h4" gutterBottom>Configuración de umbrales</Typography>
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        Definí la banda objetivo de temperatura y humedad y la histéresis del cooler. Guardar crea
-        una nueva configuración activa para la Raspberry.
+        Banda objetivo e histéresis del cooler · al guardar pasa a ser la configuración activa.
       </Typography>
 
       {latest && (
@@ -214,7 +214,7 @@ export function ConfigurationPage() {
           <Card>
             <CardContent>
               <form onSubmit={handleSubmit((vals) => mutation.mutate(vals))}>
-                <Typography variant="subtitle1" gutterBottom>Datos del usuario</Typography>
+                <PanelTitle sx={{ mb: 1.5 }}>Datos del usuario</PanelTitle>
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField fullWidth label="Nombre" {...register('createdByName')}
@@ -235,7 +235,7 @@ export function ConfigurationPage() {
                 </Grid>
 
                 <Divider sx={{ my: 3 }} />
-                <Typography variant="subtitle1" gutterBottom>Umbrales</Typography>
+                <PanelTitle sx={{ mb: 1.5 }}>Umbrales</PanelTitle>
                 <Grid container spacing={2}>
                   {fields.map((f) => (
                     <Grid size={{ xs: 12, sm: 6 }} key={f.name}>
@@ -290,7 +290,7 @@ export function ConfigurationPage() {
           <Stack spacing={3}>
             <Card>
               <CardContent>
-                <Typography variant="subtitle1" gutterBottom>Vista previa del cooler</Typography>
+                <PanelTitle accent="secondary" sx={{ mb: 1.5 }}>Vista previa del cooler</PanelTitle>
                 <Stack spacing={2}>
                   <HysteresisDiagram label="Temperatura" unit=" °C"
                     min={v.temperatureMin} max={v.temperatureMax} hysteresis={v.hysteresisTemperature} />
@@ -308,7 +308,7 @@ export function ConfigurationPage() {
             {latest && (
               <Card>
                 <CardContent>
-                  <Typography variant="subtitle1" gutterBottom>Cambios vs config activa</Typography>
+                  <PanelTitle accent="warning" sx={{ mb: 1.5 }}>Cambios vs config activa</PanelTitle>
                   {diffRows.length === 0 ? (
                     <Typography variant="body2" color="text.secondary">
                       Sin cambios todavía. Editá un umbral o usá “Cargar config activa”.

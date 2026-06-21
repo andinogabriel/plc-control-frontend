@@ -22,6 +22,7 @@ import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { NoticeBar } from '../components/NoticeBar';
+import { PanelTitle } from '../components/PanelTitle';
 import { RelativeTime } from '../components/RelativeTime';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import { TableToolbar } from '../components/TableToolbar';
@@ -268,8 +269,7 @@ export function HistoryPage() {
     <Box>
       <Typography variant="h4" gutterBottom>Mediciones</Typography>
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        Histórico de lecturas de la Raspberry. El rango de arriba ajusta los gráficos; la tabla se
-        filtra por columna.
+        Histórico de lecturas · gráficos por rango, tabla con filtros por columna.
       </Typography>
 
       {latest && (
@@ -321,10 +321,7 @@ export function HistoryPage() {
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={tempChartRef}>
             <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <Box sx={{ width: 6, height: 22, borderRadius: 1, bgcolor: 'primary.main' }} />
-                <Typography variant="subtitle1">Temperatura vs tiempo</Typography>
-              </Stack>
+              <PanelTitle accent="primary">Temperatura vs tiempo</PanelTitle>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
                   onClick={() => exportChartPng(tempChartRef.current, 'temperatura.png', { title: 'Temperatura vs tiempo', source: 'Mediciones', legend: [{ label: 'Temperatura (°C)', color: theme.palette.primary.main }] })}
@@ -352,10 +349,7 @@ export function HistoryPage() {
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={humChartRef}>
             <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <Box sx={{ width: 6, height: 22, borderRadius: 1, bgcolor: 'secondary.main' }} />
-                <Typography variant="subtitle1">Humedad vs tiempo</Typography>
-              </Stack>
+              <PanelTitle accent="secondary">Humedad vs tiempo</PanelTitle>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
                   onClick={() => exportChartPng(humChartRef.current, 'humedad.png', { title: 'Humedad vs tiempo', source: 'Mediciones', legend: [{ label: 'Humedad (%)', color: theme.palette.secondary.main }] })}

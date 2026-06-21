@@ -8,6 +8,7 @@ import { eventApi } from '../api/eventApi';
 import type { EventResponse, EventSeverity, EventType, PageResponse } from '../api/types';
 import { StatusLamp, type LampTone } from './StatusLamp';
 import { ErrorState } from './ErrorState';
+import { PanelTitle } from './PanelTitle';
 import { MONO_FONT } from '../theme';
 
 const PAGE_SIZE = 12;
@@ -112,7 +113,7 @@ export function EventLog() {
       <CardContent>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Typography variant="subtitle1">Eventos y alarmas</Typography>
+            <PanelTitle accent="warning">Eventos y alarmas</PanelTitle>
             {unacked > 0 && <Chip size="small" color="error" label={`${unacked} sin reconocer`} sx={{ fontWeight: 600 }} />}
           </Stack>
           {unacked > 0 && (

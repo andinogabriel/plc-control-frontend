@@ -23,6 +23,7 @@ import { StatusChip } from '../components/StatusChip';
 import { StatusLamp } from '../components/StatusLamp';
 import { AlarmBar } from '../components/AlarmBar';
 import { EventLog } from '../components/EventLog';
+import { PanelTitle } from '../components/PanelTitle';
 import { AreaLineChart } from '../components/AreaLineChart';
 import { FadeIn } from '../components/FadeIn';
 import { DetailDialog } from '../components/DetailDialog';
@@ -471,7 +472,7 @@ export function DashboardPage() {
           <Card>
             <CardContent>
               <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                <Typography variant="subtitle1">Análisis del rango</Typography>
+                <PanelTitle accent="primary">Análisis del rango</PanelTitle>
                 <TextField
                   select size="small" value={analyticsRange} onChange={(e) => setAnalyticsRange(e.target.value)}
                   sx={{ minWidth: 170 }}
@@ -511,7 +512,7 @@ export function DashboardPage() {
           <Card>
             <CardContent ref={chartRef}>
               <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                <Typography variant="subtitle1">Últimas lecturas</Typography>
+                <PanelTitle accent="primary">Últimas lecturas</PanelTitle>
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                   <Chip
                     icon={<CompareArrowsRoundedIcon />}

@@ -41,7 +41,7 @@ export function CommandPalette() {
   const commands = useMemo<Command[]>(() => {
     const go = (path: string) => () => { navigate(path); setOpen(false); };
     return [
-      { id: 'dashboard', label: 'Ir a Dashboard', icon: <SpaceDashboardIcon />, run: go('/tablero'), keywords: 'tablero inicio' },
+      { id: 'dashboard', label: 'Ir al tablero', icon: <SpaceDashboardIcon />, run: go('/tablero'), keywords: 'tablero inicio dashboard monitoreo' },
       { id: 'config', label: 'Ir a Configuración', icon: <TuneIcon />, run: go('/configuracion'), keywords: 'umbrales' },
       { id: 'config-history', label: 'Ir a Historial de configuraciones', icon: <HistoryIcon />, run: go('/historial-configuracion'), keywords: 'auditoria' },
       { id: 'measurements', label: 'Ir a Mediciones', icon: <ShowChartIcon />, run: go('/mediciones'), keywords: 'historial lecturas' },
