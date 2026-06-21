@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
-  Box, Card, CardContent, Typography, Grid, Stack, Button, Alert, Chip, IconButton, MenuItem, Skeleton,
+  Box, Card, CardContent, Typography, Grid, Stack, Button, Chip, IconButton, MenuItem, Skeleton,
   TextField, Tooltip, useMediaQuery, useTheme,
 } from '@mui/material';
 import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
@@ -21,6 +21,7 @@ import { FadeIn } from '../components/FadeIn';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
+import { NoticeBar } from '../components/NoticeBar';
 import { RelativeTime } from '../components/RelativeTime';
 import { TableEmptyOverlay } from '../components/TableEmptyOverlay';
 import { TableToolbar } from '../components/TableToolbar';
@@ -272,10 +273,10 @@ export function HistoryPage() {
       </Typography>
 
       {latest && (
-        <Alert severity="info" sx={{ mb: 2 }}>
+        <NoticeBar severity="info" sx={{ mb: 2 }}>
           Última medición: {formatTemp(latest.temperature)} / {formatPct(latest.humidity)} ·{' '}
           {new Date(latest.createdAt).toLocaleString()}
-        </Alert>
+        </NoticeBar>
       )}
 
       <Card sx={{ mb: 3 }}>
