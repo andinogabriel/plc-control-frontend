@@ -27,6 +27,7 @@ import { useViewMode } from '../hooks/useViewMode';
 import { useDensity } from '../hooks/useDensity';
 import { exportChartPng, exportCsv } from '../lib/exporters';
 import { formatNum } from '../lib/format';
+import { PanelTitle } from '../components/PanelTitle';
 import {
   DateRangeFilterHeader, NumberFilterHeader, SortableHeader, TextFilterHeader, type SortDirection,
 } from '../components/columnFilters';
@@ -247,8 +248,7 @@ export function ConfigHistoryPage() {
     <Box>
       <Typography variant="h4" gutterBottom>Historial de configuraciones</Typography>
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        Auditoría de cada cambio de umbrales. El rango de fechas de arriba ajusta los gráficos;
-        la tabla se filtra por columna.
+        Auditoría de cambios de umbrales · gráficos por rango, tabla con filtros por columna.
       </Typography>
 
       <Card sx={{ my: 2 }}>
@@ -284,10 +284,7 @@ export function ConfigHistoryPage() {
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={tempChartRef}>
             <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <Box sx={{ width: 6, height: 22, borderRadius: 1, bgcolor: 'primary.main' }} />
-                <Typography variant="subtitle1">Evolución de umbrales de temperatura</Typography>
-              </Stack>
+              <PanelTitle accent="primary">Evolución de umbrales de temperatura</PanelTitle>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
                   onClick={() => exportChartPng(tempChartRef.current, 'umbrales-temperatura.png', { title: 'Evolución de umbrales de temperatura', source: 'Historial de configuraciones', legend: [{ label: 'T. mín', color: theme.palette.primary.main }, { label: 'T. máx', color: theme.palette.error.main }] })}
@@ -315,10 +312,7 @@ export function ConfigHistoryPage() {
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={humChartRef}>
             <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <Box sx={{ width: 6, height: 22, borderRadius: 1, bgcolor: 'secondary.main' }} />
-                <Typography variant="subtitle1">Evolución de umbrales de humedad</Typography>
-              </Stack>
+              <PanelTitle accent="secondary">Evolución de umbrales de humedad</PanelTitle>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
                   onClick={() => exportChartPng(humChartRef.current, 'umbrales-humedad.png', { title: 'Evolución de umbrales de humedad', source: 'Historial de configuraciones', legend: [{ label: 'H. mín', color: theme.palette.secondary.main }, { label: 'H. máx', color: theme.palette.warning.main }] })}

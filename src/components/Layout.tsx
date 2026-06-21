@@ -45,7 +45,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 const navItems = [
-  { label: 'Dashboard', path: '/tablero', icon: <SpaceDashboardIcon /> },
+  { label: 'Tablero', path: '/tablero', icon: <SpaceDashboardIcon /> },
   { label: 'Configuración', path: '/configuracion', icon: <TuneIcon /> },
   { label: 'Historial config', path: '/historial-configuracion', icon: <HistoryIcon /> },
   { label: 'Mediciones', path: '/mediciones', icon: <ShowChartIcon /> },
