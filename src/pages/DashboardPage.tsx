@@ -234,11 +234,14 @@ export function DashboardPage() {
     placeholderData: keepPreviousData,
   });
 
-  // Independent window for the "Análisis del rango" panel (its own range selector).
+  // Independent window for the "Análisis del rango" panel (its own range selector). NOT
+  // down-sampled: the control-quality metrics (cooler cycles, ON/OFF durations, switching) count
+  // transitions, which down-sampling would smear. The panel renders no line chart, so raw points
+  // are fine; the size cap bounds the payload (covers the most recent readings in the window).
   const { data: analyticsData, isLoading: analyticsLoading, isError: analyticsError, refetch: refetchAnalytics } = useQuery({
     queryKey: ['measurements-analytics', analyticsRange],
     queryFn: () => measurementApi.getMeasurements({
-      page: 0, size: 1500, maxPoints: CHART_MAX_POINTS, from: new Date(Date.now() - analyticsRangeMs).toISOString(),
+      page: 0, size: 2000, from: new Date(Date.now() - analyticsRangeMs).toISOString(),
     }),
     refetchInterval: paused ? false : 15000,
     placeholderData: keepPreviousData,
@@ -554,6 +557,12 @@ export function DashboardPage() {
                   Sin datos del período anterior para este rango.
                 </Typography>
               )}
+              {chartPoints.length > 0 && chartPoints.some((m) => m.coolerOn) && (
+                <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', mb: 1 }}>
+                  <Box sx={(t) => ({ width: 14, height: 10, borderRadius: 0.5, backgroundColor: alpha(t.palette.success.main, 0.18), border: `1px solid ${alpha(t.palette.success.main, 0.4)}` })} />
+                  <Typography variant="caption" color="text.secondary">Zona sombreada: cooler encendido</Typography>
+                </Stack>
+              )}
               {recentLoading ? (
                 <Skeleton variant="rounded" height={chartBlock} />
               ) : recentError ? (
@@ -565,6 +574,7 @@ export function DashboardPage() {
                     zoomable
                     mode={modeOf(range)}
                     labels={labels}
+                    shadeMask={{ values: chartPoints.map((m) => m.coolerOn), color: theme.palette.success.main }}
                     onPointClick={(i) => setSelected(chartPoints[i] ?? null)}
                     series={chartSeries}
                   />
