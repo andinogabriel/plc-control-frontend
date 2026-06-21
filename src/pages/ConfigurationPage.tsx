@@ -209,7 +209,7 @@ export function ConfigurationPage() {
         </NoticeBar>
       )}
 
-      <Grid container spacing={3}>
+      <Grid container spacing={2.5}>
         <Grid size={{ xs: 12, md: 7 }}>
           <Card>
             <CardContent>

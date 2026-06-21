@@ -337,7 +337,7 @@ export function DashboardPage() {
     return (
       <Box>
         {header}
-        <Grid container spacing={3}>
+        <Grid container spacing={2.5}>
           {[true, true, false, false].map((tall, i) => (
             <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={i}><MetricCardSkeleton tall={tall} /></Grid>
           ))}
@@ -406,7 +406,7 @@ export function DashboardPage() {
         />
       )}
 
-      <Grid container spacing={3}>
+      <Grid container spacing={2.5}>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
           <MetricCard tag="TT-01" icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
             value={(

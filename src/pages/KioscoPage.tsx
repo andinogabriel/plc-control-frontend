@@ -15,6 +15,7 @@ import dayjs from 'dayjs';
 import { measurementApi } from '../api/measurementApi';
 import { configApi } from '../api/configApi';
 import { AreaLineChart } from '../components/AreaLineChart';
+import { BrandMark } from '../components/BrandMark';
 import { StatusChip } from '../components/StatusChip';
 import { StatusLamp } from '../components/StatusLamp';
 import { SystemHealthBadge } from '../components/SystemHealthBadge';
@@ -140,7 +141,7 @@ export function KioscoPage() {
       {/* Wrap on small screens so the title + status + clock + controls never push the page wider
           than the viewport (a full-screen monitor must never scroll horizontally). */}
       <Stack direction="row" useFlexGap spacing={{ xs: 1, sm: 2 }} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-        <ThermostatIcon sx={{ color: 'primary.main', fontSize: 32 }} />
+        <BrandMark size={30} />
         <Typography variant="h5" sx={{ fontWeight: 800, minWidth: 0 }}>Monitor en vivo</Typography>
         <Box sx={{ flexGrow: 1 }} />
         {/* Compact dot on phones; full badge with label from sm up. */}

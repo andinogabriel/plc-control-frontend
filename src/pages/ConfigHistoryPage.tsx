@@ -150,7 +150,7 @@ export function ConfigHistoryPage() {
       ),
     },
     {
-      field: 'temperatureMin', headerName: 'T. mín', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
+      field: 'temperatureMin', headerName: 'T. mín', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'right', headerAlign: 'right',
       renderHeader: () => (
         <NumberFilterHeader label="T. mín" min={-10} max={60} disabled={disabledHeaders} value={searchParams.get('temperatureMin') ?? ''}
           sortDirection={sortDirFor('temperatureMin')} onToggleSort={() => toggleSort('temperatureMin')}
@@ -158,7 +158,7 @@ export function ConfigHistoryPage() {
       ),
     },
     {
-      field: 'temperatureMax', headerName: 'T. máx', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
+      field: 'temperatureMax', headerName: 'T. máx', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'right', headerAlign: 'right',
       renderHeader: () => (
         <NumberFilterHeader label="T. máx" min={-10} max={60} disabled={disabledHeaders} value={searchParams.get('temperatureMax') ?? ''}
           sortDirection={sortDirFor('temperatureMax')} onToggleSort={() => toggleSort('temperatureMax')}
@@ -166,7 +166,7 @@ export function ConfigHistoryPage() {
       ),
     },
     {
-      field: 'humidityMin', headerName: 'H. mín', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
+      field: 'humidityMin', headerName: 'H. mín', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'right', headerAlign: 'right',
       renderHeader: () => (
         <NumberFilterHeader label="H. mín" min={0} max={100} disabled={disabledHeaders} value={searchParams.get('humidityMin') ?? ''}
           sortDirection={sortDirFor('humidityMin')} onToggleSort={() => toggleSort('humidityMin')}
@@ -174,7 +174,7 @@ export function ConfigHistoryPage() {
       ),
     },
     {
-      field: 'humidityMax', headerName: 'H. máx', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'center', headerAlign: 'center',
+      field: 'humidityMax', headerName: 'H. máx', flex: 0.65, minWidth: 104, type: 'number', sortable: false, align: 'right', headerAlign: 'right',
       renderHeader: () => (
         <NumberFilterHeader label="H. máx" min={0} max={100} disabled={disabledHeaders} value={searchParams.get('humidityMax') ?? ''}
           sortDirection={sortDirFor('humidityMax')} onToggleSort={() => toggleSort('humidityMax')}
@@ -280,7 +280,7 @@ export function ConfigHistoryPage() {
         </Stack>
       )}
 
-      <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid container spacing={2.5} sx={{ mb: 2.5 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card><CardContent ref={tempChartRef}>
             <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
