@@ -1,6 +1,8 @@
 import { alpha, createTheme, type Theme } from '@mui/material/styles';
 import { esES as coreEsES } from '@mui/material/locale';
 import { esES as dataGridEsES } from '@mui/x-data-grid/locales';
+// Registers the date-picker component keys on the theme's `components` type.
+import type {} from '@mui/x-date-pickers/themeAugmentation';
 
 /** Monospaced stack for instrument readouts: live values, axis ticks, telemetry table cells and
  *  the plant clock. Imported by components that render numbers so the whole app reads like a panel. */
@@ -238,6 +240,50 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
               boxShadow: '0 6px 20px rgba(2,6,23,0.28)',
             },
             arrow: { color: '#1e293b' },
+          },
+        },
+        // Date/time picker calendar: bespoke instrument look instead of the stock MUI calendar.
+        MuiPickersLayout: {
+          styleOverrides: {
+            root: { backgroundColor: base.palette.background.paper },
+          },
+        },
+        MuiDateCalendar: {
+          styleOverrides: {
+            root: {
+              '& .MuiPickersDay-root': {
+                fontFamily: MONO_FONT,
+                borderRadius: 8,
+                '&:hover': { backgroundColor: alpha(base.palette.primary.main, 0.12) },
+                '&.Mui-selected': {
+                  backgroundColor: base.palette.primary.main,
+                  '&:hover, &:focus': { backgroundColor: base.palette.primary.dark },
+                },
+                '&.MuiPickersDay-today:not(.Mui-selected)': {
+                  borderColor: alpha(base.palette.primary.main, 0.6),
+                },
+              },
+            },
+          },
+        },
+        MuiDayCalendar: {
+          styleOverrides: {
+            weekDayLabel: { fontFamily: MONO_FONT, color: base.palette.text.secondary },
+          },
+        },
+        MuiPickersCalendarHeader: {
+          styleOverrides: { label: { fontWeight: 700 } },
+        },
+        MuiMultiSectionDigitalClockSection: {
+          styleOverrides: {
+            item: {
+              fontFamily: MONO_FONT,
+              borderRadius: 6,
+              '&.Mui-selected': {
+                backgroundColor: base.palette.primary.main,
+                '&:hover, &:focus': { backgroundColor: base.palette.primary.dark },
+              },
+            },
           },
         },
       },
