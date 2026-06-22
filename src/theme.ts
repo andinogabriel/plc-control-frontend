@@ -196,7 +196,32 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
           },
         },
         MuiOutlinedInput: {
-          styleOverrides: { root: { borderRadius: 8 } },
+          styleOverrides: {
+            // Bespoke field: a subtly recessed surface with a hairline outline that brightens on
+            // hover and snaps to a crisp accent ring on focus — reads as an instrument input, not
+            // the stock MUI outlined box.
+            root: {
+              borderRadius: 8,
+              backgroundColor: isLight ? alpha('#0f172a', 0.02) : alpha('#ffffff', 0.025),
+              transition: base.transitions.create(['border-color', 'background-color', 'box-shadow'], { duration: 120 }),
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: panelBorder },
+              '&:hover:not(.Mui-disabled) .MuiOutlinedInput-notchedOutline': {
+                borderColor: isLight ? '#c3cad6' : 'rgba(148,163,184,0.4)',
+              },
+              '&.Mui-focused': { backgroundColor: isLight ? '#ffffff' : alpha('#ffffff', 0.04) },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: base.palette.primary.main,
+                borderWidth: 1.5,
+              },
+            },
+          },
+        },
+        MuiMenu: {
+          styleOverrides: {
+            // Dropdowns (selects, theme menu) get a hairline bezel + tighter radius to match the
+            // panels rather than the default floating MUI surface.
+            paper: { borderRadius: 8, border: `1px solid ${panelBorder}` },
+          },
         },
         MuiChip: {
           styleOverrides: { root: { fontWeight: 600 } },
