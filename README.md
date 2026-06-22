@@ -13,15 +13,22 @@ permite ajustar esos umbrales.
   con tendencia y comparación contra los umbrales configurados.
 - **Configurar el control**: definir los rangos de temperatura/humedad, la histéresis del
   cooler y cada cuánto mide la Raspberry, con una vista previa de cómo va a comportarse.
-- **Auditar y analizar**: historial de cambios de configuración y de mediciones, con
-  promedios, tiempo fuera de rango y uso del cooler.
-- **Operar con confianza**: avisa cuando el sensor deja de reportar o cuando una lectura se va
-  de rango.
+- **Analizar la calidad del control**: tiempo en banda, ciclos del cooler, sobreoscilación,
+  tiempo medio ON/OFF — más allá del histórico crudo.
+- **Eventos y alarmas**: registro de transiciones (fuera de rango, retorno a normal, cooler
+  ON/OFF) con **reconocimiento (ACK)** persistido y conteo global de pendientes.
+- **Auditar**: historial de cambios de configuración y de mediciones, con filtros, gráficos y
+  exportación.
+- **Operar con confianza**: avisa cuando el sensor deja de reportar o una lectura se va de
+  rango, y **atenúa las lecturas cuando el dato no es actual** (nunca muestra dato viejo como
+  si fuera en vivo).
 
 ## Pantallas
 
-1. **Tablero** — indicadores en vivo (con tendencia y variación), análisis del rango elegido
-   (promedios, % fuera de rango, uso del cooler) y un gráfico de las últimas lecturas.
+1. **Tablero** — instrumentos en vivo (lectura tipo display + gauge tipo manómetro), análisis del
+   rango con **métricas de calidad de control** (tiempo en banda, ciclos del cooler,
+   sobreoscilación, ON/OFF medio), un **registro de eventos y alarmas con ACK**, y el gráfico de
+   las últimas lecturas con la **zona de cooler encendido sombreada**.
 2. **Configuración** — formulario de umbrales con validación y una vista previa en vivo de la
    banda de histéresis del cooler y de los cambios respecto de la configuración activa.
 3. **Historial de configuraciones** — auditoría de cada cambio (quién, cuándo, qué valores).
@@ -31,15 +38,25 @@ permite ajustar esos umbrales.
 
 ## Funcionalidades destacadas
 
-- **Tiempo real** con auto-refresco e indicador de “última actualización”.
-- **Alertas** de sensor desconectado, lectura fuera de rango o estado crítico (con avisos del
-  navegador opcionales).
-- **Gráficos interactivos**: zoom por arrastre, leyenda para mostrar/ocultar series y bandas de
-  umbral.
-- **Exportar**: imagen (PNG) de cada gráfico —con su título, pantalla y fecha de descarga— y
-  datos a CSV; además un **reporte imprimible / PDF** del tablero en una sola página.
+- **Tiempo real** vía stream SSE (con caída a polling), indicador de “última actualización” y un
+  **flash** del display al llegar cada lectura nueva.
+- **Estética de instrumento (SCADA/HMI)**: identidad propia, lecturas tipo display LED, gauges
+  tipo manómetro, **barra de adquisición** (estación · estado · último muestreo) arriba y **status
+  bar** de planta abajo; tipografía mono para todo lo numérico.
+- **Eventos y alarmas**: registro paginado en el servidor con **reconocimiento (ACK)** (una o
+  todas) y un **conteo global de sin reconocer** reflejado en el badge, el título de la pestaña y
+  el favicon.
+- **Calidad de control**: tiempo en banda, ciclos del cooler, sobreoscilación y ON/OFF medio.
+- **Dato no actual atenuado**: si el sensor deja de reportar, las lecturas se atenúan en vez de
+  mostrarse como en vivo.
+- **Gráficos interactivos**: zoom por arrastre, leyenda para mostrar/ocultar series, banda de
+  umbral (SP) y sombreado de cooler encendido.
+- **Exportar**: imagen (PNG) de cada gráfico —con título, leyenda completa (líneas, límites
+  punteados y zonas sombreadas), pantalla y fecha— y datos a CSV; además un **reporte imprimible /
+  PDF** del tablero en una sola página.
 - **Adaptado a celular**: navegación inferior, vista de tarjetas y “tirar para refrescar”.
-- **Instalable como app (PWA)**, con tema claro/oscuro y atajos de teclado (Ctrl/⌘ + K).
+- **Instalable como app (PWA)**, con tema **claro/oscuro (dark-first)** y atajos de teclado
+  (Ctrl/⌘ + K).
 - **Accesible**: foco visible, soporte de lectores de pantalla y respeto por “reducir
   movimiento”.
 
