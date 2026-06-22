@@ -545,7 +545,12 @@ export function DashboardPage() {
                       <IconButton size="small" className="no-print" disabled={chartPoints.length === 0}
                         onClick={() => exportChartPng(chartRef.current, 'lecturas.png', {
                           title: 'Últimas lecturas', source: 'Tablero',
-                          legend: chartSeries.map((s) => ({ label: s.label, color: s.color, dashed: s.dashed })),
+                          legend: [
+                            ...chartSeries.map((s) => ({ label: s.label, color: s.color, dashed: s.dashed })),
+                            ...(chartPoints.some((m) => m.coolerOn)
+                              ? [{ label: 'Cooler encendido', color: theme.palette.success.main, area: true }]
+                              : []),
+                          ],
                         })}
                         aria-label="Descargar gráfico">
                         <ImageRoundedIcon fontSize="small" />

@@ -65,8 +65,9 @@ export interface ChartPngMeta {
   /** Screen the chart came from, drawn in the footer (e.g. "Mediciones"). */
   source?: string;
   /** Series legend, drawn under the title (the on-screen legend is HTML, not part of the SVG, so
-   *  the export would otherwise have no colour key). */
-  legend?: { label: string; color: string; dashed?: boolean }[];
+   *  the export would otherwise have no colour key). `dashed` draws a dashed line swatch;
+   *  `area` draws a filled-zone swatch (for shaded regions like the setpoint band or cooler-ON). */
+  legend?: { label: string; color: string; dashed?: boolean; area?: boolean }[];
 }
 
 const FONT_STACK = 'Inter, Roboto, Helvetica, Arial, sans-serif';
@@ -161,14 +162,26 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
           let x = Math.max(12, (w - totalW) / 2);
           const ly = headerH + legendH / 2;
           for (const it of items) {
-            ctx.strokeStyle = it.color;
-            ctx.lineWidth = 3;
-            ctx.setLineDash(it.dashed ? [5, 4] : []);
-            ctx.beginPath();
-            ctx.moveTo(x, ly);
-            ctx.lineTo(x + swatch, ly);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            if (it.area) {
+              // Filled-zone swatch (shaded region: setpoint band, cooler-ON), matching the chart.
+              ctx.globalAlpha = 0.22;
+              ctx.fillStyle = it.color;
+              ctx.fillRect(x, ly - 5, swatch, 10);
+              ctx.globalAlpha = 1;
+              ctx.strokeStyle = it.color;
+              ctx.lineWidth = 1;
+              ctx.setLineDash([]);
+              ctx.strokeRect(x + 0.5, ly - 4.5, swatch - 1, 9);
+            } else {
+              ctx.strokeStyle = it.color;
+              ctx.lineWidth = 3;
+              ctx.setLineDash(it.dashed ? [5, 4] : []);
+              ctx.beginPath();
+              ctx.moveTo(x, ly);
+              ctx.lineTo(x + swatch, ly);
+              ctx.stroke();
+              ctx.setLineDash([]);
+            }
             ctx.fillStyle = textColor;
             ctx.textAlign = 'left';
             ctx.fillText(it.label, x + swatch + gap, ly);
