@@ -35,6 +35,7 @@ import { Delta } from '../components/Delta';
 import { RefreshControl } from '../components/RefreshControl';
 import { ControlAnalytics } from '../components/ControlAnalytics';
 import { exportChartPng } from '../lib/exporters';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { MONO_FONT, LCD_SCREEN } from '../theme';
 import { useCountUp } from '../hooks/useCountUp';
 import { useSystemHealth } from '../hooks/useSystemHealth';
@@ -71,12 +72,28 @@ const SPARK_POINTS = 24;
 // most-recent page). Plenty of resolution for the line chart.
 const CHART_MAX_POINTS = 800;
 
-function MetricCard({ icon, label, value, color = 'primary', onClick, children, tag }: {
+function MetricCard({ icon, label, value, color = 'primary', onClick, children, tag, stale = false, flashKey }: {
   icon: React.ReactNode; label: string; value?: React.ReactNode; color?: AccentColor;
   onClick: () => void; children?: React.ReactNode;
   /** Instrument tag drawn in the module header (e.g. "TT-01"); reads as a real control device. */
   tag?: string;
+  /** When the reading is no longer current (sensor offline/delayed), the readout is dimmed and
+   *  de-glowed so stale data is never presented as live — a control-system requirement. */
+  stale?: boolean;
+  /** Changes whenever a fresh reading arrives; the readout flashes briefly to confirm the live
+   *  update (a real-instrument cue). Skipped on first render, when stale, and under reduced motion. */
+  flashKey?: string | number;
 }) {
+  const reducedMotion = useReducedMotion();
+  const [flash, setFlash] = useState(false);
+  const firstFlash = useRef(true);
+  useEffect(() => {
+    if (firstFlash.current) { firstFlash.current = false; return undefined; }
+    if (stale || reducedMotion) return undefined;
+    setFlash(true);
+    const id = window.setTimeout(() => setFlash(false), 650);
+    return () => window.clearTimeout(id);
+  }, [flashKey, stale, reducedMotion]);
   return (
     <Card sx={(t) => ({
       height: '100%',
@@ -109,18 +126,28 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children, 
           {value !== undefined && (
             // LED meter readout: a dark screen in BOTH themes (like a real digital instrument),
             // with bright accent digits and a faint glow so it reads as a lit segment display.
-            <Box sx={{
+            <Box sx={(t) => ({
               borderRadius: '5px',
               px: 1.5, py: 1,
               backgroundColor: LCD_SCREEN,
               border: `1px solid ${alpha('#ffffff', 0.07)}`,
               boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.55)',
-            }}>
+              opacity: stale ? 0.5 : 1,
+              transition: 'opacity 200ms ease',
+              // Brief accent ring when a fresh reading lands, then fades — a live-update cue.
+              ...(flash && {
+                animation: 'readoutFlash 650ms ease',
+                '@keyframes readoutFlash': {
+                  '0%': { boxShadow: `inset 0 1px 4px rgba(0,0,0,0.55), 0 0 0 2px ${alpha(t.palette[color].light, 0.6)}` },
+                  '100%': { boxShadow: `inset 0 1px 4px rgba(0,0,0,0.55), 0 0 0 2px ${alpha(t.palette[color].light, 0)}` },
+                },
+              }),
+            })}>
               <Typography variant="h4" component="div"
                 sx={(t) => ({
                   fontFamily: MONO_FONT, fontWeight: 600, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums',
-                  color: t.palette[color].light,
-                  textShadow: `0 0 10px ${alpha(t.palette[color].light, 0.45)}`,
+                  color: stale ? t.palette.text.disabled : t.palette[color].light,
+                  textShadow: stale ? 'none' : `0 0 10px ${alpha(t.palette[color].light, 0.45)}`,
                 })}>
                 {value}
               </Typography>
@@ -261,6 +288,9 @@ export function DashboardPage() {
   });
 
   const health = useSystemHealth();
+  // Stale = the sensor stopped reporting (offline) or is lagging (delayed): the latest reading is
+  // no longer current, so the live readouts are dimmed rather than shown as if fresh.
+  const stale = health.status === 'offline' || health.status === 'delayed';
   // Animated KPI values (count-up). Hooks run unconditionally; 0 until data arrives.
   const tempCount = useCountUp(latest?.temperature ?? 0);
   const humCount = useCountUp(latest?.humidity ?? 0);
@@ -408,7 +438,7 @@ export function DashboardPage() {
 
       <Grid container spacing={2.5}>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard tag="TT-01" icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
+          <MetricCard tag="TT-01" stale={stale} flashKey={latest.createdAt} icon={<ThermostatIcon />} color={tempOut ? 'warning' : 'primary'} label="Temperatura actual"
             value={(
               <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline' }}>
                 <span>{formatTemp(tempCount)}</span>
@@ -426,7 +456,7 @@ export function DashboardPage() {
           </MetricCard>
         </Grid>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard tag="RH-01" icon={<WaterDropIcon />} color={humOut ? 'warning' : 'secondary'} label="Humedad actual"
+          <MetricCard tag="RH-01" stale={stale} flashKey={latest.createdAt} icon={<WaterDropIcon />} color={humOut ? 'warning' : 'secondary'} label="Humedad actual"
             value={(
               <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline' }}>
                 <span>{formatPct(humCount)}</span>
@@ -444,7 +474,7 @@ export function DashboardPage() {
           </MetricCard>
         </Grid>
         <Grid className="dashboard-metric" size={{ xs: 12, sm: 6, lg: 3 }}>
-          <MetricCard tag="FAN-01" icon={<AcUnitIcon />} color={latest.coolerOn ? 'success' : 'secondary'}
+          <MetricCard tag="FAN-01" stale={stale} flashKey={latest.createdAt} icon={<AcUnitIcon />} color={latest.coolerOn ? 'success' : 'secondary'}
             label="Estado del cooler"
             value={(
               <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
@@ -537,7 +567,12 @@ export function DashboardPage() {
                       <IconButton size="small" className="no-print" disabled={chartPoints.length === 0}
                         onClick={() => exportChartPng(chartRef.current, 'lecturas.png', {
                           title: 'Últimas lecturas', source: 'Tablero',
-                          legend: chartSeries.map((s) => ({ label: s.label, color: s.color, dashed: s.dashed })),
+                          legend: [
+                            ...chartSeries.map((s) => ({ label: s.label, color: s.color, dashed: s.dashed })),
+                            ...(chartPoints.some((m) => m.coolerOn)
+                              ? [{ label: 'Cooler encendido', color: theme.palette.success.main, area: true }]
+                              : []),
+                          ],
                         })}
                         aria-label="Descargar gráfico">
                         <ImageRoundedIcon fontSize="small" />

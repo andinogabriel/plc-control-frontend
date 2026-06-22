@@ -64,9 +64,10 @@ export interface ChartPngMeta {
   title?: string;
   /** Screen the chart came from, drawn in the footer (e.g. "Mediciones"). */
   source?: string;
-  /** Series legend, drawn under the title (the on-screen legend is HTML, not part of the SVG, so
-   *  the export would otherwise have no colour key). */
-  legend?: { label: string; color: string; dashed?: boolean }[];
+  /** Legend drawn under the title (the on-screen legend is HTML, not part of the SVG, so the export
+   *  would otherwise have no key). `dashed` draws a dashed line swatch (limits / comparison);
+   *  `area` draws a filled-zone swatch (setpoint band / cooler-ON shading). */
+  legend?: { label: string; color: string; dashed?: boolean; area?: boolean }[];
 }
 
 const FONT_STACK = 'Inter, Roboto, Helvetica, Arial, sans-serif';
@@ -120,11 +121,33 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
   clone.setAttribute('width', String(rect.width));
   clone.setAttribute('height', String(rect.height));
 
+  // Legend layout, packed into rows that fit the chart width (so a rich key — lines, dashed limits
+  // and shaded zones — never overflows a narrow chart).
   const legend = meta.legend ?? [];
-  const headerH = meta.title ? 36 : 0;
-  const legendH = legend.length ? 24 : 0;
-  const footerH = 26;
+  const LEG = { rowH: 20, swatch: 18, swGap: 6, itemGap: 18, padX: 12 };
   const w = rect.width;
+  const legendRows: { label: string; color: string; dashed?: boolean; area?: boolean; tw: number }[][] = [];
+  if (legend.length) {
+    const mctx = document.createElement('canvas').getContext('2d');
+    if (mctx) {
+      mctx.font = `600 12px ${FONT_STACK}`;
+      const maxW = w - LEG.padX * 2;
+      let row: typeof legendRows[number] = [];
+      let rowW = 0;
+      for (const l of legend) {
+        const tw = mctx.measureText(l.label).width;
+        const iw = LEG.swatch + LEG.swGap + tw;
+        const need = (row.length ? LEG.itemGap : 0) + iw;
+        if (row.length && rowW + need > maxW) { legendRows.push(row); row = []; rowW = 0; }
+        rowW += (row.length ? LEG.itemGap : 0) + iw;
+        row.push({ ...l, tw });
+      }
+      if (row.length) legendRows.push(row);
+    }
+  }
+  const headerH = meta.title ? 36 : 0;
+  const legendH = legendRows.length ? legendRows.length * LEG.rowH + 8 : 0;
+  const footerH = 26;
   const totalH = headerH + legendH + rect.height + footerH;
 
   const xml = new XMLSerializer().serializeToString(clone);
@@ -150,30 +173,43 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
           ctx.fillText(meta.title, 12, headerH / 2 + 2);
         }
 
-        // Legend row (line swatch + label), centred under the title — solid or dashed per series.
-        if (legend.length) {
+        // Legend, packed into centred rows under the title. Each item draws the swatch matching
+        // what it represents: a solid line, a dashed line (limits / comparison) or a filled zone
+        // (setpoint band / cooler-ON shading).
+        if (legendRows.length) {
           ctx.font = `600 12px ${FONT_STACK}`;
-          const swatch = 18;
-          const gap = 6;
-          const itemGap = 18;
-          const items = legend.map((l) => ({ ...l, tw: ctx.measureText(l.label).width }));
-          const totalW = items.reduce((acc, it) => acc + swatch + gap + it.tw, 0) + itemGap * (items.length - 1);
-          let x = Math.max(12, (w - totalW) / 2);
-          const ly = headerH + legendH / 2;
-          for (const it of items) {
-            ctx.strokeStyle = it.color;
-            ctx.lineWidth = 3;
-            ctx.setLineDash(it.dashed ? [5, 4] : []);
-            ctx.beginPath();
-            ctx.moveTo(x, ly);
-            ctx.lineTo(x + swatch, ly);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.fillStyle = textColor;
-            ctx.textAlign = 'left';
-            ctx.fillText(it.label, x + swatch + gap, ly);
-            x += swatch + gap + it.tw + itemGap;
-          }
+          ctx.textBaseline = 'middle';
+          legendRows.forEach((rowItems, ri) => {
+            const rowW = rowItems.reduce((acc, it) => acc + LEG.swatch + LEG.swGap + it.tw, 0)
+              + LEG.itemGap * (rowItems.length - 1);
+            let x = Math.max(LEG.padX, (w - rowW) / 2);
+            const ly = headerH + 4 + ri * LEG.rowH + LEG.rowH / 2;
+            for (const it of rowItems) {
+              if (it.area) {
+                ctx.globalAlpha = 0.22;
+                ctx.fillStyle = it.color;
+                ctx.fillRect(x, ly - 5, LEG.swatch, 10);
+                ctx.globalAlpha = 1;
+                ctx.strokeStyle = it.color;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([]);
+                ctx.strokeRect(x + 0.5, ly - 4.5, LEG.swatch - 1, 9);
+              } else {
+                ctx.strokeStyle = it.color;
+                ctx.lineWidth = 3;
+                ctx.setLineDash(it.dashed ? [5, 4] : []);
+                ctx.beginPath();
+                ctx.moveTo(x, ly);
+                ctx.lineTo(x + LEG.swatch, ly);
+                ctx.stroke();
+                ctx.setLineDash([]);
+              }
+              ctx.fillStyle = textColor;
+              ctx.textAlign = 'left';
+              ctx.fillText(it.label, x + LEG.swatch + LEG.swGap, ly);
+              x += LEG.swatch + LEG.swGap + it.tw + LEG.itemGap;
+            }
+          });
         }
 
         ctx.drawImage(img, 0, headerH + legendH, w, rect.height);

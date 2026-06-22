@@ -324,7 +324,17 @@ export function HistoryPage() {
               <PanelTitle accent="primary">Temperatura vs tiempo</PanelTitle>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
-                  onClick={() => exportChartPng(tempChartRef.current, 'temperatura.png', { title: 'Temperatura vs tiempo', source: 'Mediciones', legend: [{ label: 'Temperatura (°C)', color: theme.palette.primary.main }] })}
+                  onClick={() => exportChartPng(tempChartRef.current, 'temperatura.png', {
+                    title: 'Temperatura vs tiempo', source: 'Mediciones',
+                    legend: [
+                      { label: 'Temperatura (°C)', color: theme.palette.primary.main },
+                      ...(config ? [
+                        { label: 'Banda objetivo', color: theme.palette.success.main, area: true },
+                        { label: 'Límite mín', color: theme.palette.warning.main, dashed: true },
+                        { label: 'Límite máx', color: theme.palette.error.main, dashed: true },
+                      ] : []),
+                    ],
+                  })}
                   aria-label="Descargar gráfico">
                   <ImageRoundedIcon fontSize="small" /></IconButton></span>
               </Tooltip>
@@ -352,7 +362,17 @@ export function HistoryPage() {
               <PanelTitle accent="secondary">Humedad vs tiempo</PanelTitle>
               <Tooltip title="Descargar PNG">
                 <span><IconButton size="small" disabled={points.length === 0}
-                  onClick={() => exportChartPng(humChartRef.current, 'humedad.png', { title: 'Humedad vs tiempo', source: 'Mediciones', legend: [{ label: 'Humedad (%)', color: theme.palette.secondary.main }] })}
+                  onClick={() => exportChartPng(humChartRef.current, 'humedad.png', {
+                    title: 'Humedad vs tiempo', source: 'Mediciones',
+                    legend: [
+                      { label: 'Humedad (%)', color: theme.palette.secondary.main },
+                      ...(config ? [
+                        { label: 'Banda objetivo', color: theme.palette.success.main, area: true },
+                        { label: 'Límite mín', color: theme.palette.warning.main, dashed: true },
+                        { label: 'Límite máx', color: theme.palette.error.main, dashed: true },
+                      ] : []),
+                    ],
+                  })}
                   aria-label="Descargar gráfico">
                   <ImageRoundedIcon fontSize="small" /></IconButton></span>
               </Tooltip>
