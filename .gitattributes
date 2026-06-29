@@ -1,0 +1,6 @@
+# Config files read by the host/build must keep LF. A trailing CR would corrupt the parsed
+# value: "20\r" breaks Node version detection on Cloudflare Pages, and a CR on a _redirects
+# rule breaks the SPA fallback.
+.nvmrc       text eol=lf
+_redirects   text eol=lf
+*.sh         text eol=lf
