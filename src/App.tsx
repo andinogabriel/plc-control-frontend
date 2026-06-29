@@ -4,6 +4,7 @@ import { Box, CircularProgress, GlobalStyles, Typography } from '@mui/material';
 import { Layout } from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ServiceWorkerUpdater } from './components/ServiceWorkerUpdater';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { MONO_FONT } from './theme';
 
 // Route-level code splitting: each page is its own chunk, loaded on demand.
@@ -82,7 +83,7 @@ export default function App() {
             <Route path="/config-history" element={<Navigate to="/historial-configuracion" replace />} />
             <Route path="/history" element={<Navigate to="/mediciones" replace />} />
 
-            <Route path="*" element={<Navigate to="/tablero" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </ErrorBoundary>
