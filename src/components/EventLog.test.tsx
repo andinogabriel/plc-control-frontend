@@ -4,7 +4,7 @@ import type { EventType } from '../api/types';
 
 const ALL_TYPES: EventType[] = [
   'TEMP_OUT_OF_RANGE', 'HUMIDITY_OUT_OF_RANGE', 'CRITICAL',
-  'RETURN_TO_NORMAL', 'COOLER_ON', 'COOLER_OFF',
+  'RETURN_TO_NORMAL', 'COOLER_ON', 'COOLER_OFF', 'SENSOR_OFFLINE',
 ];
 
 describe('EVENT_LABEL', () => {

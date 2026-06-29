@@ -25,6 +25,7 @@ export const EVENT_LABEL: Record<EventType, { tag: string; message: string }> = 
   RETURN_TO_NORMAL: { tag: 'SYS', message: 'Retorno a rango normal' },
   COOLER_ON: { tag: 'FAN-01', message: 'Cooler encendido' },
   COOLER_OFF: { tag: 'FAN-01', message: 'Cooler apagado' },
+  SENSOR_OFFLINE: { tag: 'RPi', message: 'Sensor sin conexión (sin mediciones nuevas)' },
 };
 
 /**
