@@ -1,0 +1,4 @@
+# SPA fallback: serve index.html for any path that is not a built asset, so client-side routes
+# (e.g. /mediciones) and unknown URLs reach React Router instead of a hosting 404. React Router
+# then renders the app — a valid route loads its page, an unknown one renders NotFoundPage.
+/*    /index.html   200
