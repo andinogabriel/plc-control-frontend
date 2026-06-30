@@ -132,8 +132,9 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children, 
               backgroundColor: LCD_SCREEN,
               border: `1px solid ${alpha('#ffffff', 0.07)}`,
               boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.55)',
-              opacity: stale ? 0.5 : 1,
-              transition: 'opacity 200ms ease',
+              // The screen stays dark and fully opaque in BOTH themes: a 50% box opacity over the
+              // white light-theme card turned it into a muddy grey block. Staleness dims the DIGITS
+              // instead (below), not the whole screen.
               // Brief accent ring when a fresh reading lands, then fades — a live-update cue.
               ...(flash && {
                 animation: 'readoutFlash 650ms ease',
@@ -146,8 +147,11 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children, 
               <Typography variant="h4" component="div"
                 sx={(t) => ({
                   fontFamily: MONO_FONT, fontWeight: 600, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums',
-                  color: stale ? t.palette.text.disabled : t.palette[color].light,
+                  // Dim but still legible on the dark screen in BOTH themes (text.disabled is a pale
+                  // grey that vanished on the light theme); de-glowed so stale never reads as "lit/live".
+                  color: stale ? alpha('#e2e8f0', 0.45) : t.palette[color].light,
                   textShadow: stale ? 'none' : `0 0 10px ${alpha(t.palette[color].light, 0.45)}`,
+                  transition: 'color 200ms ease',
                 })}>
                 {value}
               </Typography>
