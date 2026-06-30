@@ -46,7 +46,8 @@ export type EventType =
   | 'CRITICAL'
   | 'RETURN_TO_NORMAL'
   | 'COOLER_ON'
-  | 'COOLER_OFF';
+  | 'COOLER_OFF'
+  | 'SENSOR_OFFLINE';
 
 export interface EventResponse {
   id: string;
