@@ -86,7 +86,7 @@ const EMPTY_DEFAULTS: FormInput = {
   temperatureMin: undefined, temperatureMax: undefined,
   humidityMin: undefined, humidityMax: undefined,
   hysteresisTemperature: undefined, hysteresisHumidity: undefined,
-  measurementIntervalSeconds: 20,
+  measurementIntervalSeconds: 4,
 };
 
 const num = (v: unknown) => (v === '' || v === null || v === undefined ? undefined : Number(v));
