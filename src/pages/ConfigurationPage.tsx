@@ -42,7 +42,7 @@ const schema = z
     humidityMax: requiredNumber((n) => n.min(0, 'Mín 0 %').max(100, 'Máx 100 %')),
     hysteresisTemperature: requiredNumber((n) => n.min(0.1, 'Mín 0,1 °C').max(2, 'Máx 2 °C')),
     hysteresisHumidity: requiredNumber((n) => n.min(0.1, 'Mín 0,1 %').max(5, 'Máx 5 %')),
-    measurementIntervalSeconds: requiredNumber((n) => n.int('Debe ser un entero').min(5, 'Mín 5 s').max(1800, 'Máx 1800 s (30 min)')),
+    measurementIntervalSeconds: requiredNumber((n) => n.int('Debe ser un entero').min(4, 'Mín 4 s').max(1800, 'Máx 1800 s (30 min)')),
   })
   // Cross-field: max must be strictly greater than min (a max below the min is physically
   // meaningless — the in-range band would be empty). The error is reported on BOTH fields so
@@ -86,7 +86,7 @@ const EMPTY_DEFAULTS: FormInput = {
   temperatureMin: undefined, temperatureMax: undefined,
   humidityMin: undefined, humidityMax: undefined,
   hysteresisTemperature: undefined, hysteresisHumidity: undefined,
-  measurementIntervalSeconds: 20,
+  measurementIntervalSeconds: 4,
 };
 
 const num = (v: unknown) => (v === '' || v === null || v === undefined ? undefined : Number(v));
