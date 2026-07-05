@@ -21,7 +21,7 @@ import { StatusLamp } from '../components/StatusLamp';
 import { SystemHealthBadge } from '../components/SystemHealthBadge';
 import { useCountUp } from '../hooks/useCountUp';
 import { formatNumber } from '../lib/format';
-import { MONO_FONT, LCD_SCREEN } from '../theme';
+import { MONO_FONT, lcdScreen } from '../theme';
 
 const RANGE_MS = 2 * 60 * 60 * 1000; // last 2 hours
 
@@ -65,12 +65,12 @@ function BigTile({ icon, label, value, unit, accent, out, tag }: {
       <Box sx={{ p: { xs: 1.75, md: 2.5 } }}>
         {/* LED meter readout: a dark screen in both themes, digits glowing in the accent (warning
             on alarm). Value and unit stay on one line so the figure never wraps. */}
-        <Box sx={{
+        <Box sx={(t) => ({
           borderRadius: 1.5, px: { xs: 1.5, md: 2 }, py: { xs: 1, md: 1.5 }, overflow: 'hidden',
-          backgroundColor: LCD_SCREEN,
+          backgroundColor: lcdScreen(t.palette.mode),
           border: `1px solid ${alpha('#ffffff', 0.07)}`,
           boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.55)',
-        }}>
+        })}>
           <Stack direction="row" spacing={0.75} sx={{ alignItems: 'baseline', minWidth: 0 }}>
             <Typography sx={(t) => ({ fontFamily: MONO_FONT, fontWeight: 600, fontSize: { xs: 40, md: 56 }, lineHeight: 1, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', color: out ? t.palette.warning.light : digitColor, textShadow: `0 0 12px ${alpha(out ? t.palette.warning.light : digitColor, 0.45)}` })}>
               {value}

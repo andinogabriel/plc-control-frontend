@@ -8,9 +8,12 @@ import type {} from '@mui/x-date-pickers/themeAugmentation';
  *  the plant clock. Imported by components that render numbers so the whole app reads like a panel. */
 export const MONO_FONT = '"JetBrains Mono", "Roboto Mono", ui-monospace, "SFMono-Regular", "Menlo", monospace';
 
-/** Dark screen colour for the LED/LCD instrument readouts. Intentionally near-black in BOTH light
- *  and dark themes so a live value always reads like a real lit meter display, not a web field. */
+/** Dark screen colour for the LED/LCD instrument readouts. Near-black on dark so it blends into the
+ *  navy console; a softer dark slate on light so a big readout doesn't read as a heavy black block
+ *  on a white card (it still looks like a lit meter display, just less weighty). */
 export const LCD_SCREEN = '#0c1424';
+export const LCD_SCREEN_LIGHT = '#1e293b';
+export const lcdScreen = (mode: 'light' | 'dark'): string => (mode === 'light' ? LCD_SCREEN_LIGHT : LCD_SCREEN);
 
 /** Builds the app theme for the given palette mode (light/dark), with Spanish locales.
  *  The dark mode is the primary, control-room target; light mode stays usable as an option. */

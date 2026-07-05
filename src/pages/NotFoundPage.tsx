@@ -4,7 +4,7 @@ import ArrowBackOutlinedIcon from '@mui/icons-material/ArrowBackOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import SearchOffOutlinedIcon from '@mui/icons-material/SearchOffOutlined';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LCD_SCREEN, MONO_FONT } from '../theme';
+import { lcdScreen, MONO_FONT } from '../theme';
 
 /**
  * 404 route, rendered by the catch-all inside the app shell so the navigation stays available.
@@ -27,15 +27,15 @@ export function NotFoundPage() {
     >
       {/* Recessed LCD readout with the code, like a faulted instrument display. */}
       <Box
-        sx={{
+        sx={(t) => ({
           position: 'relative',
           px: { xs: 4, sm: 6 },
           py: { xs: 2.5, sm: 3.5 },
           borderRadius: 2,
-          backgroundColor: LCD_SCREEN,
+          backgroundColor: lcdScreen(t.palette.mode),
           border: `1px solid ${alpha('#22d3ee', 0.25)}`,
           boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.6)',
-        }}
+        })}
       >
         <SearchOffOutlinedIcon
           sx={{ position: 'absolute', top: 10, right: 10, fontSize: 18, color: alpha('#e5e7eb', 0.35) }}
