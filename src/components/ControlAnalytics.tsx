@@ -3,7 +3,7 @@ import { alpha } from '@mui/material/styles';
 import type { ConfigResponse, MeasurementResponse } from '../api/types';
 import { formatNumber } from '../lib/format';
 import { formatDuration } from '../lib/time';
-import { MONO_FONT, LCD_SCREEN } from '../theme';
+import { MONO_FONT, lcdScreen } from '../theme';
 
 type StatAccent = 'primary' | 'secondary' | 'success' | 'warning';
 
@@ -21,7 +21,7 @@ function StatTile({ label, value, hint, accent = 'primary' }: {
         <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{label}</Typography>
       </Stack>
       {/* Mini LED readout to match the instrument language of the dashboard cards. */}
-      <Box sx={{ borderRadius: '4px', px: 1, py: 0.5, backgroundColor: LCD_SCREEN, border: `1px solid ${alpha('#ffffff', 0.07)}`, boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>
+      <Box sx={(t) => ({ borderRadius: '4px', px: 1, py: 0.5, backgroundColor: lcdScreen(t.palette.mode), border: `1px solid ${alpha('#ffffff', 0.07)}`, boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' })}>
         <Typography sx={(t) => ({ fontFamily: MONO_FONT, fontWeight: 600, fontSize: 18, lineHeight: 1.25, fontVariantNumeric: 'tabular-nums', color: t.palette[accent].light, textShadow: `0 0 8px ${alpha(t.palette[accent].light, 0.4)}` })}>
           {value}
         </Typography>

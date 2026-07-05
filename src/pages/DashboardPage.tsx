@@ -36,7 +36,7 @@ import { RefreshControl } from '../components/RefreshControl';
 import { ControlAnalytics } from '../components/ControlAnalytics';
 import { exportChartPng } from '../lib/exporters';
 import { useReducedMotion } from '../hooks/useReducedMotion';
-import { MONO_FONT, LCD_SCREEN } from '../theme';
+import { MONO_FONT, lcdScreen } from '../theme';
 import { useCountUp } from '../hooks/useCountUp';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 import { formatRelative } from '../lib/time';
@@ -129,7 +129,7 @@ function MetricCard({ icon, label, value, color = 'primary', onClick, children, 
             <Box sx={(t) => ({
               borderRadius: '5px',
               px: 1.5, py: 1,
-              backgroundColor: LCD_SCREEN,
+              backgroundColor: lcdScreen(t.palette.mode),
               border: `1px solid ${alpha('#ffffff', 0.07)}`,
               boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.55)',
               // The screen stays dark and fully opaque in BOTH themes: a 50% box opacity over the
