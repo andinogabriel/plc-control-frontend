@@ -35,6 +35,8 @@ permite ajustar esos umbrales.
 4. **Mediciones** — historial de lecturas con filtros, gráficos y exportación.
 5. **Modo kiosco** — un monitor a pantalla completa con auto-refresco, pensado para mostrar el
    sistema en vivo (por ejemplo, en la defensa del trabajo).
+6. **Página no encontrada (404)** — una pantalla propia con la identidad del panel (display LCD
+   con el código) para URLs inexistentes, con accesos a “Volver” y “Ir al tablero”.
 
 ## Funcionalidades destacadas
 
@@ -57,6 +59,8 @@ permite ajustar esos umbrales.
 - **Adaptado a celular**: navegación inferior, vista de tarjetas y “tirar para refrescar”.
 - **Instalable como app (PWA)**, con tema **claro/oscuro (dark-first)** y atajos de teclado
   (Ctrl/⌘ + K).
+- **Página 404 propia** para rutas inexistentes (con fallback SPA en el hosting, así los
+  deep-links y el refresh no rompen).
 - **Accesible**: foco visible, soporte de lectores de pantalla y respeto por “reducir
   movimiento”.
 
@@ -85,8 +89,15 @@ npm install
 npm run dev            # http://localhost:5173
 ```
 
-Para producción: `npm run build` genera el sitio estático en `dist/`, publicable en Vercel,
-Netlify o cualquier hosting estático (configurando `VITE_API_BASE_URL`).
+Para producción: `npm run build` genera el sitio estático en `dist/`, publicable en Cloudflare
+Pages, Vercel, Netlify o cualquier hosting estático (configurando `VITE_API_BASE_URL`).
+
+> **Despliegue actual:** el panel está en **Cloudflare Pages** (build `npm run build`, salida
+> `dist`, `NODE_VERSION=20`) y el backend en Railway. El repo incluye `public/_redirects`
+> (`/* /index.html 200`) para el **fallback SPA**, y `.nvmrc` fija Node 20. Recordá setear
+> `CORS_ORIGINS` en el backend con la URL del panel. La guía completa (Atlas + Railway + Pages +
+> Raspberry) está en [`docs/DEPLOYMENT.md`](https://github.com/andinogabriel/plc-control-backend/blob/main/docs/DEPLOYMENT.md)
+> del repo del backend.
 
 Para inspeccionar el peso del bundle, `npm run build:analyze` genera y abre un treemap por chunk
 en `dist/stats.html` (no afecta al build normal).
