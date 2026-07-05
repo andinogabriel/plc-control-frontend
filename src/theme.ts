@@ -35,7 +35,9 @@ export function createAppTheme(mode: 'light' | 'dark'): Theme {
         ? { default: '#eef1f5', paper: '#ffffff' }
         : { default: '#070b14', paper: '#0f1729' },
       text: isLight
-        ? { primary: '#0f172a', secondary: '#64748b' }
+        // secondary at #475569 (slate-600 ≈ 7:1 on white) instead of #64748b (~4.4:1, below WCAG AA)
+        // so captions, overlines and chart axes stay legible in the light theme too.
+        ? { primary: '#0f172a', secondary: '#475569' }
         : { primary: '#e5e7eb', secondary: '#94a3b8' },
       divider: isLight ? '#e6e8ee' : 'rgba(148,163,184,0.14)',
     },

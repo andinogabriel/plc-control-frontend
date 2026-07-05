@@ -55,10 +55,13 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
   const latestRef = useRef(latest); latestRef.current = latest;
   const configRef = useRef(config); configRef.current = config;
 
-  const pushEvent = useCallback((ev: AlertEvent) => {
+  const pushEvent = useCallback((ev: AlertEvent, withToast = true) => {
     setEvents((prev) => [ev, ...prev].slice(0, MAX_EVENTS));
     setUnread((u) => u + 1);
-    if (ev.severity === 'error') { notify(ev); toast(ev.message, 'error'); }
+    // Error events fire a transient toast + OS notification. The offline state is the exception:
+    // it is a *sustained* condition already shown by the dashboard alarm banner, the bottom status
+    // bar and the bell, so a toast (which lingers over controls) is the wrong pattern — log it only.
+    if (ev.severity === 'error') { notify(ev); if (withToast) toast(ev.message, 'error'); }
   }, [toast]);
 
   const evaluate = useCallback(() => {
@@ -83,7 +86,10 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
 
     conditions.forEach((cond) => {
       if (!activeRef.current.has(cond.key)) {
-        pushEvent({ id: `${cond.key}-${Date.now()}`, time: Date.now(), severity: cond.severity, message: cond.message });
+        pushEvent(
+          { id: `${cond.key}-${Date.now()}`, time: Date.now(), severity: cond.severity, message: cond.message },
+          cond.key !== 'offline',
+        );
       }
     });
     activeRef.current = new Set(conditions.map((cond) => cond.key));

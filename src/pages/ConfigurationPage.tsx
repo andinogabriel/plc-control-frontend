@@ -42,7 +42,7 @@ const schema = z
     humidityMax: requiredNumber((n) => n.min(0, 'Mín 0 %').max(100, 'Máx 100 %')),
     hysteresisTemperature: requiredNumber((n) => n.min(0.1, 'Mín 0,1 °C').max(2, 'Máx 2 °C')),
     hysteresisHumidity: requiredNumber((n) => n.min(0.1, 'Mín 0,1 %').max(5, 'Máx 5 %')),
-    measurementIntervalSeconds: requiredNumber((n) => n.int('Debe ser un entero').min(5, 'Mín 5 s').max(1800, 'Máx 1800 s (30 min)')),
+    measurementIntervalSeconds: requiredNumber((n) => n.int('Debe ser un entero').min(4, 'Mín 4 s').max(1800, 'Máx 1800 s (30 min)')),
   })
   // Cross-field: max must be strictly greater than min (a max below the min is physically
   // meaningless — the in-range band would be empty). The error is reported on BOTH fields so
@@ -71,14 +71,14 @@ const HYSTERESIS_HELP =
 
 // `deps` lists the sibling fields RHF should re-validate when this one changes, so the
 // cross-field (min/max) error surfaces immediately on whichever field is being edited.
-const fields: { name: keyof FormValues; label: string; help?: string; deps?: (keyof FormValues)[] }[] = [
-  { name: 'temperatureMin', label: 'Temperatura mín (°C)', deps: ['temperatureMax'] },
-  { name: 'temperatureMax', label: 'Temperatura máx (°C)', deps: ['temperatureMin'] },
-  { name: 'humidityMin', label: 'Humedad mín (%)', deps: ['humidityMax'] },
-  { name: 'humidityMax', label: 'Humedad máx (%)', deps: ['humidityMin'] },
-  { name: 'hysteresisTemperature', label: 'Histéresis temperatura', help: `${HYSTERESIS_HELP} (en °C)` },
-  { name: 'hysteresisHumidity', label: 'Histéresis humedad', help: `${HYSTERESIS_HELP} (en %)` },
-  { name: 'measurementIntervalSeconds', label: 'Intervalo de medición (s)' },
+const fields: { name: keyof FormValues; label: string; help?: string; hint?: string; deps?: (keyof FormValues)[] }[] = [
+  { name: 'temperatureMin', label: 'Temperatura mín (°C)', hint: '−10 a 60 °C', deps: ['temperatureMax'] },
+  { name: 'temperatureMax', label: 'Temperatura máx (°C)', hint: '−10 a 60 °C', deps: ['temperatureMin'] },
+  { name: 'humidityMin', label: 'Humedad mín (%)', hint: '0 a 100 %', deps: ['humidityMax'] },
+  { name: 'humidityMax', label: 'Humedad máx (%)', hint: '0 a 100 %', deps: ['humidityMin'] },
+  { name: 'hysteresisTemperature', label: 'Histéresis temperatura', hint: '0,1 a 2 °C', help: `${HYSTERESIS_HELP} (en °C)` },
+  { name: 'hysteresisHumidity', label: 'Histéresis humedad', hint: '0,1 a 5 %', help: `${HYSTERESIS_HELP} (en %)` },
+  { name: 'measurementIntervalSeconds', label: 'Intervalo de medición (s)', hint: '4 a 1800 s' },
 ];
 
 const EMPTY_DEFAULTS: FormInput = {
@@ -86,7 +86,7 @@ const EMPTY_DEFAULTS: FormInput = {
   temperatureMin: undefined, temperatureMax: undefined,
   humidityMin: undefined, humidityMax: undefined,
   hysteresisTemperature: undefined, hysteresisHumidity: undefined,
-  measurementIntervalSeconds: 20,
+  measurementIntervalSeconds: 4,
 };
 
 const num = (v: unknown) => (v === '' || v === null || v === undefined ? undefined : Number(v));
@@ -241,7 +241,7 @@ export function ConfigurationPage() {
                     <Grid size={{ xs: 12, sm: 6 }} key={f.name}>
                       <TextField fullWidth type="number"
                         label={f.label} {...register(f.name, f.deps ? { deps: f.deps } : undefined)}
-                        error={!!errors[f.name]} helperText={errors[f.name]?.message}
+                        error={!!errors[f.name]} helperText={errors[f.name]?.message ?? f.hint}
                         slotProps={{
                           htmlInput: { step: 'any' },
                           inputLabel: shrink(f.name),
