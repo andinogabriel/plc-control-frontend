@@ -63,8 +63,13 @@ const RANGE_OPTIONS = [
 ];
 
 const rangeMsOf = (value: string) => RANGE_OPTIONS.find((o) => o.value === value)?.ms ?? DAY;
-// Intraday ranges (<= 1 day) show time-of-day ticks; longer ones show dates.
-const modeOf = (value: string): 'time' | 'date' => (rangeMsOf(value) <= DAY ? 'time' : 'date');
+// Short ranges (<= 30 min) show seconds — sampling is sub-minute, so HH:mm ticks would repeat
+// and hide the resolution; intraday ranges (<= 1 day) show time-of-day; longer ones show dates.
+const modeOf = (value: string): 'seconds' | 'time' | 'date' => {
+  const ms = rangeMsOf(value);
+  if (ms <= 30 * MIN) return 'seconds';
+  return ms <= DAY ? 'time' : 'date';
+};
 
 const SPARK_POINTS = 24;
 // Chart series cap: wide ranges are down-sampled server-side to ~this many points spread across

@@ -12,6 +12,15 @@ describe('formatAxisDate', () => {
     expect(formatAxisDate(date, 'tick', 'time')).toBe('17:30');
   });
 
+  it('formats short-range ticks with seconds (HH:mm:ss)', () => {
+    expect(formatAxisDate(new Date('2026-06-03T17:30:04'), 'tick', 'seconds')).toBe('17:30:04');
+  });
+
+  it('includes seconds on intraday tooltips so close samples are distinguishable', () => {
+    expect(formatAxisDate(new Date('2026-06-03T17:30:04'), 'tooltip', 'seconds')).toBe('3 jun 17:30:04');
+    expect(formatAxisDate(date, 'tooltip', 'time')).toBe('3 jun 17:30:00');
+  });
+
   it('formats date ticks as day + month (Spanish)', () => {
     expect(formatAxisDate(date, 'tick', 'date')).toBe('3 jun');
   });

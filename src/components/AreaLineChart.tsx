@@ -94,7 +94,7 @@ export function AreaLineChart({
   /** Chart height in px. When `fill` is set this is only the initial value until the chart is
    *  measured against its container. */
   height: number;
-  mode?: 'date' | 'time';
+  mode?: 'date' | 'time' | 'seconds';
   area?: boolean;
   curve?: 'monotoneX' | 'stepAfter' | 'linear' | 'natural';
   onPointClick?: (dataIndex: number) => void;

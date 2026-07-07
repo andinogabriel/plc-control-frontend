@@ -36,14 +36,18 @@ export const chartSx = (theme: Theme) => ({
 
 /**
  * Spanish date/time formatter for chart axes. Ticks are concise; tooltips show the full date.
- * @param mode 'date' for multi-day ranges (e.g. "3 jun"), 'time' for intraday (e.g. "17:30").
+ * @param mode 'date' for multi-day ranges (e.g. "3 jun"), 'time' for intraday (e.g. "17:30"),
+ *             'seconds' for short ranges with sub-minute sampling (e.g. "17:30:04").
  */
 export function formatAxisDate(
   value: Date,
   location: 'tick' | 'tooltip' | string | undefined,
-  mode: 'date' | 'time',
+  mode: 'date' | 'time' | 'seconds',
 ): string {
   const d = dayjs(value);
-  if (location === 'tooltip') return d.format('D MMM YYYY HH:mm');
+  // Tooltips always carry seconds on intraday ranges so points sampled a few seconds apart are
+  // distinguishable; multi-day ranges keep the year instead (seconds are irrelevant there).
+  if (location === 'tooltip') return mode === 'date' ? d.format('D MMM YYYY HH:mm') : d.format('D MMM HH:mm:ss');
+  if (mode === 'seconds') return d.format('HH:mm:ss');
   return mode === 'time' ? d.format('HH:mm') : d.format('D MMM');
 }
