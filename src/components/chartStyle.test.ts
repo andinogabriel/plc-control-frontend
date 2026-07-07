@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
-import { formatAxisDate } from './chartStyle';
+import { axisMode, formatAxisDate } from './chartStyle';
 
 dayjs.locale('es');
 
@@ -28,5 +28,25 @@ describe('formatAxisDate', () => {
   it('uses a full date/time on the tooltip', () => {
     expect(formatAxisDate(date, 'tooltip', 'date')).toContain('2026');
     expect(formatAxisDate(date, 'tooltip', 'date')).toContain('17:30');
+  });
+});
+
+describe('axisMode', () => {
+  const MIN = 60_000;
+  const DAY = 24 * 60 * MIN;
+
+  it('uses seconds for spans up to 30 min', () => {
+    expect(axisMode(10 * MIN)).toBe('seconds');
+    expect(axisMode(30 * MIN)).toBe('seconds');
+  });
+
+  it('uses time of day for intraday spans up to a day', () => {
+    expect(axisMode(2 * 60 * MIN)).toBe('time');
+    expect(axisMode(DAY)).toBe('time');
+  });
+
+  it('uses dates for multi-day spans', () => {
+    expect(axisMode(DAY + 1)).toBe('date');
+    expect(axisMode(7 * DAY)).toBe('date');
   });
 });

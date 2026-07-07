@@ -25,6 +25,7 @@ import { AlarmBar } from '../components/AlarmBar';
 import { EventLog } from '../components/EventLog';
 import { PanelTitle } from '../components/PanelTitle';
 import { AreaLineChart } from '../components/AreaLineChart';
+import { axisMode } from '../components/chartStyle';
 import { FadeIn } from '../components/FadeIn';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
@@ -63,13 +64,7 @@ const RANGE_OPTIONS = [
 ];
 
 const rangeMsOf = (value: string) => RANGE_OPTIONS.find((o) => o.value === value)?.ms ?? DAY;
-// Short ranges (<= 30 min) show seconds — sampling is sub-minute, so HH:mm ticks would repeat
-// and hide the resolution; intraday ranges (<= 1 day) show time-of-day; longer ones show dates.
-const modeOf = (value: string): 'seconds' | 'time' | 'date' => {
-  const ms = rangeMsOf(value);
-  if (ms <= 30 * MIN) return 'seconds';
-  return ms <= DAY ? 'time' : 'date';
-};
+const modeOf = (value: string) => axisMode(rangeMsOf(value));
 
 const SPARK_POINTS = 24;
 // Chart series cap: wide ranges are down-sampled server-side to ~this many points spread across

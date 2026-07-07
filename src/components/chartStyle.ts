@@ -35,6 +35,19 @@ export const chartSx = (theme: Theme) => ({
 });
 
 /**
+ * Picks the axis granularity for a plotted time span. Short windows (<= 30 min) sampled every few
+ * seconds need `HH:mm:ss` or adjacent ticks/tooltips collapse to the same label; intraday windows
+ * (<= 1 day) show time-of-day; longer ones show dates. Shared by every time chart so the Dashboard,
+ * Kiosk and History views stay consistent (and so PNG exports inherit the right labels).
+ */
+export function axisMode(spanMs: number): 'seconds' | 'time' | 'date' {
+  const MINUTE = 60_000;
+  const DAY = 24 * 60 * MINUTE;
+  if (spanMs <= 30 * MINUTE) return 'seconds';
+  return spanMs <= DAY ? 'time' : 'date';
+}
+
+/**
  * Spanish date/time formatter for chart axes. Ticks are concise; tooltips show the full date.
  * @param mode 'date' for multi-day ranges (e.g. "3 jun"), 'time' for intraday (e.g. "17:30"),
  *             'seconds' for short ranges with sub-minute sampling (e.g. "17:30:04").
