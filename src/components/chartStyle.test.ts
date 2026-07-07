@@ -25,6 +25,10 @@ describe('formatAxisDate', () => {
     expect(formatAxisDate(date, 'tick', 'date')).toBe('3 jun');
   });
 
+  it('formats multi-day (sub-daily tick) labels as day + time', () => {
+    expect(formatAxisDate(date, 'tick', 'datetime')).toBe('3 jun 17:30');
+  });
+
   it('uses a full date/time on the tooltip', () => {
     expect(formatAxisDate(date, 'tooltip', 'date')).toContain('2026');
     expect(formatAxisDate(date, 'tooltip', 'date')).toContain('17:30');
@@ -45,8 +49,13 @@ describe('axisMode', () => {
     expect(axisMode(DAY)).toBe('time');
   });
 
-  it('uses dates for multi-day spans', () => {
-    expect(axisMode(DAY + 1)).toBe('date');
-    expect(axisMode(7 * DAY)).toBe('date');
+  it('uses date+time for 1–7 day spans (ticks land sub-daily)', () => {
+    expect(axisMode(DAY + 1)).toBe('datetime');
+    expect(axisMode(6 * DAY)).toBe('datetime');
+  });
+
+  it('uses bare dates only beyond a week', () => {
+    expect(axisMode(8 * DAY)).toBe('date');
+    expect(axisMode(30 * DAY)).toBe('date');
   });
 });

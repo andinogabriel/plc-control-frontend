@@ -40,11 +40,13 @@ export const chartSx = (theme: Theme) => ({
  * (<= 1 day) show time-of-day; longer ones show dates. Shared by every time chart so the Dashboard,
  * Kiosk and History views stay consistent (and so PNG exports inherit the right labels).
  */
-export function axisMode(spanMs: number): 'seconds' | 'time' | 'date' {
+export function axisMode(spanMs: number): 'seconds' | 'time' | 'datetime' | 'date' {
   const MINUTE = 60_000;
   const DAY = 24 * 60 * MINUTE;
   if (spanMs <= 30 * MINUTE) return 'seconds';
-  return spanMs <= DAY ? 'time' : 'date';
+  if (spanMs <= DAY) return 'time';
+  // 1–7 day spans: ticks land sub-day, so a bare date ("6 jul") repeats — include the time.
+  return spanMs <= 7 * DAY ? 'datetime' : 'date';
 }
 
 /**
@@ -55,12 +57,14 @@ export function axisMode(spanMs: number): 'seconds' | 'time' | 'date' {
 export function formatAxisDate(
   value: Date,
   location: 'tick' | 'tooltip' | string | undefined,
-  mode: 'date' | 'time' | 'seconds',
+  mode: 'date' | 'time' | 'seconds' | 'datetime',
 ): string {
   const d = dayjs(value);
   // Tooltips always carry seconds on intraday ranges so points sampled a few seconds apart are
   // distinguishable; multi-day ranges keep the year instead (seconds are irrelevant there).
   if (location === 'tooltip') return mode === 'date' ? d.format('D MMM YYYY HH:mm') : d.format('D MMM HH:mm:ss');
   if (mode === 'seconds') return d.format('HH:mm:ss');
-  return mode === 'time' ? d.format('HH:mm') : d.format('D MMM');
+  if (mode === 'time') return d.format('HH:mm');
+  if (mode === 'datetime') return d.format('D MMM HH:mm');
+  return d.format('D MMM');
 }

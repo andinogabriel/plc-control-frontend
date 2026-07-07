@@ -17,7 +17,6 @@ import { AppDataGrid } from '../components/AppDataGrid';
 import { dataGridHeight } from '../components/dataGridLayout';
 import { StatusChip } from '../components/StatusChip';
 import { AreaLineChart } from '../components/AreaLineChart';
-import { axisMode } from '../components/chartStyle';
 import { FadeIn } from '../components/FadeIn';
 import { DetailDialog } from '../components/DetailDialog';
 import { EmptyState } from '../components/EmptyState';
@@ -233,9 +232,6 @@ export function HistoryPage() {
   // Vertical markers where the configuration changed, within the chart's time span.
   const spanStart = labels[0]?.getTime();
   const spanEnd = labels[labels.length - 1]?.getTime();
-  // Axis granularity follows the plotted span: zooming into a short window shows time/seconds
-  // instead of only dates (and the PNG export inherits it). Falls back to 'date' when empty.
-  const chartMode = spanStart != null && spanEnd != null ? axisMode(spanEnd - spanStart) : 'date';
   const configMarkers = (configChanges?.content ?? [])
     .map((c) => new Date(c.createdAt))
     .filter((d) => spanStart != null && spanEnd != null && d.getTime() >= spanStart && d.getTime() <= spanEnd)
@@ -349,7 +345,7 @@ export function HistoryPage() {
               <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <FadeIn>
-                <AreaLineChart height={chartHeight} zoomable mode={chartMode} labels={labels} referenceLines={tempRefs} verticalMarkers={configMarkers}
+                <AreaLineChart height={chartHeight} zoomable labels={labels} referenceLines={tempRefs} verticalMarkers={configMarkers}
                   band={config ? { from: config.temperatureMin, to: config.temperatureMax, color: theme.palette.success.main } : undefined}
                   onPointClick={(i) => setSelected(points[i] ?? null)}
                   series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main }]} />
@@ -387,7 +383,7 @@ export function HistoryPage() {
               <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <FadeIn>
-                <AreaLineChart height={chartHeight} zoomable mode={chartMode} labels={labels} referenceLines={humRefs} verticalMarkers={configMarkers}
+                <AreaLineChart height={chartHeight} zoomable labels={labels} referenceLines={humRefs} verticalMarkers={configMarkers}
                   band={config ? { from: config.humidityMin, to: config.humidityMax, color: theme.palette.success.main } : undefined}
                   onPointClick={(i) => setSelected(points[i] ?? null)}
                   series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main }]} />

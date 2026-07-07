@@ -195,7 +195,6 @@ export function KioscoPage() {
           <AreaLineChart
             fill
             height={360}
-            mode="time"
             labels={labels}
             series={[
               { id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main },
