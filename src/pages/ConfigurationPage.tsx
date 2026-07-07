@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -130,7 +130,7 @@ export function ConfigurationPage() {
 
   const serverError = mutation.error as AxiosError<ApiError> | null;
 
-  const prefillFromActive = () => {
+  const applyActive = useCallback(() => {
     if (!latest) return;
     reset({
       createdByName: latest.createdByName,
@@ -143,8 +143,23 @@ export function ConfigurationPage() {
       hysteresisHumidity: latest.hysteresisHumidity,
       measurementIntervalSeconds: latest.measurementIntervalSeconds,
     });
+  }, [latest, reset]);
+
+  const prefillFromActive = () => {
+    applyActive();
     toast('Cargué los valores de la configuración activa', 'info');
   };
+
+  // Prefill the form with the active config on first load so editing an existing config is a
+  // one-step flow. Runs only once (a fresh visit), so it never clobbers in-progress edits or the
+  // just-saved values when `config-latest` refetches. Falls back to blank when there is no config.
+  const prefilledRef = useRef(false);
+  useEffect(() => {
+    if (latest && !prefilledRef.current) {
+      prefilledRef.current = true;
+      applyActive();
+    }
+  }, [latest, applyActive]);
 
   // Live values for the preview/diff panel.
   const w = watch();
