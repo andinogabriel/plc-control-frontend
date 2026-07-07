@@ -24,13 +24,18 @@ export function ChartBrush({ series, start, end, onChange, height = 40 }: {
     mode: null, anchor: 0, origS: 0, origE: 1, startFrac: 0,
   });
 
-  const all = series.flatMap((s) => s.data);
-  const min = all.length ? Math.min(...all) : 0;
-  const max = all.length ? Math.max(...all) : 1;
-  const range = max - min || 1;
-  const points = (data: number[]) => data
-    .map((v, i) => `${(i / Math.max(1, data.length - 1)) * 100},${100 - ((v - min) / range) * 100}`)
-    .join(' ');
+  // Normalise each series to its OWN range (with vertical padding) so a nearly-flat line still
+  // shows its shape instead of collapsing onto a shared min/max edge — otherwise, with e.g. temp
+  // ~16 and humidity ~68, both pin to opposite edges and the overview looks empty. A constant
+  // series sits mid-height.
+  const points = (data: number[]) => {
+    if (!data.length) return '';
+    const mn = Math.min(...data);
+    const rng = Math.max(...data) - mn;
+    const y = (v: number) => (rng === 0 ? 50 : 90 - ((v - mn) / rng) * 80);
+    const stepX = 100 / Math.max(1, data.length - 1);
+    return data.map((v, i) => `${i * stepX},${y(v)}`).join(' ');
+  };
 
   const fracFrom = (clientX: number) => {
     const rect = trackRef.current?.getBoundingClientRect();

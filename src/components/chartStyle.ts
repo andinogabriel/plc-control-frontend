@@ -35,15 +35,36 @@ export const chartSx = (theme: Theme) => ({
 });
 
 /**
+ * Picks the axis granularity for a plotted time span. Short windows (<= 30 min) sampled every few
+ * seconds need `HH:mm:ss` or adjacent ticks/tooltips collapse to the same label; intraday windows
+ * (<= 1 day) show time-of-day; longer ones show dates. Shared by every time chart so the Dashboard,
+ * Kiosk and History views stay consistent (and so PNG exports inherit the right labels).
+ */
+export function axisMode(spanMs: number): 'seconds' | 'time' | 'datetime' | 'date' {
+  const MINUTE = 60_000;
+  const DAY = 24 * 60 * MINUTE;
+  if (spanMs <= 30 * MINUTE) return 'seconds';
+  if (spanMs <= DAY) return 'time';
+  // 1–7 day spans: ticks land sub-day, so a bare date ("6 jul") repeats — include the time.
+  return spanMs <= 7 * DAY ? 'datetime' : 'date';
+}
+
+/**
  * Spanish date/time formatter for chart axes. Ticks are concise; tooltips show the full date.
- * @param mode 'date' for multi-day ranges (e.g. "3 jun"), 'time' for intraday (e.g. "17:30").
+ * @param mode 'date' for multi-day ranges (e.g. "3 jun"), 'time' for intraday (e.g. "17:30"),
+ *             'seconds' for short ranges with sub-minute sampling (e.g. "17:30:04").
  */
 export function formatAxisDate(
   value: Date,
   location: 'tick' | 'tooltip' | string | undefined,
-  mode: 'date' | 'time',
+  mode: 'date' | 'time' | 'seconds' | 'datetime',
 ): string {
   const d = dayjs(value);
-  if (location === 'tooltip') return d.format('D MMM YYYY HH:mm');
-  return mode === 'time' ? d.format('HH:mm') : d.format('D MMM');
+  // Tooltips always carry seconds on intraday ranges so points sampled a few seconds apart are
+  // distinguishable; multi-day ranges keep the year instead (seconds are irrelevant there).
+  if (location === 'tooltip') return mode === 'date' ? d.format('D MMM YYYY HH:mm') : d.format('D MMM HH:mm:ss');
+  if (mode === 'seconds') return d.format('HH:mm:ss');
+  if (mode === 'time') return d.format('HH:mm');
+  if (mode === 'datetime') return d.format('D MMM HH:mm');
+  return d.format('D MMM');
 }

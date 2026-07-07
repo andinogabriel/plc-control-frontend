@@ -4,7 +4,7 @@ import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine';
 import { useDrawingArea, useXScale, useYScale } from '@mui/x-charts/hooks';
-import { chartSx, formatAxisDate } from './chartStyle';
+import { axisMode, chartSx, formatAxisDate } from './chartStyle';
 import { ChartBrush } from './ChartBrush';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { MONO_FONT } from '../theme';
@@ -87,14 +87,16 @@ function MaskRegions({ labels, mask, color }: { labels: Date[]; mask: boolean[];
  * a custom clickable legend, threshold reference lines, and optional zoom via a brush bar.
  */
 export function AreaLineChart({
-  labels, series, height, mode = 'date', area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, band, shadeMask, zoomable = false, xScale = 'time', showMarks = false, fill = false,
+  labels, series, height, mode, area = true, curve = 'monotoneX', onPointClick, referenceLines, verticalMarkers, band, shadeMask, zoomable = false, xScale = 'time', showMarks = false, fill = false,
 }: {
   labels: Date[];
   series: ChartSeries[];
   /** Chart height in px. When `fill` is set this is only the initial value until the chart is
    *  measured against its container. */
   height: number;
-  mode?: 'date' | 'time';
+  /** Axis time granularity. Omit to derive it from the visible data span (recommended); pass a
+   *  value only to force a specific format. */
+  mode?: 'date' | 'time' | 'seconds' | 'datetime';
   area?: boolean;
   curve?: 'monotoneX' | 'stepAfter' | 'linear' | 'natural';
   onPointClick?: (dataIndex: number) => void;
@@ -139,6 +141,12 @@ export function AreaLineChart({
   const i1 = canZoom ? Math.max(i0 + 1, Math.min(n - 1, Math.round(zoom.e * (n - 1)))) : n - 1;
 
   const viewLabels = canZoom ? labels.slice(i0, i1 + 1) : labels;
+  // Derive the axis granularity from the visible span so ticks/tooltips never collapse to the same
+  // label (a week reads day-by-day, a 10-min window shows seconds). Zooming narrows it live. An
+  // explicit `mode` overrides. `xScale === 'point'` keeps categorical labels, so leave those alone.
+  const effMode = mode ?? (xScale === 'time' && viewLabels.length > 1
+    ? axisMode(viewLabels[viewLabels.length - 1].getTime() - viewLabels[0].getTime())
+    : 'date');
   const viewSeries = canZoom
     ? series.map((s) => ({ ...s, data: s.data.slice(i0, i1 + 1) }))
     : series;
@@ -185,8 +193,12 @@ export function AreaLineChart({
           scaleType: xScale,
           disableLine: true,
           disableTicks: true,
+          // Cap the tick count so the time scale lands on round boundaries (whole days / minutes)
+          // instead of over-generating ticks that collapse to the same label — otherwise a week
+          // reads "30 jun 30 jun 1 jul 1 jul…" and a 10-min range repeats the same minute.
+          tickNumber: 7,
           tickLabelStyle: { fontSize: 11, fontFamily: MONO_FONT },
-          valueFormatter: (value: Date, ctx?: { location?: string }) => formatAxisDate(value, ctx?.location, mode),
+          valueFormatter: (value: Date, ctx?: { location?: string }) => formatAxisDate(value, ctx?.location, effMode),
         }]}
         yAxis={[{
           disableLine: true,

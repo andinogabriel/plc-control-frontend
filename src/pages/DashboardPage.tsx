@@ -63,8 +63,6 @@ const RANGE_OPTIONS = [
 ];
 
 const rangeMsOf = (value: string) => RANGE_OPTIONS.find((o) => o.value === value)?.ms ?? DAY;
-// Intraday ranges (<= 1 day) show time-of-day ticks; longer ones show dates.
-const modeOf = (value: string): 'time' | 'date' => (rangeMsOf(value) <= DAY ? 'time' : 'date');
 
 const SPARK_POINTS = 24;
 // Chart series cap: wide ranges are down-sampled server-side to ~this many points spread across
@@ -612,7 +610,6 @@ export function DashboardPage() {
                   <AreaLineChart
                     height={isMobile ? 260 : 340}
                     zoomable
-                    mode={modeOf(range)}
                     labels={labels}
                     shadeMask={{ values: chartPoints.map((m) => m.coolerOn), color: theme.palette.success.main }}
                     onPointClick={(i) => setSelected(chartPoints[i] ?? null)}

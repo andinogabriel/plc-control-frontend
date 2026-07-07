@@ -345,7 +345,7 @@ export function HistoryPage() {
               <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <FadeIn>
-                <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={tempRefs} verticalMarkers={configMarkers}
+                <AreaLineChart height={chartHeight} zoomable labels={labels} referenceLines={tempRefs} verticalMarkers={configMarkers}
                   band={config ? { from: config.temperatureMin, to: config.temperatureMax, color: theme.palette.success.main } : undefined}
                   onPointClick={(i) => setSelected(points[i] ?? null)}
                   series={[{ id: 'temp', label: 'Temperatura (°C)', data: points.map((m) => m.temperature), color: theme.palette.primary.main }]} />
@@ -383,7 +383,7 @@ export function HistoryPage() {
               <ErrorState dense height={chartBlock} onRetry={() => refetchChart()} />
             ) : points.length > 0 ? (
               <FadeIn>
-                <AreaLineChart height={chartHeight} zoomable mode="date" labels={labels} referenceLines={humRefs} verticalMarkers={configMarkers}
+                <AreaLineChart height={chartHeight} zoomable labels={labels} referenceLines={humRefs} verticalMarkers={configMarkers}
                   band={config ? { from: config.humidityMin, to: config.humidityMax, color: theme.palette.success.main } : undefined}
                   onPointClick={(i) => setSelected(points[i] ?? null)}
                   series={[{ id: 'hum', label: 'Humedad (%)', data: points.map((m) => m.humidity), color: theme.palette.secondary.main }]} />
