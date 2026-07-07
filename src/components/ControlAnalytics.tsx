@@ -79,9 +79,13 @@ export function ControlAnalytics({ points, config }: {
   const avgOnMs = onRuns.length ? onRuns.reduce((a, r) => a + r.ms, 0) / onRuns.length : 0;
   const avgOffMs = offRuns.length ? offRuns.reduce((a, r) => a + r.ms, 0) / offRuns.length : 0;
 
-  const inBand = config
-    ? points.filter((p) => p.temperature >= config.temperatureMin && p.temperature <= config.temperatureMax
-        && p.humidity >= config.humidityMin && p.humidity <= config.humidityMax).length
+  // Split the "in band" metric per variable: a combined temp-AND-humidity figure reads 0 % as soon
+  // as one variable sits out of range the whole time, which hides that the other is well controlled.
+  const tempInBand = config
+    ? points.filter((p) => p.temperature >= config.temperatureMin && p.temperature <= config.temperatureMax).length
+    : 0;
+  const humInBand = config
+    ? points.filter((p) => p.humidity >= config.humidityMin && p.humidity <= config.humidityMax).length
     : 0;
   const tempOvershoot = config
     ? Math.max(0, Math.max(...temps) - config.temperatureMax, config.temperatureMin - Math.min(...temps))
@@ -113,18 +117,21 @@ export function ControlAnalytics({ points, config }: {
             Calidad de control
           </Typography>
           <Grid container spacing={1.5}>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <StatTile accent="success" label="Tiempo en banda" value={pct(inBand, n)} hint="temp y humedad dentro" />
+            <Grid size={{ xs: 6, md: 2.4 }}>
+              <StatTile accent="primary" label="Temp en banda" value={pct(tempInBand, n)} hint="dentro del rango" />
             </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <StatTile accent="primary" label="Ciclos del cooler" value={`${cycles}`}
+            <Grid size={{ xs: 6, md: 2.4 }}>
+              <StatTile accent="secondary" label="Humedad en banda" value={pct(humInBand, n)} hint="dentro del rango" />
+            </Grid>
+            <Grid size={{ xs: 6, md: 2.4 }}>
+              <StatTile accent="success" label="Ciclos del cooler" value={`${cycles}`}
                 hint={`${formatNumber(cyclesPerDay)} /día de conmutación`} />
             </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
+            <Grid size={{ xs: 6, md: 2.4 }}>
               <StatTile accent="warning" label="Sobreoscilación máx" value={`${formatNumber(tempOvershoot)} °C`}
                 hint="fuera de la banda (temp)" />
             </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
+            <Grid size={{ xs: 6, md: 2.4 }}>
               <StatTile accent="secondary" label="Tiempo medio ON" value={formatDuration(avgOnMs)}
                 hint={`OFF ${formatDuration(avgOffMs)} · por ciclo`} />
             </Grid>
