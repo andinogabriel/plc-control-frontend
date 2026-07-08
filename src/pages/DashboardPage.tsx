@@ -264,14 +264,16 @@ export function DashboardPage() {
     placeholderData: keepPreviousData,
   });
 
-  // Independent window for the "Análisis del rango" panel (its own range selector). NOT
-  // down-sampled: the control-quality metrics (cooler cycles, ON/OFF durations, switching) count
-  // transitions, which down-sampling would smear. The panel renders no line chart, so raw points
-  // are fine; the size cap bounds the payload (covers the most recent readings in the window).
+  // Independent window for the "Análisis del rango" panel (its own range selector).
+  // maxPoints makes the server spread the sample across the WHOLE selected window; without it the
+  // size cap silently truncates to the newest ~2000 readings, so every range beyond a few hours
+  // returned the same data and the selector appeared dead. Short windows (< 2000 readings) still
+  // arrive raw; on longer ones the transition-based metrics (cooler cycles) become estimates —
+  // an acceptable trade for metrics that actually describe the selected range.
   const { data: analyticsData, isLoading: analyticsLoading, isError: analyticsError, refetch: refetchAnalytics } = useQuery({
     queryKey: ['measurements-analytics', analyticsRange],
     queryFn: () => measurementApi.getMeasurements({
-      page: 0, size: 2000, from: new Date(Date.now() - analyticsRangeMs).toISOString(),
+      page: 0, size: 2000, maxPoints: 2000, from: new Date(Date.now() - analyticsRangeMs).toISOString(),
     }),
     refetchInterval: paused ? false : 15000,
     placeholderData: keepPreviousData,
