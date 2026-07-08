@@ -143,10 +143,14 @@ export function AreaLineChart({
   const viewLabels = canZoom ? labels.slice(i0, i1 + 1) : labels;
   // Derive the axis granularity from the visible span so ticks/tooltips never collapse to the same
   // label (a week reads day-by-day, a 10-min window shows seconds). Zooming narrows it live. An
-  // explicit `mode` overrides. `xScale === 'point'` keeps categorical labels, so leave those alone.
-  const effMode = mode ?? (xScale === 'time' && viewLabels.length > 1
+  // explicit `mode` overrides. Labels are Dates on both scales, so point charts derive it too —
+  // several same-day config changes read "7 jul 09:15", not a wall of identical "7 jul".
+  const effMode = mode ?? (viewLabels.length > 1
     ? axisMode(viewLabels[viewLabels.length - 1].getTime() - viewLabels[0].getTime())
     : 'date');
+  // Point (categorical) scales emit one tick per datum and ignore tickNumber, so thin them to a
+  // stride that keeps roughly the same tick budget as the time scale.
+  const pointTickStride = xScale === 'point' ? Math.max(1, Math.ceil(viewLabels.length / 7)) : 1;
   const viewSeries = canZoom
     ? series.map((s) => ({ ...s, data: s.data.slice(i0, i1 + 1) }))
     : series;
@@ -197,6 +201,8 @@ export function AreaLineChart({
           // instead of over-generating ticks that collapse to the same label — otherwise a week
           // reads "30 jun 30 jun 1 jul 1 jul…" and a 10-min range repeats the same minute.
           tickNumber: 7,
+          // Point scales ignore tickNumber (one tick per datum); apply the stride there instead.
+          ...(xScale === 'point' && { tickInterval: (_: Date, i: number) => i % pointTickStride === 0 }),
           tickLabelStyle: { fontSize: 11, fontFamily: MONO_FONT },
           valueFormatter: (value: Date, ctx?: { location?: string }) => formatAxisDate(value, ctx?.location, effMode),
         }]}
