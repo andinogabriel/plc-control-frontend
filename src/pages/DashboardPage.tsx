@@ -279,6 +279,15 @@ export function DashboardPage() {
     placeholderData: keepPreviousData,
   });
 
+  // Config history for the analytics panel, so band metrics judge each reading against the config
+  // ACTIVE at its time (judging old data by today's thresholds reads as a false 0 % in band).
+  // Fetched unwindowed on purpose: the config governing the window's start predates the window.
+  const { data: configHistory } = useQuery({
+    queryKey: ['config-history-analytics'],
+    queryFn: () => configApi.getHistory({ page: 0, size: 200 }),
+    staleTime: 60_000,
+  });
+
   // Previous equal-length window, only fetched when the comparison is on.
   const { data: previous } = useQuery({
     queryKey: ['measurements-previous', range],
@@ -526,7 +535,7 @@ export function DashboardPage() {
               ) : analyticsError ? (
                 <ErrorState dense height={analyticsBlock} onRetry={() => refetchAnalytics()} />
               ) : analyticsPoints.length > 0 ? (
-                <FadeIn><ControlAnalytics points={analyticsPoints} config={config} /></FadeIn>
+                <FadeIn><ControlAnalytics points={analyticsPoints} config={config} configs={configHistory?.content} /></FadeIn>
               ) : (
                 <EmptyState dense height={analyticsBlock} icon={<ShowChartRoundedIcon sx={{ fontSize: 30 }} />}
                   title="Sin lecturas en este rango"
