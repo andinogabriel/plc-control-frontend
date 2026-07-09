@@ -40,9 +40,13 @@ function pct(part: number, total: number): string {
  * time spent out of the configured band, the cooler duty cycle, and an ON/OFF timeline that
  * visualises the controller acting against the hysteresis band.
  */
-export function ControlAnalytics({ points, config }: {
+export function ControlAnalytics({ points, config, configs }: {
   points: MeasurementResponse[];
   config?: ConfigResponse;
+  /** Config history (any order). When provided, band metrics judge each reading against the
+   *  config ACTIVE at its time — judging old data by today's thresholds reads as a false
+   *  "0 % in band" whenever the band moved. */
+  configs?: ConfigResponse[];
 }) {
   if (points.length === 0) return null;
 
@@ -51,8 +55,20 @@ export function ControlAnalytics({ points, config }: {
   const hums = points.map((p) => p.humidity);
   const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 
-  const tOut = config ? points.filter((p) => p.temperature < config.temperatureMin || p.temperature > config.temperatureMax).length : 0;
-  const hOut = config ? points.filter((p) => p.humidity < config.humidityMin || p.humidity > config.humidityMax).length : 0;
+  // Config active at each reading: walk points (chronological) and the sorted history in
+  // lockstep. Readings older than the first known config are judged by that first config —
+  // the least-wrong option without inventing bands. Falls back to the current config alone.
+  const history = (configs && configs.length > 0 ? [...configs] : config ? [config] : [])
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  let ci = 0;
+  const activeAt = points.map((p) => {
+    const t = new Date(p.createdAt).getTime();
+    while (ci + 1 < history.length && new Date(history[ci + 1].createdAt).getTime() <= t) ci += 1;
+    return history[ci];
+  });
+
+  const tOut = config ? points.filter((p, i) => p.temperature < activeAt[i].temperatureMin || p.temperature > activeAt[i].temperatureMax).length : 0;
+  const hOut = config ? points.filter((p, i) => p.humidity < activeAt[i].humidityMin || p.humidity > activeAt[i].humidityMax).length : 0;
   const coolerOnCount = points.filter((p) => p.coolerOn).length;
 
   // Cooler ON/OFF runs, weighted by elapsed time between consecutive readings.
@@ -82,13 +98,13 @@ export function ControlAnalytics({ points, config }: {
   // Split the "in band" metric per variable: a combined temp-AND-humidity figure reads 0 % as soon
   // as one variable sits out of range the whole time, which hides that the other is well controlled.
   const tempInBand = config
-    ? points.filter((p) => p.temperature >= config.temperatureMin && p.temperature <= config.temperatureMax).length
+    ? points.filter((p, i) => p.temperature >= activeAt[i].temperatureMin && p.temperature <= activeAt[i].temperatureMax).length
     : 0;
   const humInBand = config
-    ? points.filter((p) => p.humidity >= config.humidityMin && p.humidity <= config.humidityMax).length
+    ? points.filter((p, i) => p.humidity >= activeAt[i].humidityMin && p.humidity <= activeAt[i].humidityMax).length
     : 0;
   const tempOvershoot = config
-    ? Math.max(0, Math.max(...temps) - config.temperatureMax, config.temperatureMin - Math.min(...temps))
+    ? points.reduce((acc, p, i) => Math.max(acc, p.temperature - activeAt[i].temperatureMax, activeAt[i].temperatureMin - p.temperature), 0)
     : 0;
 
   return (
@@ -118,10 +134,10 @@ export function ControlAnalytics({ points, config }: {
           </Typography>
           <Grid container spacing={1.5}>
             <Grid size={{ xs: 6, md: 2.4 }}>
-              <StatTile accent="primary" label="Temp en banda" value={pct(tempInBand, n)} hint="dentro del rango" />
+              <StatTile accent="primary" label="Temp en banda" value={pct(tempInBand, n)} hint="según config vigente" />
             </Grid>
             <Grid size={{ xs: 6, md: 2.4 }}>
-              <StatTile accent="secondary" label="Humedad en banda" value={pct(humInBand, n)} hint="dentro del rango" />
+              <StatTile accent="secondary" label="Humedad en banda" value={pct(humInBand, n)} hint="según config vigente" />
             </Grid>
             <Grid size={{ xs: 6, md: 2.4 }}>
               <StatTile accent="success" label="Ciclos del cooler" value={`${cycles}`}
