@@ -329,9 +329,12 @@ export function HistoryPage() {
                     legend: [
                       { label: 'Temperatura (°C)', color: theme.palette.primary.main },
                       ...(config ? [
-                        { label: 'Banda objetivo', color: theme.palette.success.main, area: true },
-                        { label: 'Límite mín', color: theme.palette.warning.main, dashed: true },
-                        { label: 'Límite máx', color: theme.palette.error.main, dashed: true },
+                        { label: `Banda objetivo (${formatTemp(config.temperatureMin)} a ${formatTemp(config.temperatureMax)})`, color: theme.palette.success.main, area: true },
+                        { label: `Límite mín (${formatTemp(config.temperatureMin)})`, color: theme.palette.warning.main, dashed: true },
+                        { label: `Límite máx (${formatTemp(config.temperatureMax)})`, color: theme.palette.error.main, dashed: true },
+                      ] : []),
+                      ...(configMarkers.length > 0 ? [
+                        { label: `Cambios de configuración (${configMarkers.length}; xN = agrupados)`, color: theme.palette.info.main, vertical: true },
                       ] : []),
                     ],
                   })}
@@ -367,9 +370,12 @@ export function HistoryPage() {
                     legend: [
                       { label: 'Humedad (%)', color: theme.palette.secondary.main },
                       ...(config ? [
-                        { label: 'Banda objetivo', color: theme.palette.success.main, area: true },
-                        { label: 'Límite mín', color: theme.palette.warning.main, dashed: true },
-                        { label: 'Límite máx', color: theme.palette.error.main, dashed: true },
+                        { label: `Banda objetivo (${formatPct(config.humidityMin)} a ${formatPct(config.humidityMax)})`, color: theme.palette.success.main, area: true },
+                        { label: `Límite mín (${formatPct(config.humidityMin)})`, color: theme.palette.warning.main, dashed: true },
+                        { label: `Límite máx (${formatPct(config.humidityMax)})`, color: theme.palette.error.main, dashed: true },
+                      ] : []),
+                      ...(configMarkers.length > 0 ? [
+                        { label: `Cambios de configuración (${configMarkers.length}; xN = agrupados)`, color: theme.palette.info.main, vertical: true },
                       ] : []),
                     ],
                   })}

@@ -66,8 +66,9 @@ export interface ChartPngMeta {
   source?: string;
   /** Legend drawn under the title (the on-screen legend is HTML, not part of the SVG, so the export
    *  would otherwise have no key). `dashed` draws a dashed line swatch (limits / comparison);
-   *  `area` draws a filled-zone swatch (setpoint band / cooler-ON shading). */
-  legend?: { label: string; color: string; dashed?: boolean; area?: boolean }[];
+   *  `area` draws a filled-zone swatch (setpoint band / cooler-ON shading); `vertical` draws a
+   *  vertical dotted swatch (config-change markers). */
+  legend?: { label: string; color: string; dashed?: boolean; area?: boolean; vertical?: boolean }[];
 }
 
 const FONT_STACK = 'Inter, Roboto, Helvetica, Arial, sans-serif';
@@ -126,7 +127,7 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
   const legend = meta.legend ?? [];
   const LEG = { rowH: 20, swatch: 18, swGap: 6, itemGap: 18, padX: 12 };
   const w = rect.width;
-  const legendRows: { label: string; color: string; dashed?: boolean; area?: boolean; tw: number }[][] = [];
+  const legendRows: { label: string; color: string; dashed?: boolean; area?: boolean; vertical?: boolean; tw: number }[][] = [];
   if (legend.length) {
     const mctx = document.createElement('canvas').getContext('2d');
     if (mctx) {
@@ -194,6 +195,16 @@ export async function exportChartPng(container: HTMLElement | null, filename: st
                 ctx.lineWidth = 1;
                 ctx.setLineDash([]);
                 ctx.strokeRect(x + 0.5, ly - 4.5, LEG.swatch - 1, 9);
+              } else if (it.vertical) {
+                // Vertical dotted swatch, matching the config-change reference lines on the chart.
+                ctx.strokeStyle = it.color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([2, 3]);
+                ctx.beginPath();
+                ctx.moveTo(x + LEG.swatch / 2, ly - 7);
+                ctx.lineTo(x + LEG.swatch / 2, ly + 7);
+                ctx.stroke();
+                ctx.setLineDash([]);
               } else {
                 ctx.strokeStyle = it.color;
                 ctx.lineWidth = 3;
