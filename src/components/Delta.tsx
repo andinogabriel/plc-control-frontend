@@ -19,7 +19,7 @@ export function Delta({ value, unit, fractionDigits = 1 }: {
   const Icon = direction === 'up' ? ArrowUpwardRoundedIcon
     : direction === 'down' ? ArrowDownwardRoundedIcon : RemoveRoundedIcon;
   const color = direction === 'up' ? 'warning.main'
-    : direction === 'down' ? 'info.main' : 'text.disabled';
+    : direction === 'down' ? 'info.main' : 'text.secondary';
 
   return (
     <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color }}>
