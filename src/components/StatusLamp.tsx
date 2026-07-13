@@ -18,7 +18,9 @@ export function StatusLamp({ tone = 'default', size = 9, pulse = false }: {
       component="span"
       aria-hidden
       sx={(theme) => {
-        const main = tone === 'default' ? theme.palette.text.disabled : theme.palette[tone].main;
+        // `default` resolves to the secondary text colour (slate) rather than the disabled tone:
+        // the disabled alpha (~0.38 on white) makes an idle LED almost invisible in the light theme.
+        const main = tone === 'default' ? theme.palette.text.secondary : theme.palette[tone].main;
         return {
           width: size,
           height: size,
